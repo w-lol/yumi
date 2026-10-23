@@ -107,7 +107,9 @@ namespace Yumi.Desktop
             if(motion.State==CharacterMotion.JumpStart)rig.Motion="Jumping";
             if(state!=null&&state.speaking&&motion.State==CharacterMotion.Idle)rig.Motion="Talking";
             DesktopGeometry.POINT cursor;
-            if(DesktopGeometry.GetCursorPos(out cursor))rig.Gaze=new Vector3(Mathf.Clamp((float)(cursor.X-motion.X)/60,-12,12),Mathf.Clamp((float)(cursor.Y-motion.Y+220)/80,-8,8),0);
+            // The avatar root faces the camera at 180 degrees: positive local yaw
+            // turns toward desktop left. Vertical pitch already follows correctly.
+            if(DesktopGeometry.GetCursorPos(out cursor))rig.Gaze=new Vector3(Mathf.Clamp((float)(motion.X-cursor.X)/60,-12,12),Mathf.Clamp((float)(cursor.Y-motion.Y+220)/80,-8,8),0);
         }
         void Action(string id,AvatarAction action)
         {

@@ -181,7 +181,10 @@ static class Program
         Check(Math.Abs(faster.X-other.X)<.01&&Math.Abs(faster.Y-other.Y)<.01,"Motion depends on frame rate");
         Check(!faster.RequestSurface("not-a-surface"),"Invalid surface was accepted");
         var autonomous=new DesktopMotion();var autoGeometry=MotionFixture();autoGeometry.Windows.Last().Foreground=true;
-        autonomous.SetGeometry(autoGeometry);autonomous.Stationary=false;
+        autonomous.SetGeometry(autoGeometry);autonomous.Stay();
+        for(int i=0;i<200;i++)autonomous.Tick(.1,true,false,1);
+        Check(!autonomous.AutonomousActive,"Stationary mode must suppress autonomous routes");
+        autonomous.Stationary=false;
         for(int i=0;i<400&&!autonomous.AutonomousActive;i++)autonomous.Tick(.1,true,false,1);
         Check(autonomous.AutonomousActive,"Eligible autonomous route did not start");
         autonomous.Tick(.01,false,false,1);

@@ -12,7 +12,19 @@ namespace Yumi.Desktop
         public double Speed=150,JumpHeight=170,Gravity=950,FootMargin=18;
         public string SupportId="",TargetWindow="",Message="",Behavior="RESTING";
         public CharacterMotion State=CharacterMotion.Idle;
-        public bool Stationary,FollowCursor;
+        bool stationary;
+        public bool Stationary
+        {
+            get {return stationary;}
+            set
+            {
+                // Stay installs an indefinite manual hold. Explicitly releasing
+                // stationary mode must release that hold as well.
+                if(stationary&&!value&&Double.IsPositiveInfinity(manualUntil))manualUntil=clock+3;
+                stationary=value;
+            }
+        }
+        public bool FollowCursor;
         public bool AutonomousActive { get; private set; }
         public bool Navigating { get { return goal.HasValue||pending!=null||route.Count>0||SupportId==""; } }
         public int Recoveries { get; private set; }
