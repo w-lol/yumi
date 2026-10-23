@@ -1,0 +1,9 @@
+{
+  "two_visible_windows": "passed",
+  "text_survives_voice_failure": "passed",
+  "typed_chat_and_memory_in_ui": "passed",
+  "worker_crash_recovery": "passed",
+  "emergency_stop_during_generation": "passed",
+  "stop_dispatch_ms": 8.644487999845296,
+  "shutdown_without_model_or_conversation_worker": "passed"
+}

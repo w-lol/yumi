@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+.venv/
+runtime/
+models/
+data/
+logs/
+cache/
+tmp/
+downloads/
+backups/
+dist/
+artifacts/
+config/
+/docs/PRODUCT_BRIEF.md
