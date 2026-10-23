@@ -79,6 +79,7 @@ namespace Yumi.Desktop.Editor
                     {notes.Add("Standalone clone excludes "+type+" on "+component.gameObject.name);UnityEngine.Object.DestroyImmediate(component);}
                 }
                 foreach(Transform t in clone.GetComponentsInChildren<Transform>(true))GameObjectUtility.RemoveMonoBehavioursWithMissingScript(t.gameObject);
+                PantsMeshRepair.Apply(clone,mouth,Output,notes);
                 var materialErrors=new List<string>();
                 foreach(Renderer renderer in clone.GetComponentsInChildren<Renderer>(true))
                 {
@@ -86,6 +87,10 @@ namespace Yumi.Desktop.Editor
                     for(int slot=0;slot<materials.Length;slot++)
                     {
                         Material material=materials[slot];
+                        SkinnedMeshRenderer skinned=renderer as SkinnedMeshRenderer;
+                        MeshFilter filter=renderer.GetComponent<MeshFilter>();
+                        Mesh materialMesh=skinned!=null?skinned.sharedMesh:(filter==null?null:filter.sharedMesh);
+                        if(material==null&&materialMesh!=null&&slot<materialMesh.subMeshCount&&materialMesh.GetIndexCount(slot)==0)continue;
                         if(material!=null&&material.shader!=null&&material.shader.name!="Hidden/InternalErrorShader")continue;
                         string hierarchy=AnimationUtility.CalculateTransformPath(renderer.transform,clone.transform);
                         string path=material==null?"<missing material>":AssetDatabase.GetAssetPath(material);

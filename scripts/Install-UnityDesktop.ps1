@@ -16,7 +16,7 @@ if ($Version -notmatch 'm_EditorVersion: 2022\.3\.22f1(?:\s|$)') { throw 'Use th
 $Source=Join-Path (Split-Path $PSScriptRoot -Parent) 'integrations/unity'
 $Target=Join-Path $ProjectRoot 'Assets/YumiDesktop'
 $Backup=Join-Path (Split-Path $Boundary -Parent) ('backups/unity-desktop-'+[guid]::NewGuid().ToString('N'))
-foreach ($Pair in @(@('Runtime','Runtime'),@('DesktopEditor','Editor'))) {
+foreach ($Pair in @(@('Runtime','Runtime'),@('DesktopEditor','Editor'),@('EditorTests','Tests/Editor'))) {
     $Destination=Join-Path $Target $Pair[1]
     New-Item -ItemType Directory -Force -Path $Destination | Out-Null
     foreach ($File in Get-ChildItem -LiteralPath (Join-Path $Source $Pair[0]) -File) {
@@ -30,4 +30,4 @@ foreach ($Pair in @(@('Runtime','Runtime'),@('DesktopEditor','Editor'))) {
     }
 }
 Write-Host 'Added scoped runtime/build tools. Original scenes, meshes, materials and controllers were preserved.'
-Write-Host 'Restore pinned VPM packages, then use Yumi > Build Windows desktop player in Unity 2022.3.22f1.'
+Write-Host 'Use Build-UnityAvatar.ps1 for automatic Editor discovery, preflight tests and a staged Windows build.'

@@ -240,7 +240,7 @@ class Board(QMainWindow):
 
     def unity_tab(self):
         layout=self.page('Unity avatar')
-        layout.addWidget(QLabel('Primary avatar target: the original avatar-unity project.\nUnity project rendering/build compatibility requires its actual asset inspection.\nThe existing 2D avatar remains available until the Unity player is verified.'))
+        layout.addWidget(QLabel('Primary avatar target: the original avatar-unity project.\nBuild / repair runs the original project tests and builds locally with Unity 2022.3.22f1.\nThe existing 2D avatar remains available until the Unity player is verified.'))
         form=QFormLayout()
         self.unity_bridge_switch=self.check(form,'Enable authenticated localhost bridge','unity_bridge_enabled',self.toggle_unity_bridge)
         self.check(form,'Show Unity avatar','unity_visible')
@@ -259,6 +259,7 @@ class Board(QMainWindow):
         layout.addLayout(form)
         self.unity_status=QLabel();self.unity_status.setTextFormat(Qt.PlainText);self.unity_status.setWordWrap(True);layout.addWidget(self.unity_status)
         row=QHBoxLayout()
+        button('Build / repair original avatar',self.build_unity,row)
         button('Launch locally built avatar',self.launch_unity,row)
         button('Close avatar player',lambda:self.guard(self.core.unity_player.close),row)
         button('Inspect duplicated Unity project',self.inspect_unity,row)
@@ -274,6 +275,18 @@ class Board(QMainWindow):
         layout.addLayout(expression_row)
         layout.addWidget(QLabel('These controls send state/actions only. Unity must implement and acknowledge them.\nNo movement is reported as completed merely because it was requested.\nMouth signals follow real playback but are spectral estimates, not verified phoneme timing.'))
         layout.addStretch()
+
+    def build_unity(self):
+        if os.name!='nt':
+            self.notice('Avatar building requires Windows and the original Unity 2022.3.22f1 Editor.')
+            return
+        def launch():
+            script=self.paths.root/'scripts/Build-UnityAvatar.ps1'
+            subprocess.Popen(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-NoExit',
+                '-File',str(script),'-Root',str(self.paths.root)],cwd=str(self.paths.root),
+                creationflags=subprocess.CREATE_NEW_CONSOLE)
+            self.notice('Avatar test/build console opened. Close the Unity Editor first; follow its result, then use Launch locally built avatar.')
+        self.guard(launch)
 
     def launch_unity(self):
         def launch():

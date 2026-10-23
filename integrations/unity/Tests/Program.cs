@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using System.Runtime.InteropServices;
 using Yumi.Desktop;
+using Yumi.Desktop.Editor;
 
 static class Program
 {
@@ -15,6 +16,7 @@ static class Program
     static void Main()
     {
         TestSourceSyntax();
+        TestPantsRepair();
         TestPlayback();
         TestMotion();
         DesktopMonitor monitor=new DesktopMonitor {Id="left",Bounds=new DesktopRect(-1000,0,1000,800),Work=new DesktopRect(-1000,0,1000,760)};
@@ -51,7 +53,7 @@ static class Program
     static void TestSourceSyntax()
     {
         int count=0;
-        foreach(string folder in new[]{"Runtime","Editor","DesktopEditor"})
+        foreach(string folder in new[]{"Runtime","Editor","DesktopEditor","EditorTests"})
             foreach(string path in Directory.GetFiles(Path.Combine("integrations/unity",folder),"*.cs"))
                 foreach(string[] symbols in new[]{new[]{"UNITY_EDITOR","UNITY_EDITOR_WIN"},new[]{"UNITY_STANDALONE_WIN"}})
                 {
@@ -67,6 +69,24 @@ static class Program
                     Check(scopeErrors.Length==0,path+": "+String.Join("; ",scopeErrors.Select(d=>d.ToString())));count++;
                 }
         Console.WriteLine("C#9 source parsing passed ("+count+" platform variants). This does not validate Unity API references.");
+    }
+
+    static void TestPantsRepair()
+    {
+        Func<string,string,string,string,int,int,bool,bool,bool,bool,bool> match=PantsRepairPolicy.Matches;
+        string guid=PantsRepairPolicy.SourceGuid,hash=PantsRepairPolicy.SourceSha256,clothing=PantsRepairPolicy.BeltsGuid;
+        Check(match("pants/Body",guid,hash,clothing,3,3,true,true,true,true),"Known donor-geometry signature was not recognized");
+        Check(!match("Body",guid,hash,clothing,3,3,true,true,true,true),"Primary face must never be repaired as clothing");
+        Check(!match("pants/Body",guid,"modified",clothing,3,3,true,true,true,true),"Changed source FBX must not be pruned");
+        Check(!match("pants/Body","other",hash,clothing,3,3,true,true,true,true),"Other mesh GUID must not match");
+        Check(!match("pants/Body",guid,hash,"other",3,3,true,true,true,true),"Unknown clothing material must not match");
+        Check(!match("pants/Body",guid,hash,clothing,2,3,true,true,true,true),"Unexpected material layout must not match");
+        Check(!match("pants/Body",guid,hash,clothing,3,2,true,true,true,true),"Unexpected submesh layout must not match");
+        Check(!match("pants/Body",guid,hash,clothing,3,3,false,true,true,true),"Assigned original material must be retained");
+        Check(!match("pants/Body",guid,hash,clothing,3,3,true,false,true,true),"Assigned second original material must be retained");
+        Check(!match("pants/Body",guid,hash,clothing,3,3,true,true,false,true),"Shared face mesh must never be pruned");
+        Check(!match("pants/Body",guid,hash,clothing,3,3,true,true,true,false),"Broken clothing shader must not be hidden");
+        Console.WriteLine("Pants repair policy: exact fingerprint accepted; changed mesh, face, material, layout and shader rejected.");
     }
 
     static void TestPlayback()

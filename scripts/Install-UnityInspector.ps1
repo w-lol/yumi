@@ -31,4 +31,4 @@ foreach ($File in Get-ChildItem -LiteralPath $Source -File) {
     Copy-Item -LiteralPath $File.FullName -Destination $Destination -Force
 }
 Write-Host 'Added only Assets\YumiDesktopInspection\Editor. No existing avatar assets or project settings were changed.'
-Write-Host 'Open this duplicated project using its existing Unity version, then choose Yumi > Inspect duplicated avatar project (read only).'
+Write-Host 'Inspection tools installed in the duplicate. Avatar setup runs through Build-UnityAvatar.ps1.'

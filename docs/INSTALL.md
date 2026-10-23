@@ -3,6 +3,8 @@
 This is a functional development build. Windows hardware acceptance is still required;
 read `VERIFICATION.md` before treating it as a finished production release.
 
+For original-avatar update + local test/build setup, see [AVATAR_SETUP.md](AVATAR_SETUP.md).
+
 ## Apply a downloaded update
 
 Download **Yumi-Windows-installer** from a successful Actions run and extract the

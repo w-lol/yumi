@@ -1,5 +1,9 @@
 # Original Unity avatar integration
 
+Latest build repair and one-command setup: [AVATAR_SETUP.md](AVATAR_SETUP.md).
+The pants donor-geometry repair and shipped Unity tests supersede earlier manual
+material-restoration instructions; see [AVATAR_REPAIR_REPORT.md](AVATAR_REPAIR_REPORT.md).
+
 ## Delivered and verified scope
 
 The uploaded original project is **avatar-unity/Fenriru**, Unity **2022.3.22f1**,

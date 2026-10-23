@@ -36,7 +36,7 @@ try {
     & (Join-Path $PSScriptRoot 'Install-UnityDesktop.ps1') -ProjectRoot $Project
     if (-not (Test-Path (Join-Path $Nested 'Assets/YumiDesktop/Runtime/YumiDesktopAvatar.cs'))) { throw 'Nested project resolution failed.' }
     $Parsed=$null; $Errors=$null
-    foreach ($File in @('Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
+    foreach ($File in @('Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Setup-Avatar.ps1','validate_unity_build.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
         [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot $File),[ref]$Parsed,[ref]$Errors) | Out-Null
         if ($Errors.Count) { throw ($Errors | Out-String) }
     }

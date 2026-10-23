@@ -60,6 +60,9 @@ jobs:
       - name: Validate read-only Unity inspection tools
         shell: powershell
         run: ./scripts/validate_unity_inspection.ps1
+      - name: Validate Windows avatar build orchestration
+        shell: powershell
+        run: ./scripts/validate_unity_build.ps1
       - name: Compile and test Unity-side Windows geometry and motion
         run: |
           dotnet run --project integrations/unity/Tests/GeometryTests.csproj --configuration Release 2>&1 | Tee-Object -Variable Result
@@ -83,6 +86,7 @@ jobs:
             dist/Yumi.zip
             dist/Yumi.zip.sha256
             dist/Update-Yumi.ps1
+            dist/Setup-Avatar.ps1
           if-no-files-found: error
           retention-days: 30
       - name: Explain download and validation scope
@@ -133,6 +137,6 @@ jobs:
           printf '%s\n' 'Windows development installer built by GitHub Actions.' \
             'Download Yumi.zip and follow docs/INSTALL.md inside it.' \
             'Setup downloads the pinned runtime and models. GPU and physical-device acceptance remain pending.' > release-notes.txt
-          gh release create "$RELEASE_TAG" Yumi.zip Yumi.zip.sha256 Update-Yumi.ps1 \
+          gh release create "$RELEASE_TAG" Yumi.zip Yumi.zip.sha256 Update-Yumi.ps1 Setup-Avatar.ps1 \
             --target "$BUILD_REVISION" --prerelease --title "Yumi $RELEASE_TAG" \
             --notes-file release-notes.txt

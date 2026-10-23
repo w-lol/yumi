@@ -1,0 +1,90 @@
+using System;
+using System.IO;
+using System.Linq;
+using NUnit.Framework;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace Yumi.Desktop.Editor.Tests
+{
+    public class OriginalAvatarBuildTests
+    {
+        const string Pants="Assets/ITEMS/Model/tda_dl_pouchy_v1_cyberpunk__by_kakaiya_ddawp25/untitled.fbx";
+        const string Belts="Assets/ITEMS/Model/tda_dl_pouchy_v1_cyberpunk__by_kakaiya_ddawp25/Material/Belts.mat";
+        [Test] public void OriginalProjectVersionAndFaceDescriptorSourceAreAvailable()
+        {
+            Assert.AreEqual("2022.3.22f1",Application.unityVersion);
+            Assert.IsTrue(File.Exists("Assets/lordhavemercy.unity"));
+            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Imported/Fbx/Avatar/Karin_2.fbx"));
+        }
+        [Test] public void PantsRepairPreservesActualClothingGeometryAndOriginalAsset()
+        {
+            string output="Assets/YumiDesktopTestTemp_"+Guid.NewGuid().ToString("N");
+            Directory.CreateDirectory(output);AssetDatabase.Refresh();
+            GameObject root=new GameObject("Pants repair test");
+            Mesh faceMesh=new Mesh();
+            try
+            {
+                var model=AssetDatabase.LoadAssetAtPath<GameObject>(Pants);
+                Assert.IsNotNull(model,"Original pants FBX is missing");
+                var instance=UnityEngine.Object.Instantiate(model,root.transform);instance.name="pants";
+                var renderer=instance.transform.Find("Body").GetComponent<SkinnedMeshRenderer>();
+                var primary=new GameObject("Separate Karin face").AddComponent<SkinnedMeshRenderer>();primary.transform.SetParent(root.transform);primary.sharedMesh=faceMesh;
+                Mesh original=renderer.sharedMesh;
+                Assert.AreEqual(3,original.subMeshCount,"Unexpected FBX import layout");
+                int[][] before=Enumerable.Range(0,3).Select(i=>original.GetTriangles(i)).ToArray();
+                Assert.Greater(before[0].Length,0);Assert.Greater(before[1].Length,0);Assert.Greater(before[2].Length,0);
+                var clothing=AssetDatabase.LoadAssetAtPath<Material>(Belts);Assert.IsNotNull(clothing);
+                Assert.IsNotNull(clothing.shader);Assert.AreNotEqual("Hidden/InternalErrorShader",clothing.shader.name,"Restore original Belts shader before building");
+                renderer.sharedMaterials=new Material[]{null,null,clothing};
+                var notes=new System.Collections.Generic.List<string>();PantsMeshRepair.Apply(root,primary,output,notes);
+                Mesh repaired=renderer.sharedMesh;Assert.AreNotSame(original,repaired,"Exact repair signature did not match");
+                Assert.AreEqual(0,repaired.GetIndexCount(0));Assert.AreEqual(0,repaired.GetIndexCount(1));
+                CollectionAssert.AreEqual(before[2],repaired.GetTriangles(2));
+                for(int i=0;i<3;i++)CollectionAssert.AreEqual(before[i],original.GetTriangles(i),"Original mesh was modified");
+                CollectionAssert.AreEqual(original.vertices,repaired.vertices);
+                CollectionAssert.AreEqual(original.boneWeights,repaired.boneWeights);
+                CollectionAssert.AreEqual(original.bindposes,repaired.bindposes);
+                Assert.AreEqual(original.blendShapeCount,repaired.blendShapeCount);
+                for(int shape=0;shape<original.blendShapeCount;shape++)
+                {
+                    Assert.AreEqual(original.GetBlendShapeName(shape),repaired.GetBlendShapeName(shape));
+                    for(int frame=0;frame<original.GetBlendShapeFrameCount(shape);frame++)
+                    {
+                        var a=new Vector3[original.vertexCount];var b=new Vector3[original.vertexCount];
+                        var an=new Vector3[original.vertexCount];var bn=new Vector3[original.vertexCount];
+                        var at=new Vector3[original.vertexCount];var bt=new Vector3[original.vertexCount];
+                        original.GetBlendShapeFrameVertices(shape,frame,a,an,at);
+                        repaired.GetBlendShapeFrameVertices(shape,frame,b,bn,bt);
+                        CollectionAssert.AreEqual(a,b);CollectionAssert.AreEqual(an,bn);CollectionAssert.AreEqual(at,bt);
+                    }
+                }
+                Assert.AreSame(clothing,renderer.sharedMaterials[2]);Assert.AreSame(faceMesh,primary.sharedMesh);Assert.IsNotEmpty(notes);
+            }
+            finally {UnityEngine.Object.DestroyImmediate(root);UnityEngine.Object.DestroyImmediate(faceMesh);AssetDatabase.DeleteAsset(output);}
+        }
+        [Test] public void PlaybackInterruptionClearsFaceImmediately()
+        {
+            var timeline=new Yumi.Desktop.PlaybackTimeline();
+            timeline.Push(new Yumi.Desktop.PlaybackFrame {Epoch=1,Due=1000,Speaking=true,Aa=1},1000);
+            Assert.IsTrue(timeline.Sample(1000).Speaking);
+            timeline.Push(new Yumi.Desktop.PlaybackFrame {Epoch=2,Due=1001,Speaking=false},1001);
+            Assert.IsFalse(timeline.Sample(1001).Speaking);Assert.AreEqual(0,timeline.Sample(1001).Aa);
+        }
+        [Test] public void GeneratedSceneRetainsRigMaterialsAndNoSdkRuntimeComponents()
+        {
+            YumiDesktopBuild.CreateScene();
+            Scene scene=EditorSceneManager.OpenScene("Assets/YumiDesktopGenerated/YumiDesktop.unity",OpenSceneMode.Single);
+            var rig=scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<YumiAvatarRig>(true)).Single();
+            Assert.IsTrue(rig.Ready);Assert.Greater(rig.face.mesh.sharedMesh.blendShapeCount,0);
+            Assert.IsNotNull(rig.animator.runtimeAnimatorController);
+            foreach(var renderer in rig.GetComponentsInChildren<Renderer>(true))
+                foreach(var material in renderer.sharedMaterials.Where(m=>m!=null))
+                {Assert.IsNotNull(material.shader);Assert.AreNotEqual("Hidden/InternalErrorShader",material.shader.name);}
+            foreach(var component in rig.GetComponentsInChildren<Component>(true).Where(c=>c!=null))
+                Assert.IsFalse(component.GetType().FullName.StartsWith("VRC."),"SDK runtime component remains on generated rig");
+        }
+    }
+}

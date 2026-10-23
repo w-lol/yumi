@@ -46,8 +46,9 @@ def build(root: Path, output: Path, revision: str = '') -> Path:
                 raise ValueError(f'Missing installer component: {required}')
     checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
     (output / 'Yumi.zip.sha256').write_text(f'{checksum}  Yumi.zip\n', encoding='ascii')
-    helper=root/'scripts/Update-Yumi.ps1'
-    if helper.is_file(): shutil.copyfile(helper,output/'Update-Yumi.ps1')
+    for name in ('Update-Yumi.ps1','Setup-Avatar.ps1'):
+        helper=root/'scripts'/name
+        if helper.is_file(): shutil.copyfile(helper,output/name)
     print(f'Built {archive} ({archive.stat().st_size} bytes); SHA256 {checksum}')
     return archive
 
