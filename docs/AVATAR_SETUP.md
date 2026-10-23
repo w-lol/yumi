@@ -77,7 +77,8 @@ Unity rendering, Poiyomi appearance, transparency, physical lip synchronization,
 poses and desktop motion still require actual Windows visual acceptance. See
 [UNITY_INTEGRATION.md](UNITY_INTEGRATION.md). SDK PhysBones/contacts and advanced
 animation/gesture systems remain incomplete. Build/test success does not prove those.
-# Repeating lilEditorToolbox toolbar exceptions during batch tests
+
+## Repeating lilEditorToolbox toolbar exceptions during batch tests
 
 `ToolbarWrap.get_m_Root` / `ToolbarExtension.GetVisualElements` exceptions indicate
 an editor toolbar extension trying to access a window that batch mode does not
@@ -91,4 +92,3 @@ rejected without modification; absent packages are left alone. Tests are still
 required. PowerShell fixtures verify backup contents, repeated runs, absent
 packages and refusal of unknown source layouts. Actual Unity testing must run
 on the Windows installation.
-
