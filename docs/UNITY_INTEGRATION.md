@@ -25,7 +25,12 @@ Once the project is available, work proceeds on `codex/unity-avatar-integration`
 2. Create recoverable copies only where asset changes are needed. Get the original
    appearance rendering in a standalone Windows build first. Evaluate the free MIT
    [UniWindowController](https://github.com/kirurobo/UniWindowController) against the actual
-   Unity version/render pipeline. Verify borderless alpha, focus and transparent hit
+   Unity version/render pipeline. Its documented minimum is 2019.4.31f1, with .NET 4.x;
+   Windows alpha transparency requires Direct3D11 with the DXGI flip-model swapchain
+   disabled. URP also requires preserving alpha (HDR disabled and alpha processing
+   enabled). These settings must be checked against the real project before changing
+   them. Transparency must be tested in a built player, not inferred from the Editor.
+   Verify borderless alpha, focus and transparent hit
    testing on Windows; do not call these operational based on source code alone.
 3. Connect the real Unity renderer to the tested localhost transport below. Map the
    avatar's actual facial blendshapes and verify synchronized mouth movement against
@@ -119,13 +124,17 @@ alone will not launch a Unity avatar.
 
 ## Verification
 
-- 32 Python tests pass locally, including real loopback WebSocket authentication,
+- 32 Python tests pass locally and on Windows CI, including real loopback WebSocket authentication,
   readiness gating, state delivery, high-level action delivery, invalid-client-message
   rejection, cleanup and descriptor removal, plus existing memory/audio/installer tests.
 - The PowerShell fixture confirms GUID resolution, material/shader detection, unchanged
   original source hashes, scoped Editor-tool copying, and script parsing.
-- The Windows Actions workflow also runs these checks; its result is the evidence for
-  Windows-side Python/PowerShell behaviour. It does not compile or build Unity.
+- Windows Actions passed Python, PowerShell, native geometry compilation/owned-window
+  enumeration and real Kokoro synthesis. The second successful run also passed the
+  pure C# platform-motion tests: multi-hop ballistic routes, walking/flight/landing
+  states, moving/vanishing supports, stationary priority and 30/60 Hz cross-monitor
+  coordinate results. These are mechanics tests, not a rendered character moving
+  across a user's applications. CI does not compile or build the Unity project.
 - Actual avatar rendering, Poiyomi fidelity, transparent overlay, controller adaptation,
   facial mapping, PhysBone replacements and desktop movement remain blocked on the
   unavailable project and require Unity Editor/Windows acceptance.
@@ -138,6 +147,13 @@ is invented, and no TTS model is reloaded for each response.
 The staged Unity-side `DesktopGeometry.cs` uses read-only Win32/DWM enumeration, physical
 pixel coordinates, monitor work areas, cloaked/minimized filtering, visible top-edge
 occlusion and stable live-window IDs. WinEvent hooks mark changes dirty, with bounded
-reconciliation. A separate .NET test harness compiles this pure geometry code and tests
-negative coordinates/occlusion plus an owned native window on Windows CI. It is not yet
-a movement, collision or animation executor.
+reconciliation. `DesktopMotion.cs` implements screen-space gravity, one-way platform
+collisions, bounded-step integration, ballistic reachability, graph routing, support
+tracking, sitting/movement states and context-gated autonomous route selection. Its
+explicit recovery reposition is distinguished from normal motion. A separate .NET
+test harness compiles these pure components and tests negative coordinates/occlusion,
+an owned native window, routes, landing and support recovery on Windows CI. They still
+need a real avatar, Unity scene/camera/overlay, animation controller and action executor
+to drive a rendered character. Cursor-follow and full animation are not claimed here.
+
+Successful independent checks: https://github.com/w-lol/yumi/actions/runs/39928167484

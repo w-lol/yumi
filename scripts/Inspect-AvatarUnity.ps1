@@ -18,7 +18,7 @@ if (-not $OutputFile) {
 $Version = Get-Content -Encoding UTF8 -Raw -LiteralPath $VersionFile
 $ManifestPath = Join-Path $ProjectRoot 'Packages\manifest.json'
 $Packages = if (Test-Path $ManifestPath) { (Get-Content -Raw $ManifestPath | ConvertFrom-Json).dependencies } else { @{} }
-$Assets = @(Get-ChildItem -LiteralPath (Join-Path $ProjectRoot 'Assets') -Recurse -File)
+$Assets = @(Get-ChildItem -LiteralPath (Join-Path $ProjectRoot 'Assets') -Recurse -File -Force)
 $GuidMap = @{}
 foreach ($Meta in @($Assets | Where-Object Extension -eq '.meta')) {
     $Text = Get-Content -Encoding UTF8 -LiteralPath $Meta.FullName -TotalCount 8
