@@ -82,7 +82,8 @@ class Controller:
         audio=self.audio
         quiet=time.monotonic()<self.attention.quiet_until
         return {'state':self.state,'active':self.active,'speaking':audio.speaking,
-                'audio_epoch':audio.epoch,'mouth':dict(audio.mouth),'audio_level':audio.output_level,
+                'audio_epoch':audio.epoch,'mouth':{k:min(1,v*self.settings['unity_lip_gain']) for k,v in audio.mouth.items()},'audio_level':audio.output_level,
+                'mouth_time_ms':audio.mouth_time_ms+self.settings['unity_lip_offset_ms'],
                 'lip_sync_source':'played_audio_envelope_and_spectral_estimate',
                 'style':audio.delivery_style,'affect':dict(self.affect),
                 'scale':self.settings['unity_scale'],'topmost':self.settings['unity_topmost'],

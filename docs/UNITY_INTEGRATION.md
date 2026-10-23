@@ -93,7 +93,7 @@ and multiple active renderers are rejected. Never commit the descriptor or log i
 State frames arrive at 20 Hz:
 
 ```json
-{"protocol":1,"type":"state","session":"<id>","sequence":1,"time_ms":0,"payload":{"state":"engaged","active":true,"speaking":true,"audio_epoch":1,"mouth":{"aa":0.2,"ih":0.1,"ou":0.1},"audio_level":0.02,"lip_sync_source":"played_audio_envelope_and_spectral_estimate","style":"neutral","affect":{"energy":0.5},"scale":1.0,"topmost":true,"clickthrough":true,"stationary":true,"autonomous":false,"frequency":0.3,"movement_speed":150,"jump_height":170}}
+{"protocol":1,"type":"state","session":"<id>","sequence":1,"time_ms":0,"payload":{"state":"engaged","active":true,"speaking":true,"audio_epoch":1,"mouth_time_ms":0,"mouth":{"aa":0.2,"ih":0.1,"ou":0.1},"audio_level":0.02,"lip_sync_source":"played_audio_envelope_and_spectral_estimate","style":"neutral","affect":{"energy":0.5},"scale":1.0,"topmost":true,"clickthrough":true,"stationary":true,"autonomous":false,"frequency":0.3,"movement_speed":150,"jump_height":170}}
 ```
 
 The client must report readiness before actions may be queued:
@@ -115,6 +115,9 @@ are rejected. Unity must validate targets and execute navigation itself, then re
 No conversation, memory content, audio recording, image or internal model reasoning is
 sent over this interface. Mouth signals derive from the actual output callback, reset
 on interruption, and are estimates rather than verified phoneme/viseme alignment.
+`mouth_time_ms` estimates the actual device DAC time; the Unity page exposes amplitude
+gain and a timing offset for later calibration against the real face rig. The bridge
+applies these controls to transmitted values, not to the voice recording or pitch.
 Quiet/pause/busy/speaking states suppress the autonomous-activity flag. The bridge never
 moves, focuses, closes or captures other windows. A native ClientWebSocket adapter is staged under `integrations/unity/Runtime`, with
 main-thread event delivery, bounded queues, reconnects and cancellation. It is not installed
@@ -124,7 +127,7 @@ alone will not launch a Unity avatar.
 
 ## Verification
 
-- 32 Python tests pass locally and on Windows CI, including real loopback WebSocket authentication,
+- 33 Python tests pass locally (32 on the prior Windows run; playback-timing coverage added), including real loopback WebSocket authentication,
   readiness gating, state delivery, high-level action delivery, invalid-client-message
   rejection, cleanup and descriptor removal, plus existing memory/audio/installer tests.
 - The PowerShell fixture confirms GUID resolution, material/shader detection, unchanged

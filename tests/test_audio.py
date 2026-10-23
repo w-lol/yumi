@@ -22,6 +22,21 @@ class AudioTests(unittest.TestCase):
             self.assertFalse(thread.is_alive())
             self.assertTrue(a.silenced.is_set())
             while not a.speech.empty():self.assertNotEqual(a.speech.get()[0],a.epoch)
+
+    def test_mouth_features_follow_playback_and_device_clock(self):
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=Paths(tmp);audio=Audio(paths,Settings(paths),lambda *_:None,lambda _:None)
+            audio.active.set();audio.silenced.clear()
+            audio.playback.put((audio.epoch,np.ones(512,dtype=np.float32)*.1))
+            out=np.empty((512,1),dtype=np.float32);before=time.time()*1000
+            audio._output(out,512,SimpleNamespace(outputBufferDacTime=1.05,currentTime=1.0),None)
+            self.assertGreater(audio.mouth['aa'],.5)
+            self.assertGreaterEqual(audio.mouth_time_ms,before+40)
+            audio.interrupt()
+            self.assertTrue(all(v==0 for v in audio.mouth.values()))
+            audio.silenced.clear();audio._output(out,512,None,None)
+            self.assertTrue(all(v==0 for v in audio.mouth.values()))
     def test_vad_bounded_and_silence_not_utterance(self):
         vad=Utterances()
         self.assertIsNone(vad.feed(np.zeros(480,dtype=np.float32))[1])

@@ -71,6 +71,7 @@ class Audio:
         self.output_level = 0.0
         self.input_level = 0.0
         self.mouth = {'aa': 0.0, 'ih': 0.0, 'ou': 0.0}
+        self.mouth_time_ms = int(time.time()*1000)
         self.speech_style = 'neutral'
         self.threads = []
         self.current = np.empty(0, np.float32)
@@ -180,11 +181,14 @@ class Audio:
             self.current_offset += count
             filled += count
         self.output_level = float(np.sqrt(np.mean(outdata * outdata) + 1e-12))
-        energy = min(1.0, self.output_level * 14)
+        energy = min(1.0, max(0.0,self.output_level-.002) * 14)
         spectrum = np.abs(np.fft.rfft(outdata[:, 0]))
         total = float(spectrum.sum()) + 1e-9
         self.mouth = {'aa': energy, 'ou': energy * float(spectrum[:12].sum()) / total,
                       'ih': energy * float(spectrum[12:70].sum()) / total}
+        try:delay=max(0,float(info.outputBufferDacTime-info.currentTime))
+        except (AttributeError,TypeError):delay=0
+        self.mouth_time_ms=int((time.time()+min(delay,1))*1000)
         self.speaking = filled > 0
         if filled:
             self.last_played = time.monotonic()
@@ -319,6 +323,7 @@ class Audio:
         self.output_level = 0
         self.current = np.empty(0, np.float32)
         self.mouth = {'aa': 0.0, 'ih': 0.0, 'ou': 0.0}
+        self.mouth_time_ms=int(time.time()*1000)
         self.current_offset = 0
         for q in (self.speech, self.playback):
             self.drain(q)

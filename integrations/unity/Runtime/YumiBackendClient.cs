@@ -17,7 +17,7 @@ namespace Yumi.Desktop
     {
         public string state, style, lip_sync_source;
         public bool active, speaking, topmost, clickthrough, stationary, autonomous;
-        public long audio_epoch;
+        public long audio_epoch, mouth_time_ms;
         public float audio_level, scale, frequency, movement_speed, jump_height;
         public MouthState mouth;
         public AffectState affect;

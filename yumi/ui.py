@@ -250,6 +250,8 @@ class Board(QMainWindow):
         self.number(form,'Activity frequency','unity_frequency',0,1,.1)
         self.number(form,'Movement speed','unity_movement_speed',30,600,10)
         self.number(form,'Jump height','unity_jump_height',30,500,10)
+        self.number(form,'Lip-sync amplitude gain','unity_lip_gain',.1,3,.1)
+        self.number(form,'Lip-sync timing offset (ms)','unity_lip_offset_ms',-250,250,10)
         layout.addLayout(form)
         self.unity_status=QLabel();self.unity_status.setTextFormat(Qt.PlainText);self.unity_status.setWordWrap(True);layout.addWidget(self.unity_status)
         row=QHBoxLayout()
