@@ -24,7 +24,10 @@ namespace Yumi.Desktop.Editor.Tests
             var animator=prefab.GetComponent<Animator>();
             Assert.IsNotNull(animator);Assert.IsNotNull(animator.avatar);Assert.IsTrue(animator.avatar.isHuman);
             var settings=new SerializedObject(descriptor);
-            Assert.IsNotNull(settings.FindProperty("expressionParameters").objectReferenceValue,"Prefab expression parameter reference is missing");
+            var parameters=YumiDesktopBuild.ResolveExpressionParameters(settings);
+            Assert.IsNotNull(parameters,"Neither prefab parameters nor original Fenriru parameters are available");
+            if(settings.FindProperty("expressionParameters").objectReferenceValue==null)
+                Assert.AreEqual(YumiDesktopBuild.OriginalParameters,AssetDatabase.GetAssetPath(parameters));
         }
         [Test] public void PantsRepairPreservesActualClothingGeometryAndOriginalAsset()
         {
@@ -83,8 +86,12 @@ namespace Yumi.Desktop.Editor.Tests
         [Test] public void GeneratedSceneRetainsRigMaterialsAndNoSdkRuntimeComponents()
         {
             byte[] originalPrefab=File.ReadAllBytes(YumiDesktopBuild.Source);
+            byte[] originalFx=File.ReadAllBytes(YumiDesktopBuild.OriginalFx);
+            byte[] originalParameters=File.ReadAllBytes(YumiDesktopBuild.OriginalParameters);
             YumiDesktopBuild.CreateScene();
             CollectionAssert.AreEqual(originalPrefab,File.ReadAllBytes(YumiDesktopBuild.Source),"Source prefab was modified");
+            CollectionAssert.AreEqual(originalFx,File.ReadAllBytes(YumiDesktopBuild.OriginalFx),"Original FX controller was modified");
+            CollectionAssert.AreEqual(originalParameters,File.ReadAllBytes(YumiDesktopBuild.OriginalParameters),"Original parameters were modified");
             Scene scene=EditorSceneManager.OpenScene("Assets/YumiDesktopGenerated/YumiDesktop.unity",OpenSceneMode.Single);
             var rig=scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<YumiAvatarRig>(true)).Single();
             Assert.IsTrue(rig.Ready);Assert.Greater(rig.face.mesh.sharedMesh.blendShapeCount,0);
@@ -93,7 +100,7 @@ namespace Yumi.Desktop.Editor.Tests
             var controller=rig.animator.runtimeAnimatorController as AnimatorController;Assert.IsNotNull(controller);
             var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(YumiDesktopBuild.Source);
             var descriptor=prefab.GetComponents<Component>().Single(c=>c!=null&&c.GetType().Name=="VRCAvatarDescriptor");
-            var parameterAsset=new SerializedObject(descriptor).FindProperty("expressionParameters").objectReferenceValue;
+            var parameterAsset=YumiDesktopBuild.ResolveExpressionParameters(new SerializedObject(descriptor));
             Assert.IsNotNull(parameterAsset);
             var defaults=new SerializedObject(parameterAsset).FindProperty("parameters");
             for(int i=0;i<defaults.arraySize;i++)

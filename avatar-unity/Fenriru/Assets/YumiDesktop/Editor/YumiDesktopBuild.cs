@@ -18,6 +18,8 @@ namespace Yumi.Desktop.Editor
     {
         const string Output="Assets/YumiDesktopGenerated";
         public const string Source="Assets/prefab-id-v1_avtr_072f0a3c-94e1-4ab0-b9b3-772521da0ae8_5472754516.prefab";
+        public const string OriginalFx="Assets/Proppa/Animations/Controller/Fenriru FX.controller";
+        public const string OriginalParameters="Assets/Proppa/Menu/Fenriru Parameters.asset";
         static readonly List<string> notes=new List<string>();
         public static string DuplicateRoot()
         {
@@ -149,7 +151,14 @@ namespace Yumi.Desktop.Editor
                     if(type==null||type.enumValueIndex<0||type.enumValueIndex>=type.enumNames.Length||type.enumNames[type.enumValueIndex]!="FX")continue;
                     SerializedProperty reference=layer.FindPropertyRelative("animatorController");
                     AnimatorController fx=reference==null?null:reference.objectReferenceValue as AnimatorController;
-                    if(fx==null)throw new InvalidOperationException("Selected prefab's FX controller reference is missing or unsupported. Restore its linked controller; no other avatar's controller will be substituted.");
+                    if(reference!=null&&reference.objectReferenceValue!=null&&fx==null)
+                        throw new InvalidOperationException("Selected prefab's FX controller type is unsupported.");
+                    if(fx==null)
+                    {
+                        fx=AssetDatabase.LoadAssetAtPath<AnimatorController>(OriginalFx);
+                        if(fx==null)throw new InvalidOperationException("Prefab FX link is missing and the original Fenriru controller is unavailable: "+OriginalFx);
+                        notes.Add("Repaired missing prefab FX link on generated copy using original project controller: "+OriginalFx);
+                    }
                     string path=AssetDatabase.GetAssetPath(fx);notes.Add("Prefab FX controller: "+path);return path;
                 }
             throw new InvalidOperationException("Selected prefab has no FX animation layer.");
@@ -181,13 +190,25 @@ namespace Yumi.Desktop.Editor
             notes.Add("Original FX copied with parameters/layers. VRChat parameter/layer drivers removed; contacts, PhysBones and menus need standalone replacements.");
             return controller;
         }
-        static void ApplyExpressionDefaults(AnimatorController controller,SerializedObject descriptor)
+        // Read-only resolution: never change or save the source prefab/parameter asset.
+        public static UnityEngine.Object ResolveExpressionParameters(SerializedObject descriptor)
         {
             SerializedProperty reference=descriptor.FindProperty("expressionParameters");
-            if(reference==null||reference.objectReferenceValue==null)
-                throw new InvalidOperationException("Original expression parameter defaults are missing; refusing to guess the outfit state.");
-            SerializedProperty values=new SerializedObject(reference.objectReferenceValue).FindProperty("parameters");
+            if(reference==null)throw new InvalidOperationException("Selected descriptor has no expressionParameters field.");
+            UnityEngine.Object asset=reference.objectReferenceValue;
+            if(asset==null)
+            {
+                asset=AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(OriginalParameters);
+                if(asset==null)throw new InvalidOperationException("Prefab parameter link is missing and original Fenriru parameters are unavailable: "+OriginalParameters);
+                notes.Add("Repaired missing prefab parameter link for generated controller using original project defaults: "+OriginalParameters);
+            }
+            SerializedProperty values=new SerializedObject(asset).FindProperty("parameters");
             if(values==null||!values.isArray)throw new InvalidOperationException("Original expression parameter defaults could not be read.");
+            return asset;
+        }
+        static void ApplyExpressionDefaults(AnimatorController controller,SerializedObject descriptor)
+        {
+            SerializedProperty values=new SerializedObject(ResolveExpressionParameters(descriptor)).FindProperty("parameters");
             AnimatorControllerParameter[] parameters=controller.parameters;
             for(int i=0;i<values.arraySize;i++)
             {
