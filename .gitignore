@@ -24,3 +24,37 @@ config/
 /docs/AVATAR_BRIEF.md
 **/bin/
 **/obj/
+
+# Unity generated files
+**/[Ll]ibrary/
+**/[Tt]emp/
+**/[Oo]bj/
+**/[Bb]uild/
+**/[Bb]uilds/
+**/[Ll]ogs/
+**/[Uu]ser[Ss]ettings/
+**/[Mm]emoryCaptures/
+**/[Rr]ecordings/
+
+# IDE files
+.vs/
+.idea/
+.vscode/
+*.csproj
+*.sln
+*.suo
+*.user
+
+# Operating system files
+.DS_Store
+Thumbs.db
+
+# Unity crash dumps
+sysinfo.txt
+
+# Unity Asset Store tools
+**/AssetStoreTools*
+avatar-unity/Fenriru/Assets/Import/Icon Series/10893 ALMOST Every Icon Series rarity Fortnite dance.unitypackage
+
+# Keep the standalone .NET verification project tracked.
+!integrations/unity/Tests/GeometryTests.csproj

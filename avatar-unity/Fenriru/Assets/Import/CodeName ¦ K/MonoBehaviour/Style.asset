@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Style
+  m_EditorClassIdentifier:
+  controls:
+  - name: Eyes Colour
+    icon: {fileID: 2800000, guid: 41d6a4e95f86cd94a82bff60d29c8efe, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: ee1c3f1c766d39a4095e7a367f3b4bc0, type: 2}
+    subParameters: []
+    labels: []
+  - name: Valentain Hair
+    icon: {fileID: 2800000, guid: 499b8d7eb0a08b441884ae5b631acc54, type: 3}
+    type: 102
+    parameter:
+      name: Hair
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Hair Colour
+    icon: {fileID: 2800000, guid: 499b8d7eb0a08b441884ae5b631acc54, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 52cca816088785d49afc4e60e974b2c5, type: 2}
+    subParameters: []
+    labels: []
+  - name: Alternative Expressions
+    icon: {fileID: 2800000, guid: 41d6a4e95f86cd94a82bff60d29c8efe, type: 3}
+    type: 102
+    parameter:
+      name: Expression
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

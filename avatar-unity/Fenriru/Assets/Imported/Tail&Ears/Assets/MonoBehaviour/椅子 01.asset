@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: 椅子 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: きっちり
+    icon: {fileID: 2800000, guid: ba5d5c24426047b42a4d01da4952b1e4, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.208
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 足組み
+    icon: {fileID: 2800000, guid: 995c62bcdef54584c8a411d56a7f198e, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.202
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 内股
+    icon: {fileID: 2800000, guid: a4fc5f2d6e1a4854dbba17123df7e494, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.201
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: もぐり込み
+    icon: {fileID: 2800000, guid: f5f9ed782e1e48647b3128c6ee7ac8c7, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.203
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 前のめり
+    icon: {fileID: 2800000, guid: 641aae38056ac1d4bbc26eec8b98effa, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.207
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 大股
+    icon: {fileID: 2800000, guid: 8d90c0a2f45044749b0a8815f73056b3, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.206
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 尊大
+    icon: {fileID: 2800000, guid: 35b62c72a675be64a9eac790b85852cb, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.205
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 足振り
+    icon: {fileID: 2800000, guid: 1e3996ecc67396a488d5b44d14cef637, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.204
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

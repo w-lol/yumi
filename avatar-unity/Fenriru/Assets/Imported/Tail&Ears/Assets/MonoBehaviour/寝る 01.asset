@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: 寝る 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: 仰向けA
+    icon: {fileID: 2800000, guid: 4872e42553235964193aa91d0dbb13bc, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 31
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 仰向けB
+    icon: {fileID: 2800000, guid: 91d1b16fb3ea3de4aac9e5223b5a708f, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 32
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: うつ伏せA
+    icon: {fileID: 2800000, guid: 51e358e3328c9234eb4c587f132894c2, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 33
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: うつ伏せB
+    icon: {fileID: 2800000, guid: b7830e15a97641c49be661cdf551fc26, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 34
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 横向き右A
+    icon: {fileID: 2800000, guid: 6d6fcacf26232354899ae2f6279c28f1, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 35
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 横向き右B
+    icon: {fileID: 2800000, guid: dca6c87fc9355894b9afb94499a08ba9, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 36
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 横向き左A
+    icon: {fileID: 2800000, guid: 6d6fcacf26232354899ae2f6279c28f1, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 37
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 横向き左B
+    icon: {fileID: 2800000, guid: dca6c87fc9355894b9afb94499a08ba9, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 38
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

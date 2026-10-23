@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Menu
+  m_EditorClassIdentifier:
+  controls:
+  - name: Style
+    icon: {fileID: 2800000, guid: 173e758fcdfaa924ca8b9f1c5f4b45ee, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 0
+    style: 0
+    subMenu: {fileID: 11400000, guid: ddf609e62011e514080415f20f2b1731, type: 2}
+    subParameters: []
+    labels: []
+  - name: Outfit
+    icon: {fileID: 2800000, guid: 173e758fcdfaa924ca8b9f1c5f4b45ee, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 0
+    style: 0
+    subMenu: {fileID: 11400000, guid: 8cf38b6da005dd248b4061c95323bde8, type: 2}
+    subParameters: []
+    labels: []
+  - name: LUXURY FISH
+    icon: {fileID: 2800000, guid: 9fd39c6c125c8af47bf4ebd8c046b7f7, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: a07cdcbb637fc254dbc027973113b734, type: 2}
+    subParameters: []
+    labels: []
+  - name: Locomotion
+    icon: {fileID: 2800000, guid: 173e758fcdfaa924ca8b9f1c5f4b45ee, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 6e60ae876e88e7f449607d7e53d27de6, type: 2}
+    subParameters: []
+    labels: []
+  - name: Info
+    icon: {fileID: 2800000, guid: c7a12cd03d7836a4eacddae71bd7f986, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 420649cf152f5bb4196667fba832bbc5, type: 2}
+    subParameters: []
+    labels: []

@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: しゃがみ 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: 膝立ち
+    icon: {fileID: 2800000, guid: 3beca43ac471d1e40b9fcc7e7fdd126b, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.109
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 乙女
+    icon: {fileID: 2800000, guid: b8c79944abfe7ba45b950b9ae6180f2c, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.107
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: セクシー
+    icon: {fileID: 2800000, guid: 7d22db228f6a395419c025be3c88f21e, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.104
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: スポーティ
+    icon: {fileID: 2800000, guid: d71d2048f2ae00941a9851d1f7cd1d79, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.103
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 王子様
+    icon: {fileID: 2800000, guid: e279ed2d6c7b9ce45a1d0be7004cca0c, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.108
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: あやすように
+    icon: {fileID: 2800000, guid: 086e2d3312729704b977abb02ac0bcae, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.101
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: だるい
+    icon: {fileID: 2800000, guid: e1fc388d04660aa4899ad7354ed6d9da, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.102
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 中腰
+    icon: {fileID: 2800000, guid: dd7b8ae3e90c0964580a689e4d1f996d, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.106
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

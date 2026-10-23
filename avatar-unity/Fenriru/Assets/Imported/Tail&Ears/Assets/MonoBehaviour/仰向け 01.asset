@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: 仰向け 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: まっすぐ
+    icon: {fileID: 2800000, guid: 32cd016e6f17c774983333a4b6c9378a, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.205
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚組み
+    icon: {fileID: 2800000, guid: 0f5bb606a8e1f83468f7f6826937dd26, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.208
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 内股
+    icon: {fileID: 2800000, guid: 17797078a501c8644ba3d7dc78d1e289, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.203
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 片膝寄せ
+    icon: {fileID: 2800000, guid: 40f9b89345816964d8bf3d987bb145d5, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.204
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ゆったり
+    icon: {fileID: 2800000, guid: d635f117336b5a84697d4a4a62342b68, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.201
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚寝かせ
+    icon: {fileID: 2800000, guid: 96ada83ba827f1c4b9e8533a58c9c175, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.202
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚たたみ
+    icon: {fileID: 2800000, guid: ef82fb5a82b2a5545af75c40c1131f76, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.206
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚持ち上げ
+    icon: {fileID: 2800000, guid: 8b097bf5ffd097e41b8b4dabd08bad64, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.207
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

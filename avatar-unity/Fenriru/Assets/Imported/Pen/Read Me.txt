@@ -1,0 +1,46 @@
+How to use it?
+
+Avatar Pen have a few customizations and features which will make your life better in case if there is no pen under your hand!
+To start drawing you will need to go to your Pen Menu and Toggle it on, then you will need to make a Point Gesture with your Right Hand and start drawing👉👉
+
+You will be able to control it's Width and Color in case if you don't them. Simply go to Hue or Width Radial menu and change it's values to something you like!
+
+Pause toggle will not allow you to draw anymore until you will untoggle it. Useful if you want to keep your drawing around but not to use the Pen at the moment.
+
+Erase toggle, as it says, will erase all you have drawn and you can start drawing again.
+
+
+
+Prerequisites:
+
+Avatar Pen Package uses VRCFury made by @SenkyDragon on Twitter for easy quick one-click setup with Poiyomi Toon Shader 8.0.420. 
+
+You will need to download VRCFury from https://vrcfury.com/download or use this direct link(https://vrcfury.com/installer) for installer.
+
+It is not necessary to install Poiyomi Toon Shader 8.0.420 into your project since the shader already have been compiled. If you want to make any changes though, you will need to download it. 
+
+Important: Make sure your VRChat SDK and VRCFury is updated! Otherwise you may meet unexpected behavior and errors with their setup.
+
+How to add the Pen to your avatar.
+
+
+
+How to install:
+
+1. Download VRChat Pen after the purchase.
+
+2. Download VRCFury from https://vrcfury.com/download or use this direct link(https://vrcfury.com/installer)
+
+3. Open your project and double click on both downloaded Packages. It will open import window where you need to click Import.
+
+4.  Go to "Pen" directory in the Project tab, within you'll find a "Marker" object. Drag it on your Index Finger in the Hierarchy and position it on its tip. 
+	Usually you can find it under Armature -> Hips -> Chest -> Right Shoulder -> Right Arm -> Right Elbow -> Right Wrist -> Index Finger
+	Make sure it is the Child of the last Index bone
+
+5. Built and Test or Upload your avatar! VRCFury will install Menus, Parameters and FX Layers by itself.
+
+
+
+Any problems with setup?
+
+Feel free to reach out to me if you have any problmes! @MagicDed on Twitter or MagicDed on Discord!
