@@ -100,8 +100,27 @@ VRC.Core.Logger.LogWarning("VideoPlayer using DIRECT audio output fixed.");
     if (-not $Rejected -or [IO.File]::ReadAllText($Toolbar) -cne 'unknown plugin layout') { throw 'Unknown toolbar layout was not preserved.' }
     Remove-Item -LiteralPath $Toolbar
     & (Join-Path $PSScriptRoot 'Repair-UnityBatchToolbar.ps1') -Root $TestRoot
+    # Reproduce a mixed-version installation: old builder + missing runtime helper.
+    $KitBuilder=Join-Path $TestRoot 'integrations/unity/DesktopEditor/YumiDesktopBuild.cs'
+    New-Item -ItemType Directory -Force -Path (Split-Path $KitBuilder -Parent) | Out-Null
+    [IO.File]::WriteAllText($KitBuilder,'old builder without public Source')
+    $SourceRoot=Split-Path $PSScriptRoot -Parent
+    & (Join-Path $PSScriptRoot 'Repair-AvatarInstallation.ps1') -Root $TestRoot -SourceRoot $SourceRoot
+    $InstalledBuilder=Join-Path $Nested 'Assets/YumiDesktop/Editor/YumiDesktopBuild.cs'
+    if ([IO.File]::ReadAllText($InstalledBuilder) -notmatch 'public const string Source=') { throw 'Mixed-version builder was not repaired.' }
+    if (-not (Test-Path (Join-Path $Nested 'Assets/YumiDesktop/Runtime/OverlayWindowPolicy.cs'))) { throw 'Missing overlay helper was not repaired.' }
+    if (-not @(Get-ChildItem (Join-Path $TestRoot 'backups') -Recurse -Filter YumiDesktopBuild.cs | Where-Object { [IO.File]::ReadAllText($_.FullName) -ceq 'old builder without public Source' }).Count) { throw 'Old builder backup missing.' }
+    # A bad source checksum must fail before replacing any installed files.
+    $BadSource=Join-Path $TestRoot 'bad-source'
+    New-Item -ItemType Directory -Force -Path $BadSource | Out-Null
+    Copy-Item -LiteralPath (Join-Path $SourceRoot 'integrations') -Destination $BadSource -Recurse
+    [IO.File]::WriteAllText((Join-Path $BadSource 'integrations/unity/DesktopEditor/YumiDesktopBuild.cs'),'corrupt download fixture')
+    $BeforeBad=(Get-FileHash -LiteralPath $InstalledBuilder).Hash
+    $BadRefused=$false
+    try { & (Join-Path $PSScriptRoot 'Repair-AvatarInstallation.ps1') -Root $TestRoot -SourceRoot $BadSource } catch { $BadRefused=$true }
+    if (-not $BadRefused -or (Get-FileHash -LiteralPath $InstalledBuilder).Hash -ne $BeforeBad) { throw 'Bad checksum replaced installed tools.' }
     $Parsed=$null; $Errors=$null
-    foreach ($File in @('Repair-UnityEditorPlugin.ps1','Repair-UnityBatchToolbar.ps1','Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Setup-Avatar.ps1','validate_unity_build.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
+    foreach ($File in @('Repair-AvatarInstallation.ps1','Repair-UnityEditorPlugin.ps1','Repair-UnityBatchToolbar.ps1','Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Setup-Avatar.ps1','validate_unity_build.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
         [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot $File),[ref]$Parsed,[ref]$Errors) | Out-Null
         if ($Errors.Count) { throw ($Errors | Out-String) }
     }
