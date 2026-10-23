@@ -104,3 +104,7 @@ The user may explicitly pass `-SkipTests` to attempt the actual build without re
 ## Optional particle trail materials
 
 The selected prefab contains particle renderers with a valid body material and an empty slot 1 for trails. When the ParticleSystem trails module is disabled, this slot is unused and is now accepted without changing its materials, activation state or source prefab. Missing particle body materials, enabled trail materials and mesh materials still fail validation. A focused Editor regression test covers these distinctions; that test requires Unity on Windows and has not run in the cloud.
+
+## Broken inactive renderers in the upload prefab
+
+Generation now omits renderers with unresolved materials when their GameObject is inactive in the prefab hierarchy. The face is always protected; active renderers still fail validation. Healthy inactive renderers are retained. Omitted renderers are removed only from the generated clone, leaving transforms/controller bindings and every source asset untouched. These omitted items cannot subsequently be shown by expression toggles in the desktop player. This may include optional outfit variants as well as props. Every omitted slot is recorded in `Assets/YumiDesktopGenerated/standalone-adaptation.txt`, including on a failed generation. This is a deliberate degraded rendering mode, not restoration of missing materials. The source avatar remains complete for later dependency restoration.

@@ -89,6 +89,7 @@ namespace Yumi.Desktop.Editor
                 var materialErrors=new List<string>();
                 foreach(Renderer renderer in clone.GetComponentsInChildren<Renderer>(true))
                 {
+                    var rendererErrors=new List<string>();
                     Material[] materials=renderer.sharedMaterials;
                     for(int slot=0;slot<materials.Length;slot++)
                     {
@@ -106,10 +107,22 @@ namespace Yumi.Desktop.Editor
                         string hierarchy=AnimationUtility.CalculateTransformPath(renderer.transform,clone.transform);
                         string path=material==null?"<missing material>":AssetDatabase.GetAssetPath(material);
                         string originalShader=material==null?"":material.GetTag("OriginalShader",false,"");
-                        materialErrors.Add("Renderer="+hierarchy+"; active="+renderer.gameObject.activeInHierarchy+"; enabled="+renderer.enabled+
+                        rendererErrors.Add("Renderer="+hierarchy+"; active="+renderer.gameObject.activeInHierarchy+"; enabled="+renderer.enabled+
                             "; slot="+slot+"; material="+path+"; original shader="+originalShader);
                     }
+                    if(rendererErrors.Count>0&&renderer!=mouth&&!renderer.gameObject.activeInHierarchy)
+                    {
+                        // Do not let expression toggles later expose pink/broken geometry.
+                        // Only this generated clone loses the renderer; retain its hierarchy
+                        // for controller bindings and retain the complete original prefab.
+                        foreach(string detail in rendererErrors)notes.Add("OMITTED inactive renderer with unresolved materials: "+detail);
+                        Debug.Log("Generated desktop copy omits inactive renderer with missing materials: "+AnimationUtility.CalculateTransformPath(renderer.transform,clone.transform));
+                        UnityEngine.Object.DestroyImmediate(renderer);
+                    }
+                    else materialErrors.AddRange(rendererErrors);
                 }
+                // Persist omissions even if another active renderer subsequently fails validation.
+                File.WriteAllLines(Output+"/standalone-adaptation.txt",notes);
                 if(materialErrors.Count>0)
                 {
                     string report=Path.GetFullPath(Path.Combine(DuplicateRoot(),"../logs/avatar-unity/material-errors.txt"));
