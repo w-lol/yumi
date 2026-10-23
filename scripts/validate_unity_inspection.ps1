@@ -35,8 +35,26 @@ try {
     & (Join-Path $PSScriptRoot 'Inspect-AvatarUnity.ps1') -ProjectRoot $Project -OutputFile $Output
     & (Join-Path $PSScriptRoot 'Install-UnityDesktop.ps1') -ProjectRoot $Project
     if (-not (Test-Path (Join-Path $Nested 'Assets/YumiDesktop/Runtime/YumiDesktopAvatar.cs'))) { throw 'Nested project resolution failed.' }
+    # The editor-only toolbar must not reflect a nonexistent GUI in batch mode.
+    $Toolbar=Join-Path $Nested 'Packages/jp.lilxyzw.editortoolbox/Editor/ToolbarExtension/ToolbarExtension.cs'
+    New-Item -ItemType Directory -Force -Path (Split-Path $Toolbar -Parent) | Out-Null
+    $Original="class ToolbarExtension { private static void GetVisualElements()`r`n        {`r`n            rootVisualElement = ToolbarWrap.get.m_Root;`r`n        } }"
+    [IO.File]::WriteAllText($Toolbar,$Original)
+    & (Join-Path $PSScriptRoot 'Repair-UnityBatchToolbar.ps1') -Root $TestRoot
+    $Patched=[IO.File]::ReadAllText($Toolbar)
+    if (-not $Patched.Contains('if (UnityEngine.Application.isBatchMode) return;')) { throw 'Batch toolbar guard missing.' }
+    $Backups=@(Get-ChildItem (Join-Path $TestRoot 'backups') -Recurse -Filter ToolbarExtension.cs)
+    if ($Backups.Count -ne 1 -or [IO.File]::ReadAllText($Backups[0].FullName) -cne $Original) { throw 'Original toolbar backup mismatch.' }
+    & (Join-Path $PSScriptRoot 'Repair-UnityBatchToolbar.ps1') -Root $TestRoot
+    if ([IO.File]::ReadAllText($Toolbar) -cne $Patched -or @(Get-ChildItem (Join-Path $TestRoot 'backups') -Recurse -Filter ToolbarExtension.cs).Count -ne 1) { throw 'Toolbar repair is not idempotent.' }
+    [IO.File]::WriteAllText($Toolbar,'unknown plugin layout')
+    $Rejected=$false
+    try { & (Join-Path $PSScriptRoot 'Repair-UnityBatchToolbar.ps1') -Root $TestRoot } catch { $Rejected=$true }
+    if (-not $Rejected -or [IO.File]::ReadAllText($Toolbar) -cne 'unknown plugin layout') { throw 'Unknown toolbar layout was not preserved.' }
+    Remove-Item -LiteralPath $Toolbar
+    & (Join-Path $PSScriptRoot 'Repair-UnityBatchToolbar.ps1') -Root $TestRoot
     $Parsed=$null; $Errors=$null
-    foreach ($File in @('Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Setup-Avatar.ps1','validate_unity_build.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
+    foreach ($File in @('Repair-UnityBatchToolbar.ps1','Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Setup-Avatar.ps1','validate_unity_build.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
         [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot $File),[ref]$Parsed,[ref]$Errors) | Out-Null
         if ($Errors.Count) { throw ($Errors | Out-String) }
     }

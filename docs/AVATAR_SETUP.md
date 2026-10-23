@@ -77,3 +77,18 @@ Unity rendering, Poiyomi appearance, transparency, physical lip synchronization,
 poses and desktop motion still require actual Windows visual acceptance. See
 [UNITY_INTEGRATION.md](UNITY_INTEGRATION.md). SDK PhysBones/contacts and advanced
 animation/gesture systems remain incomplete. Build/test success does not prove those.
+# Repeating lilEditorToolbox toolbar exceptions during batch tests
+
+`ToolbarWrap.get_m_Root` / `ToolbarExtension.GetVisualElements` exceptions indicate
+an editor toolbar extension trying to access a window that batch mode does not
+create. Waiting longer does not repair that callback. Stop only the batch Unity
+process for the duplicated project, and retry with the updated build runner.
+The runner invokes `Repair-UnityBatchToolbar.ps1` before starting Unity. This
+backs up the embedded plugin source under `backups/unity-toolbar-*`, then adds
+an early `Application.isBatchMode` return to its toolbar callback. Interactive
+Unity behavior and avatar assets are preserved. Unknown plugin layouts are
+rejected without modification; absent packages are left alone. Tests are still
+required. PowerShell fixtures verify backup contents, repeated runs, absent
+packages and refusal of unknown source layouts. Actual Unity testing must run
+on the Windows installation.
+
