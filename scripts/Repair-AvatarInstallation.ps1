@@ -18,7 +18,7 @@ if (Get-Command Get-CimInstance -ErrorAction SilentlyContinue) {
     if ($Open.Count) { throw 'Close the duplicated Unity Editor and the Yumi avatar player before repairing.' }
 }
 # Every file is pinned to one revision and verified before installation starts.
-$Revision='b33c973c85e4328aa34c530b31fcffdcbefdfda5'
+$Revision='5282bc1be04457a27b2b696102f1baa0bd44ba93'
 $Manifest=@'
 [
   {
@@ -59,7 +59,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/Runtime/DesktopMotion.cs",
-    "sha256": "faf869a70f67576c7e9a258453f79931fcaf798fe084466f3db1a802b59b1e7d"
+    "sha256": "db3fb5c3be87fa48674b50faa1fb10bbba4f4b6bf0e2e02f78f8abca1e0904fe"
   },
   {
     "path": "integrations/unity/Runtime/OverlayWindowPolicy.cs",
@@ -83,7 +83,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/Runtime/YumiDesktopAvatar.cs",
-    "sha256": "1c1fe40ee6679771e509f908d897b21d6af52fde9a4dda79522b9c3b6d7cf199"
+    "sha256": "9bd39f84a550e2254c43f9e9c18e878e3e16c5e736abd99a863e4a9915cee7e9"
   },
   {
     "path": "integrations/unity/Runtime/YumiWindowsOverlay.cs",
@@ -95,7 +95,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/Tests/Program.cs",
-    "sha256": "7b6930fb8237f70e77d324331b9be9a09a2079c3d2dcb047336c1e208694e83a"
+    "sha256": "35b5c99df087effbd0dd66a7e1d48d612a859757b859ab8b3cd66b7b7de042a6"
   },
   {
     "path": "scripts/Build-UnityAvatar.ps1",
