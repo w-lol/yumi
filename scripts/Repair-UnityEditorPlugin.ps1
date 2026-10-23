@@ -12,11 +12,20 @@ if (Get-Command Get-CimInstance -ErrorAction SilentlyContinue) {
     })
     if ($Open.Count) { throw 'Close the duplicated project Editor/build before repairing plugin import settings.' }
 }
-$File=Join-Path $Project 'Packages/com.vrchat.base/Runtime/VRCSDK/Plugins/VRCCore-Editor.dll.meta'
-if (-not (Test-Path -LiteralPath $File)) { Write-Host 'Embedded VRCCore-Editor plugin not present; no import repair needed.'; return }
+# Audited against the complete DLL reference graph in SDK base/avatars 3.6.1.
+# The Dynamics Editor DLLs already reside under Editor/; these four do not.
+$Plugins=@(
+    @('com.vrchat.base/Runtime/VRCSDK/Plugins/VRCCore-Editor.dll.meta','4ecd63eff847044b68db9453ce219299'),
+    @('com.vrchat.base/Runtime/VRCSDK/Plugins/SDKBase-Legacy.dll.meta','3d5d4d6a234c8bf47a3b99f4580f9f76'),
+    @('com.vrchat.base/Runtime/VRCSDK/Plugins/VRCSDKBase-Editor.dll.meta','dc5cab6c932db3247aab9f50c5f3bd5f'),
+    @('com.vrchat.avatars/Runtime/VRCSDK/Plugins/VRCSDK3A-Editor.dll.meta','ed88f634f22f87443b6d34bb57c93fbe')
+)
+foreach ($Plugin in $Plugins) {
+$File=Join-Path $Project ('Packages/'+$Plugin[0])
+if (-not (Test-Path -LiteralPath $File)) { continue }
 $Text=[IO.File]::ReadAllText($File)
-if ($Text -notmatch '(?m)^guid: 4ecd63eff847044b68db9453ce219299\r?$' -or $Text -notmatch '(?m)^PluginImporter:\r?$') {
-    throw 'Unrecognized VRCCore-Editor plugin metadata. No files changed.'
+if ($Text -notmatch ('(?m)^guid: '+[regex]::Escape($Plugin[1])+'\r?$') -or $Text -notmatch '(?m)^PluginImporter:\r?$') {
+    throw "Unrecognized plugin metadata: $File. This file was not changed."
 }
 $Pattern='(?ms)^  platformData:\r?\n.*?(?=^  [A-Za-z_]+:|\z)'
 $Blocks=[regex]::Matches($Text,$Pattern)
@@ -42,13 +51,14 @@ $Newline="`n"
 if ($Text.Contains("`r`n")) { $Newline="`r`n" }
 $Platforms=($Platforms -replace '\r?\n',$Newline)+$Newline
 $Updated=$Text.Remove($Blocks[0].Index,$Blocks[0].Length).Insert($Blocks[0].Index,$Platforms)
-if ($Updated -ceq $Text) { Write-Host 'VRCCore-Editor is already restricted to the Unity Editor.' }
+if ($Updated -ceq $Text) { Write-Host "Editor-only import settings already present: $($Plugin[0])" }
 else {
-    $Backup=Join-Path $Root ('backups/unity-editor-plugin-'+[guid]::NewGuid().ToString('N')+'/VRCCore-Editor.dll.meta')
+    $Backup=Join-Path $Root ('backups/unity-editor-plugin-'+[guid]::NewGuid().ToString('N')+'/'+[IO.Path]::GetFileName($File))
     New-Item -ItemType Directory -Force -Path (Split-Path $Backup -Parent) | Out-Null
     Copy-Item -LiteralPath $File -Destination $Backup
     [IO.File]::WriteAllText($File,$Updated,(New-Object Text.UTF8Encoding($false)))
-    Write-Host "Restricted VRCCore-Editor.dll to Editor only. DLL and GUID unchanged. Backup: $Backup"
+    Write-Host "Restricted $($Plugin[0]) to Editor only. DLL and GUID unchanged. Backup: $Backup"
+}
 }
 # SDK 3.6.1 WorldValidation refers to an Editor-only logger in runtime source.
 # Preserve Editor logging and route the two player warnings to Unity's logger.

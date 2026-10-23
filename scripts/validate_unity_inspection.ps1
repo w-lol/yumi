@@ -39,8 +39,21 @@ try {
     New-Item -ItemType Directory -Force -Path (Split-Path $Plugin -Parent) | Out-Null
     $OriginalPlugin="fileFormatVersion: 2`r`nguid: 4ecd63eff847044b68db9453ce219299`r`nPluginImporter:`r`n  serializedVersion: 2`r`n  platformData:`r`n  - first:`r`n      Any:`r`n    second:`r`n      enabled: 1`r`n      settings: {}`r`n  userData: keep`r`n"
     [IO.File]::WriteAllText($Plugin,$OriginalPlugin)
+    foreach ($Pair in @(
+        @('com.vrchat.base/Runtime/VRCSDK/Plugins/SDKBase-Legacy.dll.meta','3d5d4d6a234c8bf47a3b99f4580f9f76'),
+        @('com.vrchat.base/Runtime/VRCSDK/Plugins/VRCSDKBase-Editor.dll.meta','dc5cab6c932db3247aab9f50c5f3bd5f'),
+        @('com.vrchat.avatars/Runtime/VRCSDK/Plugins/VRCSDK3A-Editor.dll.meta','ed88f634f22f87443b6d34bb57c93fbe')
+    )) {
+        $Other=Join-Path (Join-Path $Nested 'Packages') $Pair[0]
+        New-Item -ItemType Directory -Force -Path (Split-Path $Other -Parent) | Out-Null
+        [IO.File]::WriteAllText($Other,$OriginalPlugin.Replace('4ecd63eff847044b68db9453ce219299',$Pair[1]))
+    }
     & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot
     $FixedPlugin=[IO.File]::ReadAllText($Plugin)
+    foreach ($Meta in Get-ChildItem (Join-Path $Nested 'Packages') -Recurse -Filter '*.dll.meta') {
+        $PluginText=[IO.File]::ReadAllText($Meta.FullName)
+        if ($PluginText -notmatch 'Any:\r?\n    second:\r?\n      enabled: 0' -or $PluginText -notmatch 'Editor: Editor\r?\n    second:\r?\n      enabled: 1') { throw "Editor dependency was not excluded: $($Meta.Name)" }
+    }
     if ($FixedPlugin -notmatch 'Any:\r?\n    second:\r?\n      enabled: 0' -or $FixedPlugin -notmatch 'Editor: Editor\r?\n    second:\r?\n      enabled: 1' -or $FixedPlugin -notmatch 'userData: keep') { throw 'Editor-only plugin repair failed.' }
     $PluginBackups=@(Get-ChildItem (Join-Path $TestRoot 'backups') -Recurse -Filter VRCCore-Editor.dll.meta)
     if ($PluginBackups.Count -ne 1 -or [IO.File]::ReadAllText($PluginBackups[0].FullName) -cne $OriginalPlugin) { throw 'Plugin metadata backup mismatch.' }
