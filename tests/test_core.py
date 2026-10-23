@@ -4,12 +4,13 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import Mock, patch
 from yumi.attention import Attention, internal_control
 from yumi.memory import Memory
 from yumi.paths import Paths
 from yumi.settings import Settings
 from yumi.protocol import Capability, Registry
-from yumi.inference import FinalTextFilter
+from yumi.inference import FinalTextFilter, LocalModel
 
 
 class CoreTests(unittest.TestCase):
@@ -130,6 +131,27 @@ class CoreTests(unittest.TestCase):
         output=''.join(clean.feed(c) for c in source)
         self.assertEqual(output,'Hello. Goodbye.')
         self.assertNotIn('private',output)
+
+    def test_stream_disables_thinking_and_excludes_reasoning_fields(self):
+        model = LocalModel(self.paths, self.settings, lambda *_: None)
+        model.ready = True
+        model.process = Mock()
+        model.process.poll.return_value = None
+        model.port = 12345
+        records = [
+            {'reasoning_content': 'Private deliberation'},
+            {'content': '<thi'},
+            {'content': 'nk>Hidden planning</think>Hello Jason.'},
+        ]
+        with patch('yumi.inference.httpx.Client') as client:
+            stream = client.return_value.__enter__.return_value.stream
+            response = stream.return_value.__enter__.return_value
+            response.iter_lines.return_value = [
+                'data: ' + json.dumps({'choices': [{'delta': delta}]}) for delta in records
+            ] + ['data: [DONE]']
+            output = ''.join(model.stream([{'role': 'user', 'content': 'Hi'}], threading.Event()))
+            self.assertEqual(output, 'Hello Jason.')
+            self.assertFalse(stream.call_args.kwargs['json']['chat_template_kwargs']['enable_thinking'])
 
 
 if __name__=='__main__':unittest.main()

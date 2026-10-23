@@ -101,7 +101,8 @@ class LocalModel:
         command = [str(candidates[0]), '-m', str(model), '--host', '127.0.0.1',
                    '--port', str(self.port), '--api-key-file', str(key_file),
                    '-c', str(self.settings['context']), '-ngl', str(self.settings['gpu_layers']),
-                   '-t', str(self.settings['threads']), '--parallel', '1', '--log-disable']
+                   '-t', str(self.settings['threads']), '--parallel', '1', '--log-disable',
+                   '--reasoning', 'off', '--chat-template-kwargs', '{"enable_thinking":false}']
         if projector:
             command.extend(['--mmproj', str(projector)])
         flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
@@ -144,6 +145,7 @@ class LocalModel:
                                    headers={'Authorization': 'Bearer ' + self.key},
                                    json={'messages': messages, 'stream': True,
                                          'temperature': self.settings['temperature'],
+                                         'chat_template_kwargs': {'enable_thinking': False},
                                          'max_tokens': max_tokens or self.settings['max_tokens']}) as response:
                     self.response = response
                     response.raise_for_status()
