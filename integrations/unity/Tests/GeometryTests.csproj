@@ -7,5 +7,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../Runtime/DesktopGeometry.cs" Link="DesktopGeometry.cs" />
+    <Compile Include="../Runtime/DesktopMotion.cs" Link="DesktopMotion.cs" />
   </ItemGroup>
 </Project>

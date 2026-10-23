@@ -55,8 +55,15 @@ jobs:
       - name: Validate read-only Unity inspection tools
         shell: powershell
         run: ./scripts/validate_unity_inspection.ps1
-      - name: Compile and test standalone read-only Windows geometry
-        run: dotnet run --project integrations/unity/Tests/GeometryTests.csproj --configuration Release
+      - name: Compile and test Unity-side Windows geometry and motion
+        run: |
+          dotnet run --project integrations/unity/Tests/GeometryTests.csproj --configuration Release 2>&1 | Tee-Object -Variable Result
+          $Code = $LASTEXITCODE
+          if ($Code -ne 0) {
+            $Message = ($Result -join "`n").Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+            Write-Output "::error::$Message"
+            exit $Code
+          }
       - name: Validate real Kokoro voices in memory
         run: python scripts/validate_voice.py --root "$env:RUNNER_TEMP/Yumi Kokoro validation" --prepare --output docs/validation/kokoro-windows.json
       - name: Build Windows installer bundle
