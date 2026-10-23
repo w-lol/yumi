@@ -13,3 +13,14 @@ dist/
 artifacts/
 config/
 /docs/PRODUCT_BRIEF.md
+/avatar-unity/Library/
+/avatar-unity/Temp/
+/avatar-unity/Obj/
+/avatar-unity/Logs/
+/avatar-unity/UserSettings/
+/avatar-unity/Builds/
+/web/node_modules/
+/assets/avatar/
+/docs/AVATAR_BRIEF.md
+**/bin/
+**/obj/

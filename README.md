@@ -3,6 +3,10 @@
 Local Windows desktop companion. See [installation](docs/INSTALL.md),
 [architecture](docs/ARCHITECTURE.md), and [verification](docs/VERIFICATION.md).
 
+Original Unity avatar integration: [status, inspection tools and localhost protocol](docs/UNITY_INTEGRATION.md).
+The original Unity character is the target; its project must be available for inspection
+before a compatible overlay/player can be built. The existing avatar remains usable.
+
 Run: `python -m yumi --root <installation-directory>`.
 Tests: `python -m unittest discover -s tests -v`.
 

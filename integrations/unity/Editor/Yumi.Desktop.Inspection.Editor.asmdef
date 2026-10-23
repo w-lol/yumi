@@ -1,0 +1,6 @@
+{
+  "name": "Yumi.Desktop.Inspection.Editor",
+  "references": [],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false
+}

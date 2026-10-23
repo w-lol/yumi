@@ -234,19 +234,28 @@ class Audio:
                 utterance.fill(0)
                 del utterance
 
-    def say(self, text):
+    @property
+    def delivery_style(self):
+        return self.speech_style if self.settings['speech_style']=='auto' else self.settings['speech_style']
+
+    def say(self, text, wait=False, cancel=None):
         text = speech_text(text)
         if not text: return
         if not self.settings['voice'] or not self.active.is_set() or not self.tts:
             return
         if self.silenced.is_set():
             return
-        try:
-            style = self.settings['speech_style']
-            if style == 'auto': style = self.speech_style
-            self.speech.put_nowait((self.epoch, text[:700], style))
-        except queue.Full:
-            self.event('speech_backpressure', {'reason': 'Speech queue full; remaining text stays in chat'})
+        epoch=self.epoch
+        packet=(epoch,text[:700],self.delivery_style)
+        while self.active.is_set() and not self.silenced.is_set() and self.settings['voice'] and epoch==self.epoch:
+            if cancel and cancel.is_set():return
+            try:
+                self.speech.put(packet,timeout=.1 if wait else 0)
+                return
+            except queue.Full:
+                if not wait:
+                    self.event('speech_backpressure', {'reason': 'Speech queue full; remaining text stays in chat'})
+                    return
 
     def new_turn(self, started_at=None):
         self.interrupt()

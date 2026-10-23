@@ -1,5 +1,7 @@
 import tempfile
 import unittest
+import threading
+import time
 import numpy as np
 from yumi.audio import Audio, Utterances
 from yumi.paths import Paths
@@ -7,6 +9,19 @@ from yumi.settings import Settings
 
 
 class AudioTests(unittest.TestCase):
+    def test_speech_backpressure_remains_interruptible(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=Paths(tmp);a=Audio(paths,Settings(paths),lambda *_:None,lambda _:None)
+            a.tts=object();a.active.set();a.silenced.clear()
+            for _ in range(a.speech.maxsize):a.speech.put((a.epoch,'old','neutral'))
+            cancel=threading.Event()
+            thread=threading.Thread(target=lambda:a.say('A complete detailed answer.',wait=True,cancel=cancel))
+            thread.start();time.sleep(.03)
+            self.assertTrue(thread.is_alive())
+            cancel.set();a.interrupt();thread.join(timeout=.5)
+            self.assertFalse(thread.is_alive())
+            self.assertTrue(a.silenced.is_set())
+            while not a.speech.empty():self.assertNotEqual(a.speech.get()[0],a.epoch)
     def test_vad_bounded_and_silence_not_utterance(self):
         vad=Utterances()
         self.assertIsNone(vad.feed(np.zeros(480,dtype=np.float32))[1])

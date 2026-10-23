@@ -7,9 +7,9 @@ from pathlib import Path
 import re
 import zipfile
 
-DIRECTORIES = ('yumi', 'scripts', 'assets', 'docs', 'tests')
+DIRECTORIES = ('yumi', 'scripts', 'assets', 'docs', 'tests', 'integrations')
 FILES = ('README.md', 'LICENSE', 'requirements.in', 'requirements-windows.lock')
-EXCLUDED = {'__pycache__', 'PRODUCT_BRIEF.md'}
+EXCLUDED = {'__pycache__', 'PRODUCT_BRIEF.md', 'bin', 'obj'}
 
 
 def build(root: Path, output: Path, revision: str = '') -> Path:

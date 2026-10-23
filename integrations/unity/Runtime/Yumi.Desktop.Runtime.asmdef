@@ -1,0 +1,6 @@
+{
+  "name": "Yumi.Desktop.Runtime",
+  "references": [],
+  "includePlatforms": ["Editor", "WindowsStandalone64"],
+  "autoReferenced": true
+}

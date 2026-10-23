@@ -125,7 +125,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'A native dependency could not load. Review the installation log; no system prerequisite was installed.' }
     # Copy only release-owned source directories. Preserve all data/config/model directories.
     # For upgrades, extract the release separately and invoke this script with the existing root.
-    $ReleaseFiles = @('yumi','scripts','assets','docs','tests','README.md','requirements.in','requirements-windows.lock','LICENSE')
+    $ReleaseFiles = @('yumi','scripts','assets','docs','tests','integrations','README.md','requirements.in','requirements-windows.lock','LICENSE')
     foreach ($Item in $ReleaseFiles) {
         $Source = Join-Path $SourceRoot $Item
         $Destination = Join-Path $Root $Item
@@ -159,7 +159,7 @@ try {
     & $Python -I (Join-Path $Root 'scripts\run.py') --root $Root --smoke
     if ($LASTEXITCODE -ne 0) { throw 'Functional smoke did not pass. See logs\target-smoke.json. Setup has not claimed readiness.' }
     $OwnedFiles = New-Object 'System.Collections.Generic.List[string]'
-    foreach ($OwnedDirectory in @('yumi','scripts','assets','docs','tests','runtime','models','downloads')) {
+    foreach ($OwnedDirectory in @('yumi','scripts','assets','docs','tests','integrations','runtime','models','downloads')) {
         $OwnedPath = Join-Path $Root $OwnedDirectory
         if (Test-Path $OwnedPath) {
             Get-ChildItem -LiteralPath $OwnedPath -Recurse -File | ForEach-Object { $OwnedFiles.Add($_.FullName.Substring($Root.Length).TrimStart('\','/')) }

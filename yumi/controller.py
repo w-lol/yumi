@@ -19,6 +19,7 @@ from .resources import Resources
 from .privacy import contains_secret, redact
 from .paths import atomic_json
 from .delivery import classify, Phrases
+from .unity_bridge import UnityBridge, action_intent
 
 
 class Controller:
@@ -56,6 +57,8 @@ class Controller:
         self.inspector = None
         self.affect = {'energy': 0.65, 'amusement': 0.4, 'curiosity': 0.6, 'confidence': 0.6, 'calm': 0.7}
         self.delivery = classify('hello')
+        self.unity = UnityBridge(paths,self.unity_snapshot,self.event)
+        if settings['unity_bridge_enabled']:self.unity.start()
         self.last_proactive = 0.0
         self.last_user_engagement = 0.0
         self.active_task = {'status':'idle','request':''}
@@ -74,6 +77,21 @@ class Controller:
             self.journal.write(kind, **{k: v for k, v in payload.items() if k != 'turn_id'}, turn_id=event.turn_id)
         if kind == 'barge_in':
             self.cancel()
+
+    def unity_snapshot(self):
+        audio=self.audio
+        quiet=time.monotonic()<self.attention.quiet_until
+        return {'state':self.state,'active':self.active,'speaking':audio.speaking,
+                'audio_epoch':audio.epoch,'mouth':dict(audio.mouth),'audio_level':audio.output_level,
+                'lip_sync_source':'played_audio_envelope_and_spectral_estimate',
+                'style':audio.delivery_style,'affect':dict(self.affect),
+                'scale':self.settings['unity_scale'],'topmost':self.settings['unity_topmost'],
+                'clickthrough':self.settings['unity_clickthrough'],
+                'stationary':self.settings['unity_stationary'],
+                'autonomous':self.settings['unity_autonomous'] and self.active and not quiet and not self.busy and not audio.speaking,
+                'frequency':self.settings['unity_frequency'],
+                'movement_speed':self.settings['unity_movement_speed'],
+                'jump_height':self.settings['unity_jump_height']}
 
     def set_state(self, state):
         self.state = state
@@ -213,6 +231,13 @@ class Controller:
         if not decision.accepted:
             self.last_rejected = text
             return
+        action=action_intent(text)
+        if action:
+            try:
+                identifier=self.unity.action(action)
+                self.event('notice',{'message':'Avatar action requested; awaiting Unity confirmation.','action_id':identifier})
+            except (ValueError,RuntimeError) as exc:self.event('notice',{'message':str(exc)})
+            return
         if text.lower().startswith('remember:'):
             try:
                 identifier = self.memory.add(text.split(':', 1)[1].strip())
@@ -346,9 +371,9 @@ class Controller:
                         self.metrics['first_token_ms'] = (time.perf_counter() - start) * 1000
                     answer += chunk
                     self.event('delta', {'text': chunk}, turn)
-                    for phrase in phrases.feed(chunk): self.audio.say(phrase)
+                    for phrase in phrases.feed(chunk): self.audio.say(phrase,wait=True,cancel=cancel)
                 if not cancel.is_set() and turn == self.turn:
-                    for phrase in phrases.feed('', final=True): self.audio.say(phrase)
+                    for phrase in phrases.feed('', final=True): self.audio.say(phrase,wait=True,cancel=cancel)
                     self.last_answer = answer.strip()
                     if not proactive:self.history.append({'role':'user','content':text})
                     self.history.append({'role':'assistant','content':answer})
@@ -442,6 +467,7 @@ class Controller:
                 self.affect[key] += (0.55 - self.affect[key]) * 0.02
 
     def close(self):
+        self.unity.close()
         self.shutdown_event.set()
         self.pause()
         self.audio.close()

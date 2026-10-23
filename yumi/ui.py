@@ -90,6 +90,7 @@ class Board(QMainWindow):
         self.conversation_tab()
         self.personality_tab()
         self.avatar_tab()
+        self.unity_tab()
         self.voice_tab()
         self.awareness_tab()
         self.memory_tab()
@@ -235,6 +236,43 @@ class Board(QMainWindow):
         layout.addWidget(self.expression)
         layout.addWidget(QLabel('Original animated procedural placeholder. Mouth motion follows actual playback amplitude.'))
         layout.addStretch()
+
+    def unity_tab(self):
+        layout=self.page('Unity avatar')
+        layout.addWidget(QLabel('Primary avatar target: the original avatar-unity project.\nUnity project rendering/build compatibility requires its actual asset inspection.\nThe existing 2D avatar remains available until the Unity player is verified.'))
+        form=QFormLayout()
+        self.check(form,'Enable authenticated localhost bridge','unity_bridge_enabled',self.toggle_unity_bridge)
+        self.check(form,'Unity overlay always on top','unity_topmost')
+        self.check(form,'Unity overlay click-through','unity_clickthrough')
+        self.check(form,'Keep Unity character stationary','unity_stationary')
+        self.check(form,'Allow autonomous activity','unity_autonomous')
+        self.number(form,'Character scale','unity_scale',.2,3,.1)
+        self.number(form,'Activity frequency','unity_frequency',0,1,.1)
+        self.number(form,'Movement speed','unity_movement_speed',30,600,10)
+        self.number(form,'Jump height','unity_jump_height',30,500,10)
+        layout.addLayout(form)
+        self.unity_status=QLabel();self.unity_status.setTextFormat(Qt.PlainText);self.unity_status.setWordWrap(True);layout.addWidget(self.unity_status)
+        row=QHBoxLayout()
+        button('Inspect duplicated Unity project',self.inspect_unity,row)
+        button('Wave (connected Unity only)',lambda:self.send_unity_action({'type':'wave'}),row)
+        button('Stop avatar movement',lambda:self.send_unity_action({'type':'stop_movement'}),row)
+        layout.addLayout(row)
+        layout.addWidget(QLabel('These controls send state/actions only. Unity must implement and acknowledge them.\nNo movement is reported as completed merely because it was requested.\nMouth signals follow real playback but are spectral estimates, not verified phoneme timing.'))
+        layout.addStretch()
+
+    def toggle_unity_bridge(self):
+        if self.settings['unity_bridge_enabled']:self.core.unity.start()
+        else:self.core.unity.close()
+
+    def send_unity_action(self,action):
+        self.guard(lambda:self.notice('Requested avatar action '+self.core.unity.action(action)+'; awaiting Unity confirmation.'))
+
+    def inspect_unity(self):
+        if os.name!='nt':self.notice('Unity inspection runs on the Windows computer containing avatar-unity.');return
+        script=self.paths.root/'scripts/Inspect-AvatarUnity.ps1'
+        project=self.paths.inside(self.settings['unity_project'])
+        subprocess.Popen(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',str(script),'-ProjectRoot',str(project)],cwd=str(self.paths.root))
+        self.notice('Read-only Unity inventory launched; report goes to logs/avatar-unity/project-audit.json.')
 
     def voice_tab(self):
         from .delivery import STYLES
@@ -436,6 +474,7 @@ class Board(QMainWindow):
             self.errors = (self.errors + [message])[-20:]
             self.notice(message)
         elif kind == 'notice': self.notice(payload.get('message', ''))
+        elif kind == 'unity_action_result': self.notice(('Avatar action completed: ' if payload.get('success') is True else 'Avatar action failed: ')+str(payload.get('message','')))
         elif kind == 'attention':
             self.attention_view.setText(f"Addressability: {payload['confidence']:.0%} · {'accepted' if payload['accepted'] else 'ignored'}\n{json.dumps(payload['signals'])}")
         elif kind == 'retrieval': self.memory_used.setText('Memory references: ' + (', '.join(payload['memory_ids']) or 'none'))
@@ -692,6 +731,9 @@ class Board(QMainWindow):
                        context_tokens=self.settings['context'], gpu_layers=self.settings['gpu_layers'],
                        queued_turns=core.queue.qsize(), queued_speech=core.audio.speech.qsize())
         self.performance.setPlainText(json.dumps(metrics, indent=2))
+        unity=core.unity
+        self.unity_status.setText('Bridge: '+('connected' if unity.connected else 'listening' if unity.ready.is_set() else 'disabled')+
+                                 '\n'+(unity.error or str(unity.status) or 'No Unity renderer is connected.'))
         query = self.log_filter.text()
         if query != '__inspector__':
             self.logs.setPlainText('\n'.join(json.dumps(row) for row in list(core.journal.recent)[-100:] if query.lower() in json.dumps(row).lower()))

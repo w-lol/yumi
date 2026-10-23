@@ -22,3 +22,10 @@ class DeliveryTests(unittest.TestCase):
         self.assertNotIn('laughs', combined)
         self.assertNotIn('https', combined)
         self.assertFalse(speech_text('{"action":"jump"}'))
+
+    def test_streamed_decimal_and_punctuated_stage_direction(self):
+        phrases=Phrases();result=[]
+        for c in 'Version 3.14 is ready. *looks away. smiles* Next sentence.':
+            result.extend(phrases.feed(c))
+        result.extend(phrases.feed('',final=True))
+        self.assertEqual(result,['Version 3.14 is ready.','Next sentence.'])
