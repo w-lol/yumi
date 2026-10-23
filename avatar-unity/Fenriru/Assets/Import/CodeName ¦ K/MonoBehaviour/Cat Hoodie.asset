@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Cat Hoodie
+  m_EditorClassIdentifier:
+  controls:
+  - name: Standard Cat Hoodie
+    icon: {fileID: 2800000, guid: 42c1ff690d4757f46ae90d7b3e280d37, type: 3}
+    type: 102
+    parameter:
+      name: Outfit
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Elite Dangerous
+    icon: {fileID: 2800000, guid: 21203c3c2f6bc1c4e89c7853ae7bb731, type: 3}
+    type: 102
+    parameter:
+      name: Outfit
+    value: 2
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: OOGA BOOGA FISH
+    icon: {fileID: 2800000, guid: 9fd39c6c125c8af47bf4ebd8c046b7f7, type: 3}
+    type: 102
+    parameter:
+      name: Outfit
+    value: 3
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

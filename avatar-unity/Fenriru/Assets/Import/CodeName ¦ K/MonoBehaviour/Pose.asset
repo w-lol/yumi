@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Pose
+  m_EditorClassIdentifier:
+  controls:
+  - name: C
+    icon: {fileID: 2800000, guid: 452cf49679fda8041bacf36cd0d637e6, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 109a94609f6c35d47aed95fee1475acd, type: 2}
+    subParameters: []
+    labels: []
+  - name: Z
+    icon: {fileID: 2800000, guid: c04c3f09fa890184c99f6d286ecec840, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 10746acac10a4894c85d6a5835e217a2, type: 2}
+    subParameters: []
+    labels: []

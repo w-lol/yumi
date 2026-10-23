@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Pose C
+  m_EditorClassIdentifier:
+  controls:
+  - name: Reset
+    icon: {fileID: 2800000, guid: c4f2d008627e73344a786742d40d7a5a, type: 3}
+    type: 101
+    parameter:
+      name: VRCEmote
+    value: 255
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Standard
+    icon: {fileID: 2800000, guid: 452cf49679fda8041bacf36cd0d637e6, type: 3}
+    type: 101
+    parameter:
+      name: VRCEmote
+    value: 253
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Spread Legs
+    icon: {fileID: 2800000, guid: 452cf49679fda8041bacf36cd0d637e6, type: 3}
+    type: 101
+    parameter:
+      name: VRCEmote
+    value: 250
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Cross Legs
+    icon: {fileID: 2800000, guid: 452cf49679fda8041bacf36cd0d637e6, type: 3}
+    type: 101
+    parameter:
+      name: VRCEmote
+    value: 252
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Side
+    icon: {fileID: 2800000, guid: 452cf49679fda8041bacf36cd0d637e6, type: 3}
+    type: 101
+    parameter:
+      name: VRCEmote
+    value: 251
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Lying Side
+    icon: {fileID: 2800000, guid: 452cf49679fda8041bacf36cd0d637e6, type: 3}
+    type: 101
+    parameter:
+      name: VRCEmote
+    value: 249
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

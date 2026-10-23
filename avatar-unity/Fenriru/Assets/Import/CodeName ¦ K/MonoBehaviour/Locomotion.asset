@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Locomotion
+  m_EditorClassIdentifier:
+  controls:
+  - name: Emote
+    icon: {fileID: 2800000, guid: 4e49101706b8ac44498099508e925381, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: d819d258a29408f4ca558efbcfc5d690, type: 2}
+    subParameters: []
+    labels: []
+  - name: Float
+    icon: {fileID: 2800000, guid: 93a0229c02a849e409b53b57dc60d04d, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 9613dd5bb00658d4e8552b930010540e, type: 2}
+    subParameters: []
+    labels: []
+  - name: Pose
+    icon: {fileID: 2800000, guid: eaf01a6f19145374fb5e79c5d1ff8e30, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 50e32f09d9912184fbb04dcdb5bed753, type: 2}
+    subParameters: []
+    labels: []

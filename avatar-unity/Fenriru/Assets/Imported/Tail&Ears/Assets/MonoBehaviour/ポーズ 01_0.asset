@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: ポーズ 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: だらしない
+    icon: {fileID: 2800000, guid: 63be0e8d3a481ee4e9808f6dc0d651c7, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.506
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 土下座
+    icon: {fileID: 2800000, guid: 8e72c3d2fb8f60b45a24093da0853c52, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.503
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: プランク
+    icon: {fileID: 2800000, guid: 46e1d8be422bc984c8dcc5c12d932808, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.504
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 開脚
+    icon: {fileID: 2800000, guid: 2f9002ef278e91840a22f4a51013d1db, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.505
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 前屈
+    icon: {fileID: 2800000, guid: a81d027aafbe525499d61fc890576c16, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.508
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 海老反り
+    icon: {fileID: 2800000, guid: 1d230ff5833669d4f9d4be3a5efcd3bc, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.507
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ストレッチ(右)
+    icon: {fileID: 2800000, guid: 799cab89bc9f14c448a1349db4b40cb7, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.501
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ストレッチ(左)
+    icon: {fileID: 2800000, guid: d7d6dd2e266e1b442869aac51a94d5c4, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.502
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: _しゃがみ置き換えメニュー(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: デフォルト
+    icon: {fileID: 2800000, guid: 9109793808760db479f46445de783018, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: しゃがみ
+    icon: {fileID: 2800000, guid: 841c1b82fcce12f4398c506a99940a7b, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: fb4b2eb030267cb4b9bf9681518745f4, type: 2}
+    subParameters: []
+    labels: []
+  - name: しゃがみ2
+    icon: {fileID: 2800000, guid: 841c1b82fcce12f4398c506a99940a7b, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: fa1776bcc0388f4468c8ffa5e0c4cf2d, type: 2}
+    subParameters: []
+    labels: []
+  - name: 椅子
+    icon: {fileID: 2800000, guid: 1793a47bad83d16458e2030ba5f3ab81, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 1a63a3a91334d9749b3bdc5e9d4d0233, type: 2}
+    subParameters: []
+    labels: []
+  - name: 浮遊
+    icon: {fileID: 2800000, guid: 917535e8bdfe67949922419824ad0e18, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 709a90475a4880b4c8e79652d0c2aa15, type: 2}
+    subParameters: []
+    labels: []
+  - name: ポーズ
+    icon: {fileID: 2800000, guid: d4635a5e708269b4780b269439f7eb84, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 0206c260610ab1f4caa6e4101ccc8b67, type: 2}
+    subParameters: []
+    labels: []
+  - name: ユーザー定義
+    icon: {fileID: 2800000, guid: 064c370088610fc4aa4259207c0e7934, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 267fd90f2c8ce5646aa49d0adc9d7938, type: 2}
+    subParameters: []
+    labels: []

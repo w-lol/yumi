@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: うつ伏せ 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: 伏せ内股
+    icon: {fileID: 2800000, guid: e40ff5ae1a19e3847a0a5579a6c5030b, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.102
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 伏せ大股
+    icon: {fileID: 2800000, guid: b6c4e809d94e6154b848e123ad3c83f6, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.103
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚たたみ
+    icon: {fileID: 2800000, guid: d42b7051b8d9b6c428afb8fb63ad84ef, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.105
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚寝かせ
+    icon: {fileID: 2800000, guid: dbf7d83d7f593e34ebb5fda69ca648d5, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.107
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: まっすぐ
+    icon: {fileID: 2800000, guid: 7b2875340017b424e84b5b7590fc9d02, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.101
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 片足上げ
+    icon: {fileID: 2800000, guid: 93506f69bb914884dbe53e85ce67b669, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.104
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚交差
+    icon: {fileID: 2800000, guid: 84010f12aeee6174aadb1bdce281c82a, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.106
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 視聴
+    icon: {fileID: 2800000, guid: 9667962487ce72c49883981217225406, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.108
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
