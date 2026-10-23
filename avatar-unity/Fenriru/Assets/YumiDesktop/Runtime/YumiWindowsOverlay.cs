@@ -5,16 +5,16 @@ using UnityEngine;
 
 namespace Yumi.Desktop
 {
-    // Native DWM glass overlay. Transparency must be accepted in a D3D11 Windows player.
+    // Color-keyed layered window; does not depend on Unity preserving framebuffer alpha.
     // Controls live in Qt; full click-through includes both empty space and the character.
     public sealed class YumiWindowsOverlay : MonoBehaviour
     {
-        [StructLayout(LayoutKind.Sequential)] struct Margins { public int Left,Right,Top,Bottom; }
-        [DllImport("dwmapi.dll")] static extern int DwmExtendFrameIntoClientArea(IntPtr h,ref Margins margins);
         [DllImport("user32.dll",EntryPoint="GetWindowLongW")] static extern int GetWindowLong(IntPtr h,int index);
         [DllImport("user32.dll",EntryPoint="SetWindowLongW")] static extern int SetWindowLong(IntPtr h,int index,int value);
         [DllImport("user32.dll")] static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
         [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h,IntPtr order,int x,int y,int width,int height,uint flags);
+        [DllImport("user32.dll",SetLastError=true)] [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool SetLayeredWindowAttributes(IntPtr h,uint colorKey,byte alpha,uint flags);
         IntPtr handle;
         int previousStyle,previousExtended;
         public DesktopRect Bounds { get; private set; }
@@ -22,6 +22,8 @@ namespace Yumi.Desktop
         public bool Available { get { return handle!=IntPtr.Zero; } }
         bool priorTop,priorClick;
         int settleFrames;
+        Camera overlayCamera;
+        bool loggedTransparency;
         public void Configure(DesktopRect bounds)
         {
             Bounds=bounds;settleFrames=3;
@@ -32,8 +34,6 @@ namespace Yumi.Desktop
                 if(handle==IntPtr.Zero)return;
                 previousStyle=GetWindowLong(handle,-16);previousExtended=GetWindowLong(handle,-20);
                 SetWindowLong(handle,-16,unchecked((int)0x80000000));
-                Margins glass=new Margins { Left=-1,Right=-1,Top=-1,Bottom=-1 };
-                if(DwmExtendFrameIntoClientArea(handle,ref glass)!=0) {UnityEngine.Debug.LogError("DWM transparency unavailable");}
             }
             priorTop=!Topmost;priorClick=!ClickThrough;
             Apply();
@@ -43,10 +43,27 @@ namespace Yumi.Desktop
         void Apply()
         {
             // TOOLWINDOW | NOACTIVATE. Never SetForegroundWindow/SetFocus/SendInput.
-            int style=previousExtended|0x80|0x08000000;
-            if(ClickThrough)style|=0x20|0x80000;
+            int style=OverlayWindowPolicy.ExtendedStyle(previousExtended,ClickThrough);
             SetWindowLong(handle,-16,unchecked((int)0x80000000));
             SetWindowLong(handle,-20,style);
+            if(overlayCamera==null)
+            {
+                YumiDesktopAvatar desktop=GetComponent<YumiDesktopAvatar>();
+                overlayCamera=desktop==null?null:desktop.view;
+            }
+            if(overlayCamera!=null)
+            {
+                overlayCamera.clearFlags=CameraClearFlags.SolidColor;
+                overlayCamera.backgroundColor=new Color32(255,0,255,255);
+                overlayCamera.allowHDR=false;overlayCamera.allowMSAA=false;
+            }
+            if(!SetLayeredWindowAttributes(handle,OverlayWindowPolicy.BackgroundKey,255,OverlayWindowPolicy.ColorKeyFlag))
+                UnityEngine.Debug.LogError("Overlay color-key transparency failed. Win32 error="+Marshal.GetLastWin32Error());
+            else if(!loggedTransparency)
+            {
+                loggedTransparency=true;
+                UnityEngine.Debug.Log("Overlay color-key transparency configured; camera="+(overlayCamera!=null)+"; graphics="+SystemInfo.graphicsDeviceType);
+            }
             IntPtr previousDpi=SetThreadDpiAwarenessContext(new IntPtr(-4));
             try { SetWindowPos(handle,new IntPtr(Topmost?-1:-2),(int)Bounds.X,(int)Bounds.Y,
                 (int)Bounds.Width,(int)Bounds.Height,0x0010|0x0020|0x0040); }

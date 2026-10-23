@@ -12,10 +12,14 @@ static class Program
     [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)]
     static extern IntPtr CreateWindowEx(uint ex,string type,string title,uint style,int x,int y,int width,int height,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr param);
     [DllImport("user32.dll")] static extern bool DestroyWindow(IntPtr hwnd);
+    [DllImport("user32.dll",SetLastError=true)] static extern bool SetLayeredWindowAttributes(IntPtr h,uint key,byte alpha,uint flags);
+    [DllImport("user32.dll",SetLastError=true)] static extern bool GetLayeredWindowAttributes(IntPtr h,out uint key,out byte alpha,out uint flags);
+    [DllImport("user32.dll",EntryPoint="SetWindowLongW")] static extern int SetWindowLong(IntPtr h,int index,int value);
     static void Check(bool value,string message) { if(!value)throw new Exception(message); }
     static void Main()
     {
         TestSourceSyntax();
+        TestOverlayTransparency();
         TestPantsRepair();
         TestPlayback();
         TestMotion();
@@ -48,6 +52,35 @@ static class Program
         }
         finally { if(window!=IntPtr.Zero)DestroyWindow(window); }
         Console.WriteLine("Windows geometry: actual owned-window bounds, monitors, stable identity and disappearance passed.");
+    }
+
+    static void TestOverlayTransparency()
+    {
+        int through=OverlayWindowPolicy.ExtendedStyle(0,true);
+        int interactive=OverlayWindowPolicy.ExtendedStyle(through,false);
+        Check((through&0x80000)!=0&&(interactive&0x80000)!=0,"Layered transparency must survive click-through changes");
+        Check((through&0x20)!=0&&(interactive&0x20)==0,"Click-through must remain independently configurable");
+        Check((through&0x08000080)==0x08000080&&(interactive&0x08000080)==0x08000080,"Overlay must retain tool-window/no-activate styles");
+        Check(OverlayWindowPolicy.BackgroundKey==0x00FF00FF,"Camera background and COLORREF must agree");
+        if(Environment.OSVersion.Platform!=PlatformID.Win32NT)
+        {Console.WriteLine("Overlay style policy passed; native transparency attributes require Windows.");return;}
+        // Hidden, owned STATIC window: validate native API round trips without
+        // showing/focusing a window or claiming Unity pixels are transparent.
+        IntPtr handle=CreateWindowEx((uint)through,"STATIC","Yumi transparency fixture",0,0,0,64,64,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);
+        Check(handle!=IntPtr.Zero,"Transparency fixture creation failed");
+        try
+        {
+            foreach(int style in new[]{through,interactive})
+            {
+                SetWindowLong(handle,-20,style);
+                Check(SetLayeredWindowAttributes(handle,OverlayWindowPolicy.BackgroundKey,255,OverlayWindowPolicy.ColorKeyFlag),"Native color-key configuration failed");
+                uint key,flags;byte alpha;
+                Check(GetLayeredWindowAttributes(handle,out key,out alpha,out flags),"Native transparency attribute readback failed");
+                Check(key==OverlayWindowPolicy.BackgroundKey&&alpha==255&&flags==OverlayWindowPolicy.ColorKeyFlag,"Native transparency attributes mismatch");
+            }
+        }
+        finally {DestroyWindow(handle);}
+        Console.WriteLine("Windows owned-window color-key API round trip passed; Unity rendering remains unverified.");
     }
 
     static void TestSourceSyntax()
