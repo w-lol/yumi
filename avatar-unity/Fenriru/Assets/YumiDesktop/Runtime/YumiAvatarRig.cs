@@ -1,0 +1,107 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace Yumi.Desktop
+{
+    [Serializable] public class FaceBinding
+    {
+        public SkinnedMeshRenderer mesh;
+        public string aa="VRC.v_aa",ih="VRC.v_ih",ou="VRC.v_ou",blink="blink",smile="smile",squint="jitome";
+    }
+    [Serializable] public class MotionClip { public string state;public AnimationClip clip; }
+    public sealed class YumiAvatarRig : MonoBehaviour
+    {
+        public Animator animator;
+        public FaceBinding face=new FaceBinding();
+        public MotionClip[] clips=new MotionClip[0];
+        public string Diagnostic { get; private set; }
+        public bool Ready {get {return animator!=null&&animator.isHuman&&face.mesh!=null&&face.mesh.sharedMesh!=null;} }
+        public string Motion="Idle";
+        public Vector3 Gaze;
+        public float MotionSpeed=1;
+        readonly PlaybackTimeline timeline=new PlaybackTimeline();
+        readonly Dictionary<Transform,Quaternion> restore=new Dictionary<Transform,Quaternion>();
+        readonly Dictionary<string,int> shapes=new Dictionary<string,int>();
+        float nextBlink,blinkStart=-10,smile,phase,lookTimer,yaw,pitch,targetYaw,targetPitch,previewUntil;
+        string preview="neutral";
+        string currentClip="";
+        System.Random random=new System.Random();
+        static long Now { get {return DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();} }
+        void Start()
+        {
+            if(!Ready) {Diagnostic="Missing humanoid animator or face mesh";enabled=false;return;}
+            foreach(string name in new[]{face.aa,face.ih,face.ou,face.blink,face.smile,face.squint})
+                if(!String.IsNullOrEmpty(name))shapes[name]=face.mesh.sharedMesh.GetBlendShapeIndex(name);
+            Diagnostic="Playback mouth estimates; original rig; unverified Windows appearance";
+            nextBlink=Time.unscaledTime+2+(float)random.NextDouble()*4;
+            animator.applyRootMotion=false;animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
+        }
+        public void State(AvatarState state)
+        {
+            timeline.Push(new PlaybackFrame {Epoch=state.audio_epoch,Due=state.mouth_time_ms,Speaking=state.speaking,
+                Aa=state.mouth==null?0:state.mouth.aa,Ih=state.mouth==null?0:state.mouth.ih,
+                Ou=state.mouth==null?0:state.mouth.ou,Style=state.style},Now);
+        }
+        public bool PreviewExpression(string expression)
+        {
+            switch(expression)
+            {
+                case "neutral":case "happy":case "curious":case "mock-annoyed":preview=expression;previewUntil=Time.unscaledTime+5;return true;
+                default:return false;
+            }
+        }
+        public void ResetSpeech() {timeline.Clear();Set(face.aa,0);Set(face.ih,0);Set(face.ou,0);}
+        void Update()
+        {
+            // Restore last frame's additive offsets before Animator evaluates this frame.
+            foreach(var item in restore)if(item.Key!=null)item.Key.localRotation=item.Value;
+            restore.Clear();
+            if(!Ready)return;
+            string selected=Motion;
+            if(selected!=currentClip&&HasClip(selected)) {animator.CrossFadeInFixedTime("YumiMotion."+selected,.18f);currentClip=selected;}
+            animator.speed=Mathf.Clamp(MotionSpeed,.3f,2);
+        }
+        bool HasClip(string state) {foreach(var c in clips)if(c.state==state&&c.clip!=null)return true;return false;}
+        void LateUpdate()
+        {
+            if(!Ready)return;
+            float now=Time.unscaledTime,dt=Time.unscaledDeltaTime;
+            PlaybackFrame frame=timeline.Sample(Now);
+            float mix=1-Mathf.Exp(-dt*25);
+            Smooth(face.aa,frame.Aa*100,mix);Smooth(face.ih,frame.Ih*100,mix);Smooth(face.ou,frame.Ou*100,mix);
+            if(now>=nextBlink) {blinkStart=now;nextBlink=now+3+(float)random.NextDouble()*5;}
+            float blink=Mathf.Clamp01(1-Mathf.Abs((now-blinkStart)/.16f-1));
+            Set(face.blink,blink*100);
+            string style=now<previewUntil?(preview=="happy"?"playful":preview):frame.Style;
+            float target=(frame.Speaking||now<previewUntil)&&(style=="excited"||style=="playful"||style=="amused")?35:0;
+            smile=Mathf.Lerp(smile,target,1-Mathf.Exp(-dt*4));Set(face.smile,smile);
+            Set(face.squint,(frame.Speaking||now<previewUntil)&&style=="mock-annoyed"?20:0);
+            if(now>lookTimer) {lookTimer=now+1.5f+(float)random.NextDouble()*3; targetYaw=(float)(random.NextDouble()-.5)*10;targetPitch=(float)(random.NextDouble()-.5)*5;}
+            float gazeMix=1-Mathf.Exp(-dt*3);yaw=Mathf.Lerp(yaw,targetYaw,gazeMix);pitch=Mathf.Lerp(pitch,targetPitch,gazeMix);
+            Vector3 gaze=Gaze;
+            Add(HumanBodyBones.Head,Quaternion.Euler(Mathf.Clamp(gaze.y+pitch,-12,12),Mathf.Clamp(gaze.x+yaw,-20,20),style=="curious"?4:0));
+            Add(HumanBodyBones.LeftEye,Quaternion.Euler(Mathf.Clamp(pitch,-8,8),Mathf.Clamp(yaw,-10,10),0));
+            Add(HumanBodyBones.RightEye,Quaternion.Euler(Mathf.Clamp(pitch,-8,8),Mathf.Clamp(yaw,-10,10),0));
+            phase+=dt*Mathf.Clamp(MotionSpeed,.3f,2);
+            Add(HumanBodyBones.Chest,Quaternion.Euler(Mathf.Sin(phase*1.5f)*.6f,0,0));
+            if(!HasClip(Motion)&&(Motion=="Walking"||Motion=="Running"))
+            {
+                float stride=Mathf.Sin(phase*(Motion=="Running"?11:7)),amount=Motion=="Running"?24:15;
+                Add(HumanBodyBones.LeftUpperLeg,Quaternion.Euler(stride*amount,0,0));
+                Add(HumanBodyBones.RightUpperLeg,Quaternion.Euler(-stride*amount,0,0));
+                Add(HumanBodyBones.LeftLowerLeg,Quaternion.Euler(Mathf.Max(0,-stride)*25,0,0));
+                Add(HumanBodyBones.RightLowerLeg,Quaternion.Euler(Mathf.Max(0,stride)*25,0,0));
+                Add(HumanBodyBones.LeftUpperArm,Quaternion.Euler(-stride*10,0,0));
+                Add(HumanBodyBones.RightUpperArm,Quaternion.Euler(stride*10,0,0));
+            }
+            if(Motion=="Waving")
+            {Add(HumanBodyBones.RightUpperArm,Quaternion.Euler(0,0,65));Add(HumanBodyBones.RightLowerArm,Quaternion.Euler(0,0,40+Mathf.Sin(phase*9)*15));}
+        }
+        void Add(HumanBodyBones bone,Quaternion offset)
+        {Transform t=animator.GetBoneTransform(bone);if(t==null)return;if(!restore.ContainsKey(t))restore[t]=t.localRotation;t.localRotation=t.localRotation*offset;}
+        void Set(string name,float value) {int i;if(name!=null&&shapes.TryGetValue(name,out i)&&i>=0)face.mesh.SetBlendShapeWeight(i,value);}
+        void Smooth(string name,float value,float amount) {int i;if(name!=null&&shapes.TryGetValue(name,out i)&&i>=0)Set(name,Mathf.Lerp(face.mesh.GetBlendShapeWeight(i),value,amount));}
+        void OnDisable() {if(face.mesh!=null)ResetSpeech();foreach(var p in restore)if(p.Key!=null)p.Key.localRotation=p.Value;restore.Clear();}
+    }
+}

@@ -9,6 +9,7 @@ class DeliveryTests(unittest.TestCase):
         self.assertEqual(classify('I am overwhelmed').style, 'comforting')
         self.assertEqual(classify('This is broken again').situation, 'user_frustration')
         self.assertLess(STYLES['comforting'], STYLES['excited'])
+        self.assertEqual(classify("Yumi, you're being dramatic").style,'mock-annoyed')
 
     def test_streamed_code_and_stage_directions_never_spoken(self):
         source = 'Here is the answer.\n```python\nsecret_metadata = 42\n```\n**Hello** [Jason](https://example.com). *laughs* 😄'
@@ -37,3 +38,11 @@ class DeliveryTests(unittest.TestCase):
         result.extend(phrases.feed('',final=True))
         self.assertEqual(result,['Hello.','Here is the answer .'])
         self.assertEqual(speech_text('Keep this (unclosed direction'), 'Keep this')
+
+    def test_streamed_hidden_blocks_and_unfinished_reasoning_are_never_spoken(self):
+        phrases=Phrases();result=[]
+        for c in '<think>Private reasoning. More analysis.</think> Actual answer.':
+            result.extend(phrases.feed(c))
+        result.extend(phrases.feed('',final=True))
+        self.assertEqual(result,['Actual answer.'])
+        self.assertEqual(speech_text('<analysis>private unfinished'), '')

@@ -13,6 +13,8 @@ namespace Yumi.Desktop
         public string SupportId="",TargetWindow="",Message="",Behavior="RESTING";
         public CharacterMotion State=CharacterMotion.Idle;
         public bool Stationary,FollowCursor;
+        public bool AutonomousActive { get; private set; }
+        public bool Navigating { get { return goal.HasValue||pending!=null||route.Count>0||SupportId==""; } }
         public int Recoveries { get; private set; }
         public DesktopSnapshot Desktop { get; private set; }
         readonly Queue<Edge> route=new Queue<Edge>();
@@ -56,7 +58,7 @@ namespace Yumi.Desktop
         }
         public void Stop()
         {
-            route.Clear();goal=null;pending=null;VelocityX=0;TargetWindow="";FollowCursor=false;sitAfter=false;
+            AutonomousActive=false;route.Clear();goal=null;pending=null;VelocityX=0;TargetWindow="";FollowCursor=false;sitAfter=false;
             if(SupportId!="")State=CharacterMotion.Idle;
         }
         public void Stay() { Stop();Stationary=true;manualUntil=Double.PositiveInfinity; }
@@ -94,7 +96,7 @@ namespace Yumi.Desktop
             if(SupportId=="")return;
             Stop();State=CharacterMotion.Sitting;manualUntil=clock+30;
         }
-        public void Wave() { if(SupportId!=""){State=CharacterMotion.Waving;timer=2;manualUntil=clock+30;} }
+        public void Wave() { if(SupportId!=""){Stop();State=CharacterMotion.Waving;timer=2;manualUntil=clock+30;} }
 
         Edge Flight(DesktopSurface a,DesktopSurface b,double start,double end)
         {
@@ -157,6 +159,7 @@ namespace Yumi.Desktop
 
         public void Tick(double delta,bool autonomous=false,bool busy=false,double frequency=.3)
         {
+            if(AutonomousActive&&(!autonomous||busy||Stationary))Stop();
             delta=Math.Max(0,Math.Min(.1,delta));int steps=Math.Max(1,(int)Math.Ceiling(delta*120));
             for(int i=0;i<steps;i++)Step(delta/steps);
             clock+=delta;
@@ -164,7 +167,7 @@ namespace Yumi.Desktop
             {
                 nextAutonomy=clock+Math.Max(30,90/Math.Max(.1,frequency));Behavior="OBSERVING";
                 DesktopWindow active=Desktop.Windows.FirstOrDefault(w=>w.Foreground);
-                if(active!=null&&RequestWindowId(active.Id,false))Behavior="EXPLORING";
+                if(active!=null&&RequestWindowId(active.Id,false)) {Behavior="EXPLORING";AutonomousActive=true;}
             }
         }
         void Step(double dt)

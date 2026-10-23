@@ -64,3 +64,19 @@ class UnityBridgeTests(unittest.TestCase):
         with self.assertRaises(ValueError):validate_action({'type':'move_to_window','x':100})
         with self.assertRaises(ValueError):validate_action({'type':'shell','target':'cmd.exe'})
         with self.assertRaises(RuntimeError):self.bridge.action({'type':'wave'})
+
+    def test_reconnection_requires_fresh_readiness_and_drops_old_actions(self):
+        headers={'Authorization':'Bearer '+self.bridge.token}
+        with connect(self.url,additional_headers=headers) as socket:
+            socket.recv(timeout=2)
+            socket.send(json.dumps({'protocol':1,'type':'hello','payload':{'ready':True}}))
+            deadline=time.monotonic()+2
+            while not self.bridge.status.get('ready') and time.monotonic()<deadline:time.sleep(.01)
+            self.assertTrue(self.bridge.status.get('ready'))
+        deadline=time.monotonic()+2
+        while self.bridge.connected and time.monotonic()<deadline:time.sleep(.01)
+        with connect(self.url,additional_headers=headers) as socket:
+            state=json.loads(socket.recv(timeout=2))
+            self.assertEqual(state['type'],'state')
+            with self.assertRaisesRegex(RuntimeError,'ready'):self.bridge.action({'type':'wave'})
+            self.assertEqual(len(self.bridge.actions),0)

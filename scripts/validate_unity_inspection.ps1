@@ -24,8 +24,19 @@ try {
     & (Join-Path $PSScriptRoot 'Install-UnityInspector.ps1') -ProjectRoot $Project
     if (-not (Test-Path (Join-Path $Project 'Assets\YumiDesktopInspection\Editor\YumiProjectInspection.cs'))) { throw 'Scoped Editor inspector installation failed.' }
     foreach ($Path in $Before.Keys) { if ((Get-FileHash -LiteralPath $Path).Hash -ne $Before[$Path]) { throw 'Inspector installation modified original fixture assets.' } }
+    & (Join-Path $PSScriptRoot 'Install-UnityDesktop.ps1') -ProjectRoot $Project
+    if (-not (Test-Path (Join-Path $Project 'Assets/YumiDesktop/Runtime/YumiDesktopAvatar.cs'))) { throw 'Desktop runtime installation failed.' }
+    if (-not (Test-Path (Join-Path $Project 'Assets/YumiDesktop/Editor/YumiDesktopBuild.cs'))) { throw 'Desktop builder installation failed.' }
+    foreach ($Path in $Before.Keys) { if ((Get-FileHash -LiteralPath $Path).Hash -ne $Before[$Path]) { throw 'Desktop installation modified original fixture assets.' } }
+    # Exercise the actual uploaded wrapper/Fenriru layout as well as a direct root.
+    $Nested=Join-Path $Project 'Fenriru'
+    New-Item -ItemType Directory -Force -Path $Nested | Out-Null
+    foreach ($Name in @('Assets','ProjectSettings','Packages')) { Move-Item -LiteralPath (Join-Path $Project $Name) -Destination $Nested }
+    & (Join-Path $PSScriptRoot 'Inspect-AvatarUnity.ps1') -ProjectRoot $Project -OutputFile $Output
+    & (Join-Path $PSScriptRoot 'Install-UnityDesktop.ps1') -ProjectRoot $Project
+    if (-not (Test-Path (Join-Path $Nested 'Assets/YumiDesktop/Runtime/YumiDesktopAvatar.cs'))) { throw 'Nested project resolution failed.' }
     $Parsed=$null; $Errors=$null
-    foreach ($File in @('Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','setup.ps1','uninstall.ps1')) {
+    foreach ($File in @('Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
         [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot $File),[ref]$Parsed,[ref]$Errors) | Out-Null
         if ($Errors.Count) { throw ($Errors | Out-String) }
     }

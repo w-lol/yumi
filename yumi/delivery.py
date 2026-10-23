@@ -34,6 +34,8 @@ def classify(text, ongoing=False, talkativeness=.7):
         return Delivery('emotional', 'comforting', 700)
     if re.search(r'\b(grief|death|medical|serious|emergency)\b', value):
         return Delivery('serious', 'serious', 1100)
+    if re.search(r"\b(?:you.re|you are) (?:being |so )?(?:dramatic|a drama queen)\b",value):
+        return Delivery('playful_teasing','mock-annoyed',400)
     if re.search(r'\b(joke|funny|roast|pun|make me laugh)\b', value):
         return Delivery('humor', 'amused', 400)
     if re.fullmatch(r"(?:how are you|what.s up|how.s it going)[ !?.]*",value):
@@ -73,14 +75,16 @@ def phrase_boundary(text):
     for char in text:
         if char in '(（': depth += 1
         elif char in ')）': depth = max(0, depth - 1)
-    return depth == 0 and text.count('*') % 2 == 0
+    controls = re.findall(r'<(/?)(think|analysis|reasoning|tool_call)\b[^>]*>', text, re.I)
+    hidden = sum(-1 if closing else 1 for closing, _ in controls)
+    return depth == 0 and hidden <= 0 and text.count('*') % 2 == 0
 
 
 def speech_text(text):
     """Keep visible text intact; discard presentation/control syntax from speech."""
     text = re.sub(r'```[\s\S]*?```', ' ', text)
     text = re.sub(r'(?<!\*)\*(?!\*)([^*\n]+)\*(?!\*)', ' ', text)
-    text = re.sub(r'<(?:think|analysis|reasoning|tool_call)\b[^>]*>[\s\S]*?</[^>]+>', ' ', text, flags=re.I)
+    text = re.sub(r'<(think|analysis|reasoning|tool_call)\b[^>]*>[\s\S]*?(?:</\1\s*>|$)', ' ', text, flags=re.I)
     text = re.sub(r'\[[^\]]*\]\(([^)]+)\)', lambda m: re.sub(r'\]\(.*', '', m.group(0))[1:], text)
     text = outside_parentheses(text)
     text = re.sub(r'https?://\S+', ' ', text)

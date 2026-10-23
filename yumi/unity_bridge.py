@@ -11,7 +11,7 @@ import uuid
 from .paths import atomic_json
 
 ACTION_TYPES={'move_to_window','jump_to_platform','walk_to_position','run_to_position',
-              'sit','stand','wave','look_at','stop_movement','set_expression','stay','follow_cursor','other_monitor'}
+              'reset_avatar','sit','stand','wave','look_at','stop_movement','set_expression','stay','follow_cursor','other_monitor'}
 
 
 def action_intent(text):

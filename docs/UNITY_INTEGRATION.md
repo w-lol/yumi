@@ -1,162 +1,142 @@
-# Original Unity avatar integration — current state
+# Original Unity avatar integration
 
-The primary target is the original character in the duplicated `avatar-unity/` Unity
-project, with its existing meshes, Poiyomi materials, clothing and animation assets.
-The VRM experiment is preserved separately on the local Git branch
-`codex/vrm-prototype-checkpoint` (`a9b42f1`); it is not the primary renderer.
-The existing working Qt avatar remains the visible fallback. No second Unity project
-has been created, and no original VRChat project outside this repository is accessed.
+## Delivered and verified scope
 
-## Source availability and first priority
+The uploaded original project is **avatar-unity/Fenriru**, Unity **2022.3.22f1**,
+from main commit `222ae1f`. It was merged into the existing integration branch;
+installer and earlier Unity commits remain intact. Main has not been merged or changed.
+All 72 Git LFS objects were downloaded and individually SHA-256 verified.
+[Static source inventory](validation/unity-source.json) records 129 prefabs,
+40 controllers, 288 materials, 1,374 animation clips, 155 shaders and 47 FBX files.
 
-At inspection, GitHub `main` (`bf08f2f`) contains only README.md. The existing
-`codex/windows-installer-actions` branch contains Yumi but no `avatar-unity/` directory.
-The recursive GitHub tree response was not truncated. The local checkout also has no
-`avatar-unity/ProjectSettings/ProjectVersion.txt`, avatar prefab, controller or materials.
-The actual avatar cannot be rendered, adapted or built until those files are accessible.
-No character/prefab names, blendshape mappings, Unity version or Poiyomi compatibility
-are assumed. A plan document saying assets were uploaded does not establish availability.
+The selected desktop source is `Assets/lordhavemercy.unity`. Its descriptor references
+`Assets/Imported/Fbx/Avatar/Karin_2.fbx` (humanoid importer),
+`Assets/Proppa/Animations/Controller/Fenriru FX.controller`,
+`Assets/Proppa/Menu/RiruExpressionsMenu.asset`, and
+`Assets/Proppa/Menu/Fenriru Parameters.asset`. The separately uploaded large
+`prefab-id-v1_avtr_072f0a3c-94e1-4ab0-b9b3-772521da0ae8_5472754516.prefab`
+contains unresolved generated controller GUIDs and is not substituted for this scene.
 
-Once the project is available, work proceeds on `codex/unity-avatar-integration`:
+The descriptor's real mouth names are `VRC.v_aa`, `VRC.v_ih`, `VRC.v_ou`;
+existing Proppa face clips bind `Body` shapes including `blink`, `smile` and `jitome`.
+The builder checks the imported mesh's actual visemes and reports absent optional
+expressions. Static names do not establish successful FBX import or visual appearance.
 
-1. Record the actual source commit and inventory Unity version, packages, prefabs,
-   humanoid animators, material/shader dependencies, clips, descriptor layers, expression
-   parameters and physics components. Use the existing project and Editor version.
-2. Create recoverable copies only where asset changes are needed. Get the original
-   appearance rendering in a standalone Windows build first. Evaluate the free MIT
-   [UniWindowController](https://github.com/kirurobo/UniWindowController) against the actual
-   Unity version/render pipeline. Its documented minimum is 2019.4.31f1, with .NET 4.x;
-   Windows alpha transparency requires Direct3D11 with the DXGI flip-model swapchain
-   disabled. URP also requires preserving alpha (HDR disabled and alpha processing
-   enabled). These settings must be checked against the real project before changing
-   them. Transparency must be tested in a built player, not inferred from the Editor.
-   Verify borderless alpha, focus and transparent hit
-   testing on Windows; do not call these operational based on source code alone.
-3. Connect the real Unity renderer to the tested localhost transport below. Map the
-   avatar's actual facial blendshapes and verify synchronized mouth movement against
-   real playback. The current audio signal is a spectral estimate, not phoneme timing.
-4. Reuse compatible animation assets and controllers. Inventory VRChat-dependent state
-   behaviours, parameters, menus, PhysBones and contacts before replacing them. Do not
-   assume SDK components function in standalone players or silently drop their features.
-5. Implement/verify Unity-owned full-body locomotion, Win32/DWM window geometry, platform
-   support, ballistic jumping and pathfinding, then optional autonomy. High-level actions
-   from Yumi must never mutate actual application windows or execute shell commands.
+**No Unity Editor or licensed build runner is available in this cloud environment.**
+There is no verified Unity executable in this update. Original-avatar rendering,
+Poiyomi fidelity, transparent hit testing, bone poses, physical lip alignment and
+real desktop navigation have not been tested in Unity. The working Qt avatar remains
+available. The VRM experiment remains preserved separately, not used as primary.
 
-There is currently **no buildable Unity overlay or operational original-avatar renderer**
-in this integration stage. These are required next steps, not completed features.
+## Source implementation
 
-## Inspect the duplicate locally
+Additive source files are installed directly inside the duplicated project:
 
-The read-only static inventory works without launching Unity or installing Python:
+- `Assets/YumiDesktop/Runtime`: existing authenticated native WebSocket client and
+  Win32 geometry/motion engine, plus desktop scene executor, DWM overlay, facial/rig
+  driver and bounded playback scheduler.
+- `Assets/YumiDesktop/Editor`: reproducible scene generator and Windows build method.
+- `Assets/YumiDesktopInspection/Editor`: read-only imported rig/material/controller audit.
+
+The same deployment sources live under `integrations/unity` for the installer.
+Installation backs up previous copies of these scoped files. Original scenes,
+textures, meshes, shaders, materials and controllers were not edited.
+
+The scene generator clones the original scene avatar into `Assets/YumiDesktopGenerated`,
+keeps material references, copies the original FX controller and retains its parameters
+and layers. It adds a separate body layer using available GoLoco stand, cross-legged
+sit and jump clips, with blend transitions. Walking/running and waving have bounded
+procedural fallbacks; these do not establish foot planting, collision-free clothing,
+IK quality or natural animation. Talking uses the standing pose with live facial drive.
+Other requested animation states and unrestricted gesture composition are unfinished.
+
+VRChat descriptors, PhysBones, contacts, modular build components and incompatible
+state behaviours are removed **only from the generated clone/controller**. Every
+removed component is listed in `standalone-adaptation.txt`. Hair/clothing PhysBone
+motion, contacts, parameter drivers and VRChat expression menus are **not operational
+standalone equivalents**. Original outfit hierarchy/material state and FX assets are
+retained; equivalent menu controls and physics remain future work. Build errors are
+reported, rather than silently replacing shaders or rig assets.
+
+The native overlay uses borderless DWM glass, Direct3D11, disabled DXGI flip swapchain,
+transparent camera clear, HDR off, tool-window/no-activate styles and a virtual-desktop
+camera. Topmost and full click-through are configurable. **Full click-through includes
+the character as well as empty regions**; use the Qt board for controls. Per-pixel
+character interaction is unfinished. No code focuses, moves or closes application windows.
+A built Windows player is required to test transparency; Editor preview cannot prove it.
+
+The executor connects existing Win32 surfaces to character placement. It handles
+routes, jumps, carried supports, disappearing windows, timeout/failure acknowledgements,
+manual stop and explicit recovery. Cursor following is restricted to the current
+supporting edge; it does not yet plan multi-window pursuit. User movement commands
+supersede earlier routes. Pausing/disconnecting stops movement, and disabling autonomy
+stops new autonomous route selection. Monitor layout updates reconfigure the overlay.
+
+## Build and launch on the Windows PC
+
+1. Close Yumi. Apply the downloaded update using `Update-Yumi.ps1` beside `Yumi.zip`
+   and its checksum. The default root remains `C:\Users\jason\3D Objects\yumi`.
+2. Install/open **Unity 2022.3.22f1**, with Windows Build Support, through Unity Hub.
+   Use only the duplicated project. The uploaded layout is `avatar-unity\Fenriru`;
+   scripts also accept the originally described direct `avatar-unity` project layout.
+3. Add that existing duplicate to VRChat Creator Companion and restore the versions
+   in `Packages/vpm-manifest.json`. The upload includes only the core VPM resolver;
+   **23 locked packages are absent**, including VRChat Avatars/Base 3.6.1, Modular
+   Avatar, NDMF, VRCFury, AV3Emulator and lilToon. Do not upgrade the Unity version
+   or silently substitute the missing packages. Resolve all Editor compile errors.
+4. Run this from PowerShell (close the project in Editor first for batch mode):
 
 ```powershell
 $r = 'C:\Users\jason\3D Objects\yumi'
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$r\scripts\Inspect-AvatarUnity.ps1" -ProjectRoot "$r\avatar-unity"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$r\scripts\Build-UnityAvatar.ps1" -Root $r
 ```
 
-It writes `logs/avatar-unity/project-audit.json` and does not modify project assets.
-Static GUID references cannot establish FBX blendshapes or runtime compatibility.
+Pass `-UnityEditor '...\Unity.exe'` if Hub is installed elsewhere. This copies the
+scoped add-ons, generates the desktop scene, and builds
+`Builds\YumiAvatar\YumiAvatar.exe`. Logs: `logs\avatar-unity\build.log`.
+Alternatively use **Yumi → Create desktop scene from original avatar**, inspect the
+scene/adaptation report, then **Yumi → Build Windows desktop player** in Editor.
+Build-specific graphics settings are restored after the build attempt.
 
-For the real rig, face and controller inventory, add the scoped Editor inspector:
+5. Start `Yumi.vbs`, choose **Start / Resume**, then **Unity avatar → Launch locally
+   built avatar**. That enables the bridge and starts only this installation's player.
+   The app owns the launched process and closes it on shutdown; unrelated processes
+   are never terminated. Player log: `logs\unity-player.log`. Keep the Qt board open.
+   Hide the separate 2D avatar from its Avatar tab if desired.
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$r\scripts\Install-UnityInspector.ps1" -ProjectRoot "$r\avatar-unity"
-```
+## Windows acceptance checklist — not yet performed
 
-This version-gated installer copies only the two inspection extension files into
-`Assets/YumiDesktopInspection/Editor`, backing up existing copies of those files. It
-does not change packages, project settings, scenes, materials, controllers or prefabs.
-It targets Unity 2019.4 or newer, pending verification against the actual project.
-Open the **duplicate** with its existing Unity version and choose
-**Yumi → Inspect duplicated avatar project (read only)**. This writes
-`logs/avatar-unity/editor-audit.json`. The report lists humanoid prefab candidates,
-skinned mesh blendshape/bone names, materials and shaders, animation layers, clips,
-parameters, controller state behaviour types, and avatar descriptor references.
-The Editor extension has not been compiled against the user's unavailable Unity project.
+- Compare original scene versus generated scene: skin, eyes, hair, outfits,
+  accessories, locked Poiyomi materials and lighting. Reject pink/missing shaders.
+- Verify transparent background in the player, no taskbar/focus disruption and normal
+  mouse/keyboard operation behind empty areas; test topmost/click-through toggles.
+- Check viseme mapping and five-second expression previews. Audition speech and
+  calibrate mouth gain/timing offset. Interrupt and restart speech; mouth must close.
+- Test stand/sit/jump/idle/wave transitions and procedural fallback bounds. Inspect
+  feet, knees, hands, clothing and silhouette; do not assume the poses are acceptable.
+- Test reachable window routes, occlusion, dragging/closing a supporting window,
+  mixed-DPI/negative-coordinate monitors, monitor removal, stationary mode, stop,
+  reset, and autonomy disabled. A math simulation passing is not visual acceptance.
+- Restart backend; confirm reconnect/readiness, stale mouth timeout, and no resumed
+  canceled route. Test shutdown and concurrent local model/TTS GPU load.
 
-## Backend transport and controls (implemented)
+## Transport and tested mechanics
 
-The control board has a **Unity avatar** page. Its controls configure state sent to a
-future connected renderer; they do not implement a renderer themselves. The bridge is
-off by default, preserving current startup and device behaviour. Enable it to start a
-local WebSocket server on an ephemeral loopback port. A native client discovers:
+The existing ephemeral descriptor is `tmp/avatar-bridge.json` (protocol 1, session,
+loopback URL and random bearer token). Browser Origins and unauthenticated/extra
+clients are rejected. Readiness requires a loaded rig and executor, not just a socket.
+State is coalesced at 20 Hz. Only operational state, affect/style, settings and mouth
+estimates are sent; chat, memory, recordings and internal reasoning are excluded.
+Actions contain validated high-level names/targets, never shell code or raw OS coordinates.
 
-```
-<Yumi root>/tmp/avatar-bridge.json
-```
+The output callback supplies RMS/spectral mouth estimates and estimated device DAC
+wall-clock timestamps. A bounded Unity-side scheduler aligns mouth and delivery style,
+rejects canceled epochs, closes immediately on interruption, and expires stale audio.
+This is **not phoneme recognition**. Network/frame/device latency still needs calibration.
 
-The descriptor contains protocol version, session ID, URL and a short-lived random
-token. It is removed at shutdown. It is not a public endpoint or a user-facing URL.
-Connect with `Authorization: Bearer <token>`; browser Origins, unauthenticated clients
-and multiple active renderers are rejected. Never commit the descriptor or log its token.
-
-State frames arrive at 20 Hz:
-
-```json
-{"protocol":1,"type":"state","session":"<id>","sequence":1,"time_ms":0,"payload":{"state":"engaged","active":true,"speaking":true,"audio_epoch":1,"mouth_time_ms":0,"mouth":{"aa":0.2,"ih":0.1,"ou":0.1},"audio_level":0.02,"lip_sync_source":"played_audio_envelope_and_spectral_estimate","style":"neutral","affect":{"energy":0.5},"scale":1.0,"topmost":true,"clickthrough":true,"stationary":true,"autonomous":false,"frequency":0.3,"movement_speed":150,"jump_height":170}}
-```
-
-The client must report readiness before actions may be queued:
-
-```json
-{"protocol":1,"type":"hello","payload":{"ready":true,"renderer":"Unity"}}
-```
-
-Readiness must mean the real avatar and required action executor are available. No
-movement is acknowledged just because a socket connects. Action messages contain an
-ID and a validated high-level payload such as `{"type":"move_to_window","target":"Discord"}`.
-Only the listed action types are accepted; OS commands and arbitrary coordinate fields
-are rejected. Unity must validate targets and execute navigation itself, then reply:
-
-```json
-{"protocol":1,"type":"action_result","payload":{"action_id":"<id>","success":false,"message":"Destination not reachable"}}
-```
-
-No conversation, memory content, audio recording, image or internal model reasoning is
-sent over this interface. Mouth signals derive from the actual output callback, reset
-on interruption, and are estimates rather than verified phoneme/viseme alignment.
-`mouth_time_ms` estimates the actual device DAC time; the Unity page exposes amplitude
-gain and a timing offset for later calibration against the real face rig. The bridge
-applies these controls to transmitted values, not to the voice recording or pitch.
-Quiet/pause/busy/speaking states suppress the autonomous-activity flag. The bridge never
-moves, focuses, closes or captures other windows. A native ClientWebSocket adapter is staged under `integrations/unity/Runtime`, with
-main-thread event delivery, bounded queues, reconnects and cancellation. It is not installed
-into the project or compiled against its unavailable Editor yet. The standalone player
-launch path and rig/action executor still require project inspection. Starting this bridge
-alone will not launch a Unity avatar.
-
-## Verification
-
-- 33 Python tests pass locally (32 on the prior Windows run; playback-timing coverage added), including real loopback WebSocket authentication,
-  readiness gating, state delivery, high-level action delivery, invalid-client-message
-  rejection, cleanup and descriptor removal, plus existing memory/audio/installer tests.
-- The PowerShell fixture confirms GUID resolution, material/shader detection, unchanged
-  original source hashes, scoped Editor-tool copying, and script parsing.
-- Windows Actions passed Python, PowerShell, native geometry compilation/owned-window
-  enumeration and real Kokoro synthesis. The second successful run also passed the
-  pure C# platform-motion tests: multi-hop ballistic routes, walking/flight/landing
-  states, moving/vanishing supports, stationary priority and 30/60 Hz cross-monitor
-  coordinate results. These are mechanics tests, not a rendered character moving
-  across a user's applications. CI does not compile or build the Unity project.
-- Actual avatar rendering, Poiyomi fidelity, transparent overlay, controller adaptation,
-  facial mapping, PhysBone replacements and desktop movement remain blocked on the
-  unavailable project and require Unity Editor/Windows acceptance.
-
-Conversation delivery is implemented separately: context selects response budgets and
-native Kokoro speed; the personality remains editable. Speech text is cleaned and buffered
-apart from display text and action metadata. No pitch/emotion API or unsupported prosody
-is invented, and no TTS model is reloaded for each response.
-
-The staged Unity-side `DesktopGeometry.cs` uses read-only Win32/DWM enumeration, physical
-pixel coordinates, monitor work areas, cloaked/minimized filtering, visible top-edge
-occlusion and stable live-window IDs. WinEvent hooks mark changes dirty, with bounded
-reconciliation. `DesktopMotion.cs` implements screen-space gravity, one-way platform
-collisions, bounded-step integration, ballistic reachability, graph routing, support
-tracking, sitting/movement states and context-gated autonomous route selection. Its
-explicit recovery reposition is distinguished from normal motion. A separate .NET
-test harness compiles these pure components and tests negative coordinates/occlusion,
-an owned native window, routes, landing and support recovery on Windows CI. They still
-need a real avatar, Unity scene/camera/overlay, animation controller and action executor
-to drive a rendered character. Cursor-follow and full animation are not claimed here.
-
-Successful independent checks: https://github.com/w-lol/yumi/actions/runs/39928167484
+Verification in this session: 39 Python tests, actual Kokoro synthesis plus application
+queue cancellation/restart in RAM, headless Qt chat/memory/worker recovery, PowerShell
+source-preservation fixtures for direct and nested layouts, and compiled pure C# geometry,
+platform physics and playback scheduler tests. Roslyn parses all Unity sources as C#9
+for Editor/Windows variants; it does **not** compile Unity API references. Windows Actions
+repeats the supported Windows checks and produces the downloadable backend/tools update.

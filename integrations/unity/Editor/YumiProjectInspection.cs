@@ -6,6 +6,8 @@ using System.IO;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.Animations;
+using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 
 namespace Yumi.Desktop.Editor
@@ -55,17 +57,41 @@ namespace Yumi.Desktop.Editor
         [MenuItem("Yumi/Inspect duplicated avatar project (read only)")]
         public static void Inspect()
         {
-            string project = Directory.GetParent(Application.dataPath).FullName;
-            if (!String.Equals(new DirectoryInfo(project).Name, "avatar-unity", StringComparison.OrdinalIgnoreCase))
-                throw new InvalidOperationException("Open the designated avatar-unity duplicate. The original project is excluded.");
+            DirectoryInfo parent=Directory.GetParent(Application.dataPath);
+            while(parent!=null&&!String.Equals(parent.Name,"avatar-unity",StringComparison.OrdinalIgnoreCase))parent=parent.Parent;
+            if(parent==null)throw new InvalidOperationException("Only the designated avatar-unity duplicate is allowed.");
+            string boundary=parent.FullName;
+            string project=Directory.GetParent(Application.dataPath).FullName;
             Report report = new Report { unityVersion = Application.unityVersion };
             foreach (string guid in AssetDatabase.FindAssets("t:Prefab", new[] { "Assets" }))
             {
                 string path = AssetDatabase.GUIDToAssetPath(guid);
                 GameObject root = AssetDatabase.LoadAssetAtPath<GameObject>(path);
                 if (root == null) continue;
+                InspectRoot(report,root,path);
+            }
+            foreach(string guid in AssetDatabase.FindAssets("t:Scene",new[]{"Assets"}))
+            {
+                string path=AssetDatabase.GUIDToAssetPath(guid);
+                if(path.StartsWith("Assets/YumiDesktopGenerated/"))continue;
+                Scene scene=SceneManager.GetSceneByPath(path);bool alreadyLoaded=scene.IsValid()&&scene.isLoaded;
+                try
+                {
+                    if(!alreadyLoaded)scene=EditorSceneManager.OpenScene(path,OpenSceneMode.Additive);
+                    foreach(GameObject root in scene.GetRootGameObjects())InspectRoot(report,root,path+"::"+root.name);
+                }
+                finally {if(!alreadyLoaded&&scene.IsValid()&&scene.isLoaded)EditorSceneManager.CloseScene(scene,true);}
+            }
+            string output = Path.Combine(Directory.GetParent(boundary).FullName, "logs/avatar-unity/editor-audit.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(output));
+            File.WriteAllText(output, JsonUtility.ToJson(report, true));
+            Debug.Log("Yumi read-only avatar inspection saved: " + output);
+        }
+
+        static void InspectRoot(Report report,GameObject root,string path)
+        {
                 Animator[] animators = root.GetComponentsInChildren<Animator>(true);
-                if (!animators.Any(a => a.avatar != null && a.avatar.isHuman)) continue;
+                if (!animators.Any(a => a.avatar != null && a.avatar.isHuman)) return;
                 AvatarReport avatar = new AvatarReport { path = path };
                 try
                 {
@@ -116,11 +142,6 @@ namespace Yumi.Desktop.Editor
                 }
                 catch (Exception error) { avatar.errors.Add(error.ToString()); }
                 report.avatars.Add(avatar);
-            }
-            string output = Path.Combine(Directory.GetParent(project).FullName, "logs/avatar-unity/editor-audit.json");
-            Directory.CreateDirectory(Path.GetDirectoryName(output));
-            File.WriteAllText(output, JsonUtility.ToJson(report, true));
-            Debug.Log("Yumi read-only avatar inspection saved: " + output);
         }
 
         static void AddController(AvatarReport avatar, RuntimeAnimatorController source)

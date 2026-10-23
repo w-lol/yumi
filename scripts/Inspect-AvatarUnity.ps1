@@ -6,14 +6,21 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $ProjectRoot = [IO.Path]::GetFullPath($ProjectRoot).TrimEnd('\','/')
-if ((Split-Path $ProjectRoot -Leaf) -ne 'avatar-unity') {
-    throw 'This inspection tool only accepts the designated duplicate named avatar-unity.'
+$Boundary=$ProjectRoot
+while ((Split-Path $Boundary -Leaf) -ne 'avatar-unity') {
+    $Parent=Split-Path $Boundary -Parent
+    if (-not $Parent -or $Parent -eq $Boundary) { throw 'Only the designated avatar-unity duplicate is allowed.' }
+    $Boundary=$Parent
+}
+if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'ProjectSettings/ProjectVersion.txt'))) {
+    $Nested=Join-Path $ProjectRoot 'Fenriru'
+    if (Test-Path -LiteralPath (Join-Path $Nested 'ProjectSettings/ProjectVersion.txt')) { $ProjectRoot=$Nested }
 }
 $VersionFile = Join-Path $ProjectRoot 'ProjectSettings\ProjectVersion.txt'
 if (-not (Test-Path -LiteralPath $VersionFile)) { throw "Unity project not found: $ProjectRoot" }
 if (-not (Test-Path -LiteralPath (Join-Path $ProjectRoot 'Assets'))) { throw 'Assets directory missing.' }
 if (-not $OutputFile) {
-    $OutputFile = Join-Path (Split-Path $ProjectRoot -Parent) 'logs\avatar-unity\project-audit.json'
+    $OutputFile = Join-Path (Split-Path $Boundary -Parent) 'logs\avatar-unity\project-audit.json'
 }
 $Version = Get-Content -Encoding UTF8 -Raw -LiteralPath $VersionFile
 $ManifestPath = Join-Path $ProjectRoot 'Packages\manifest.json'
@@ -70,4 +77,4 @@ $Report=[ordered]@{
 New-Item -ItemType Directory -Force -Path (Split-Path ([IO.Path]::GetFullPath($OutputFile)) -Parent) | Out-Null
 $Report | ConvertTo-Json -Depth 16 | Set-Content -LiteralPath $OutputFile -Encoding UTF8
 Write-Host "Read-only project audit saved: $OutputFile"
-Write-Host 'Send project-audit.json for compatibility review. Do not upload your avatar project to the public Yumi repository.'
+Write-Host 'Static inventory complete. Mesh/rig import and standalone compatibility still require Unity Editor.'

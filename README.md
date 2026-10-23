@@ -19,3 +19,5 @@ publish a prerelease by selecting `publish_release` and supplying a new release 
 The workflow packages the existing PowerShell setup bundle; runtime and model downloads
 happen during setup. CI checks Windows native imports, unit tests, PowerShell syntax,
 and archive integrity. It does not claim GPU or physical-device acceptance.
+
+Voice audition and delivery: [docs/VOICE_DELIVERY.md](docs/VOICE_DELIVERY.md).

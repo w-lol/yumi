@@ -6,7 +6,10 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath></Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath></Reference>
     <Compile Include="../Runtime/DesktopGeometry.cs" Link="DesktopGeometry.cs" />
     <Compile Include="../Runtime/DesktopMotion.cs" Link="DesktopMotion.cs" />
+    <Compile Include="../Runtime/PlaybackTimeline.cs" Link="PlaybackTimeline.cs" />
   </ItemGroup>
 </Project>

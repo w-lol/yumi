@@ -16,7 +16,9 @@ namespace Yumi.Desktop
     [Serializable] public class AvatarState
     {
         public string state, style, lip_sync_source;
-        public bool active, speaking, topmost, clickthrough, stationary, autonomous;
+        public bool active, speaking, topmost, clickthrough, stationary, autonomous, visible=true;
+        public int frame_rate=30;
+        public float animation_speed=1;
         public long audio_epoch, mouth_time_ms;
         public float audio_level, scale, frequency, movement_speed, jump_height;
         public MouthState mouth;
@@ -112,7 +114,7 @@ namespace Yumi.Desktop
             {
                 case "move_to_window": case "jump_to_platform": case "walk_to_position": case "run_to_position":
                 case "sit": case "stand": case "wave": case "look_at": case "stop_movement": case "set_expression":
-                case "stay": case "follow_cursor": case "other_monitor": return true;
+                case "stay": case "follow_cursor": case "other_monitor": case "reset_avatar": return true;
                 default: return false;
             }
         }

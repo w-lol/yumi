@@ -19,6 +19,7 @@ from .resources import Resources
 from .privacy import contains_secret, redact
 from .paths import atomic_json
 from .delivery import classify, Phrases
+from .unity_player import UnityPlayer
 from .unity_bridge import UnityBridge, action_intent
 
 
@@ -57,6 +58,7 @@ class Controller:
         self.inspector = None
         self.affect = {'energy': 0.65, 'amusement': 0.4, 'curiosity': 0.6, 'confidence': 0.6, 'calm': 0.7}
         self.delivery = classify('hello')
+        self.unity_player=UnityPlayer(paths)
         self.unity = UnityBridge(paths,self.unity_snapshot,self.event)
         if settings['unity_bridge_enabled']:self.unity.start()
         self.last_proactive = 0.0
@@ -86,6 +88,8 @@ class Controller:
                 'mouth_time_ms':audio.mouth_time_ms+self.settings['unity_lip_offset_ms'],
                 'lip_sync_source':'played_audio_envelope_and_spectral_estimate',
                 'style':audio.playback_style if audio.speaking else 'neutral','affect':dict(self.affect),
+                'visible':self.settings['unity_visible'],'frame_rate':self.settings['unity_frame_rate'],
+                'animation_speed':self.settings['unity_animation_speed'],
                 'scale':self.settings['unity_scale'],'topmost':self.settings['unity_topmost'],
                 'clickthrough':self.settings['unity_clickthrough'],
                 'stationary':self.settings['unity_stationary'],
@@ -468,6 +472,7 @@ class Controller:
                 self.affect[key] += (0.55 - self.affect[key]) * 0.02
 
     def close(self):
+        self.unity_player.close()
         self.unity.close()
         self.shutdown_event.set()
         self.pause()

@@ -125,7 +125,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'A native dependency could not load. Review the installation log; no system prerequisite was installed.' }
     # Copy only release-owned source directories. Preserve all data/config/model directories.
     # For upgrades, extract the release separately and invoke this script with the existing root.
-    $ReleaseFiles = @('yumi','scripts','assets','docs','tests','integrations','README.md','requirements.in','requirements-windows.lock','LICENSE')
+    $ReleaseFiles = @('yumi','scripts','assets','docs','tests','integrations','README.md','requirements.in','requirements-windows.lock','LICENSE','global.json')
     foreach ($Item in $ReleaseFiles) {
         $Source = Join-Path $SourceRoot $Item
         $Destination = Join-Path $Root $Item
@@ -165,7 +165,7 @@ try {
             Get-ChildItem -LiteralPath $OwnedPath -Recurse -File | ForEach-Object { $OwnedFiles.Add($_.FullName.Substring($Root.Length).TrimStart('\','/')) }
         }
     }
-    foreach ($OwnedFile in @('README.md','requirements.in','requirements-windows.lock','LICENSE','Yumi.vbs')) { $OwnedFiles.Add($OwnedFile) }
+    foreach ($OwnedFile in @('README.md','requirements.in','requirements-windows.lock','LICENSE','global.json','Yumi.vbs')) { $OwnedFiles.Add($OwnedFile) }
     @{'schema'=1;'version'='0.1.0';'root'=$Root;'owned_files'=$OwnedFiles.ToArray();'ready_at'=(Get-Date).ToUniversalTime().ToString('o')} |
         ConvertTo-Json -Depth 4 | Set-Content -Encoding UTF8 (Join-Path $Root 'config\install-state.json')
     $PythonRelative | Set-Content -Encoding ASCII (Join-Path $Root 'config\python-runtime.txt')

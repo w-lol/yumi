@@ -26,6 +26,7 @@ DEFAULTS = {
     'unity_scale': 1.0, 'unity_topmost': True, 'unity_clickthrough': True,
     'unity_autonomous': False, 'unity_frequency': .3, 'unity_movement_speed': 150,
     'unity_jump_height': 170, 'unity_stationary': True,
+    'unity_visible': True, 'unity_frame_rate': 30, 'unity_animation_speed': 1.0,
     'unity_lip_gain': 1.0, 'unity_lip_offset_ms': 0,
     'input_device': None, 'output_device': None,
     'audio_mode': 'speaker_safe', 'vad_threshold': 0.015,

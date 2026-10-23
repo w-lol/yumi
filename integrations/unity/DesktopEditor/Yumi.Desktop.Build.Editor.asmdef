@@ -1,0 +1,6 @@
+{
+  "name": "Yumi.Desktop.Build.Editor",
+  "references": ["Yumi.Desktop.Runtime"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false
+}

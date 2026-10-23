@@ -1,5 +1,8 @@
 using System;
 using System.Linq;
+using System.IO;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using System.Runtime.InteropServices;
 using Yumi.Desktop;
 
@@ -11,6 +14,8 @@ static class Program
     static void Check(bool value,string message) { if(!value)throw new Exception(message); }
     static void Main()
     {
+        TestSourceSyntax();
+        TestPlayback();
         TestMotion();
         DesktopMonitor monitor=new DesktopMonitor {Id="left",Bounds=new DesktopRect(-1000,0,1000,800),Work=new DesktopRect(-1000,0,1000,760)};
         DesktopWindow front=new DesktopWindow {Id="front",Bounds=new DesktopRect(-800,50,200,350)};
@@ -41,6 +46,37 @@ static class Program
         }
         finally { if(window!=IntPtr.Zero)DestroyWindow(window); }
         Console.WriteLine("Windows geometry: actual owned-window bounds, monitors, stable identity and disappearance passed.");
+    }
+
+    static void TestSourceSyntax()
+    {
+        int count=0;
+        foreach(string folder in new[]{"Runtime","Editor","DesktopEditor"})
+            foreach(string path in Directory.GetFiles(Path.Combine("integrations/unity",folder),"*.cs"))
+                foreach(string[] symbols in new[]{new[]{"UNITY_EDITOR","UNITY_EDITOR_WIN"},new[]{"UNITY_STANDALONE_WIN"}})
+                {
+                    var tree=CSharpSyntaxTree.ParseText(File.ReadAllText(path),new CSharpParseOptions(LanguageVersion.CSharp9,preprocessorSymbols:symbols));
+                    var errors=tree.GetDiagnostics().Where(d=>d.Severity==DiagnosticSeverity.Error).ToArray();
+                    Check(errors.Length==0,path+": "+String.Join("; ",errors.Select(d=>d.ToString())));count++;
+                }
+        Console.WriteLine("C#9 source parsing passed ("+count+" platform variants). This does not validate Unity API references.");
+    }
+
+    static void TestPlayback()
+    {
+        var timeline=new PlaybackTimeline();
+        timeline.Push(new PlaybackFrame {Epoch=1,Due=1050,Speaking=true,Aa=.8f,Style="excited"},1000);
+        Check(!timeline.Sample(1049).Speaking,"Face must wait for estimated DAC time");
+        Check(timeline.Sample(1050).Style=="excited","Voice/face delivery must share playback timing");
+        timeline.Push(new PlaybackFrame {Epoch=2,Due=1100,Speaking=false},1060);
+        Check(!timeline.Sample(1060).Speaking,"Interruption must immediately close mouth");
+        timeline.Push(new PlaybackFrame {Epoch=1,Due=1070,Speaking=true,Aa=1},1070);
+        Check(!timeline.Sample(1070).Speaking,"Canceled epoch must never resume mouth motion");
+        timeline.Push(new PlaybackFrame {Epoch=3,Due=1110,Speaking=true,Aa=float.NaN,Ih=9},1100);
+        Check(timeline.Sample(1110).Aa==0&&timeline.Sample(1110).Ih==1,"Invalid visemes must be bounded");
+        Check(!timeline.Sample(1500).Speaking,"Stale/disconnected playback must close mouth");
+        timeline.Clear();Check(!timeline.Sample(1501).Speaking,"Reset must clear speech and expression");
+        Console.WriteLine("Playback timeline: DAC scheduling, shared style, interruption, stale epochs, bounds and disconnect passed.");
     }
 
     static DesktopSnapshot MotionFixture(bool destination=true,int revision=1,double shift=0)
@@ -84,6 +120,14 @@ static class Program
         Check(faster.RequestSurface("floor:b"),"Cross-monitor route missing at 60 Hz");Simulate(faster,20,60);
         Check(Math.Abs(faster.X-other.X)<.01&&Math.Abs(faster.Y-other.Y)<.01,"Motion depends on frame rate");
         Check(!faster.RequestSurface("not-a-surface"),"Invalid surface was accepted");
+        var autonomous=new DesktopMotion();var autoGeometry=MotionFixture();autoGeometry.Windows.Last().Foreground=true;
+        autonomous.SetGeometry(autoGeometry);autonomous.Stationary=false;
+        for(int i=0;i<400&&!autonomous.AutonomousActive;i++)autonomous.Tick(.1,true,false,1);
+        Check(autonomous.AutonomousActive,"Eligible autonomous route did not start");
+        autonomous.Tick(.01,false,false,1);
+        Check(!autonomous.AutonomousActive&&!autonomous.Navigating,"Disabling autonomy must cancel an active autonomous route");
+        autonomous.RequestWindow("Discord");autonomous.Tick(.01,false,false,1);
+        Check(autonomous.Navigating,"Disabling autonomy must not cancel manual movement");
         Console.WriteLine("Motion: multi-hop ballistic navigation, state transitions, support movement/disappearance, stationary priority and 30/60 Hz cross-monitor results passed.");
     }
 }
