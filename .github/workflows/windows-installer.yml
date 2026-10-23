@@ -52,6 +52,8 @@ jobs:
           }
       - name: Run unit and installer tests
         run: python scripts/run_tests.py
+      - name: Validate real Kokoro voices in memory
+        run: python scripts/validate_voice.py --root "$env:RUNNER_TEMP/Yumi Kokoro validation" --prepare --output docs/validation/kokoro-windows.json
       - name: Build Windows installer bundle
         env:
           BUILD_REVISION: ${{ github.sha }}

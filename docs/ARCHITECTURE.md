@@ -66,9 +66,13 @@ A real room/device acceptance run is needed for thresholds and false-activation 
 
 STT is endpoint based; it does not display speculative partial transcripts. LLM tokens
 stream. Speech synthesis streams sentence chunks where the provider supports it. Pitch
-and expressiveness controls are intentionally unavailable for the starter VITS voice.
-Voice rate, volume, pronunciation and voice-asset selection work. The voice-provider
-class is replaceable; assets must contain compatible ONNX, token and phonemizer files.
+and independent expressiveness controls are unavailable. The default is Kokoro v1.0
+through sherpa-onnx on CPU, with Heart (`af_heart`) at 24 kHz. Voice & listening exposes
+20 US English voices from the pinned voice table; changes apply to the next synthesized
+sentence without a model reload. Rate, volume and pronunciation controls also work.
+Kokoro assets include ONNX weights, voices.bin, tokens, an English lexicon and bundled
+eSpeak data. Existing custom Piper folders remain supported. Synthesis callbacks are
+sentence based; they do not promise token-by-token audio or immediate compute preemption.
 
 ## Privacy boundary
 

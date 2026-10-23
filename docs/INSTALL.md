@@ -65,6 +65,13 @@ control board stops both windows and workers by default; the optional close-to-m
 setting is explicit. Closing the avatar hides it. The board remains available.
 
 Use Voice & listening to select devices; restart workers to apply a device change.
+The default voice is **Kokoro v1.0 Heart** (`af_heart`), running locally at 24 kHz.
+Choose another US English voice under **Voice & listening → Kokoro voice**; it applies
+to the next synthesized sentence. Speaking rate and volume remain adjustable. Setup
+downloads the checksum-pinned 350 MB Kokoro archive and replaces the previous default
+voice transactionally. Updating preserves memory and settings; existing selected custom
+Piper voice folders continue to use Piper. Choose `models/voice` as the local voice asset
+folder to return to the installed Kokoro model, then restart workers.
 Speaker-safe mode is explicitly **half duplex**. Use headphones for microphone barge-in.
 This release does not supply a validated full-duplex speaker echo canceller. A transcript
 similarity gate rejects likely playback transcripts, but it is not acoustic echo cancellation.

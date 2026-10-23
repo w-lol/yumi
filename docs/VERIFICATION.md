@@ -53,14 +53,24 @@ Measured cloud examples:
 
 ## Material limitations
 
+Kokoro update: 24 regression tests passed locally. Real Kokoro v1.0 Heart and Bella
+synthesis produced finite, non-silent 24 kHz audio in RAM; Heart synthesis fed into
+Whisper recognized the intended phrase in three repetitions. Default voice loading,
+voice selection, callback delivery, and custom Piper folder compatibility were checked.
+The desktop regression check also passed. See `validation/kokoro-linux.json` and
+`validation/kokoro-integration.json`. The Windows Actions workflow now downloads and
+verifies the same archive and synthesizes both voices without devices; its result is
+included as `validation/kokoro-windows.json` in successful installer artifacts.
+These checks do not prove physical playback quality or full-duplex speaker support.
+
 1. **Speaker-safe mode is half duplex.** No validated acoustic echo cancellation or
    full-duplex speaker interruption backend is implemented. Headphone barge-in exists,
    but actual devices, noise and double talk still require testing.
 2. Attention is heuristic plus bounded feedback calibration. There is no reliable
    speaker identity, room/media separation or visual gaze-intent classifier. False
    activations and missed directed turns must be measured in the target room.
-3. STT uses completed VAD segments, not live partial transcription. The small starter
-   voice offers rate/volume and pronunciation controls, not independent pitch or
+3. STT uses completed VAD segments, not live partial transcription. The Kokoro
+   voice offers voice selection, rate/volume and pronunciation controls, not independent pitch or
    expressive prosody. Affect adjusts rate slightly; its broader presentation is basic.
 4. The avatar is a working procedural placeholder. Multi-monitor/DPI, click-through,
    fullscreen detection, focus behavior and monitor hot-plug code are Windows-unverified.

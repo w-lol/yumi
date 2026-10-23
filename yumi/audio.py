@@ -6,6 +6,7 @@ import threading
 import time
 from collections import deque
 import numpy as np
+from .voice import configuration, speaker_id
 
 
 class Utterances:
@@ -64,6 +65,7 @@ class Audio:
         self.last_played = -1000.0
         self.reference = deque(maxlen=12)
         self.tts = self.stt = None
+        self.tts_backend = None
         self.input_stream = self.output_stream = None
         self.output_level = 0.0
         self.input_level = 0.0
@@ -92,23 +94,24 @@ class Audio:
         onnxruntime.disable_telemetry_events()
         import sherpa_onnx
         voice = self.paths.inside(self.settings['voice_folder'])
-        models = list(voice.rglob('*.onnx'))
-        tokens = next(voice.rglob('tokens.txt'), None)
-        espeak = next(voice.rglob('espeak-ng-data'), None)
-        if not models or not tokens or not espeak:
-            raise RuntimeError('Voice assets are missing; run setup/repair')
-        config = sherpa_onnx.OfflineTtsConfig(model=sherpa_onnx.OfflineTtsModelConfig(
-            vits=sherpa_onnx.OfflineTtsVitsModelConfig(model=str(models[0]), tokens=str(tokens),
-                                                    data_dir=str(espeak)),
-            num_threads=2, provider='cpu', debug=False), max_num_sentences=1)
+        config, backend = configuration(voice, sherpa_onnx)
         if not config.validate():
             raise RuntimeError('Invalid local voice configuration')
-        self.tts = sherpa_onnx.OfflineTts(config)
+        tts = sherpa_onnx.OfflineTts(config)
+        selected = speaker_id(self.settings['kokoro_voice']) if backend == 'kokoro' else 0
+        if not 0 <= selected < tts.num_speakers:
+            raise RuntimeError('Selected voice is not present in this model; run setup/repair')
+        self.tts = tts
+        self.tts_backend = backend
         self.rate = self.tts.sample_rate
         from faster_whisper import WhisperModel
         self.stt = WhisperModel(str(self.paths.models / 'whisper'), device='cpu', compute_type='int8',
                                 cpu_threads=2, num_workers=1, local_files_only=True)
-        self.event('audio_ready', {'sample_rate': self.rate})
+        self.event('audio_ready', {'sample_rate': self.rate, 'backend': backend})
+
+    @property
+    def speaker_id(self):
+        return speaker_id(self.settings['kokoro_voice']) if self.tts_backend == 'kokoro' else 0
 
     def start(self):
         import sounddevice as sd
@@ -274,7 +277,7 @@ class Audio:
                 return 1
             try:
                 speed = self.settings['voice_rate'] * (0.95 + 0.1 * self.presentation().get('energy',0.5))
-                audio = self.tts.generate(text, sid=0, speed=max(0.6,min(1.6,speed)), callback=callback)
+                audio = self.tts.generate(text, sid=self.speaker_id, speed=max(0.6,min(1.6,speed)), callback=callback)
                 self.stats['synthesis_ms'] = (time.perf_counter() - start) * 1000
                 self.stats['synthesis_rtf'] = (time.perf_counter() - start) / max(0.001, len(audio.samples) / audio.sample_rate)
                 del audio

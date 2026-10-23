@@ -65,7 +65,7 @@ def functional(root):
         audio=Audio(paths,settings,lambda *_:None,lambda _:None)
         audio.load()
         start=time.perf_counter()
-        generated=audio.tts.generate('Yumi is ready for a local test.',sid=0,speed=1.0)
+        generated=audio.tts.generate('Yumi is ready for a local test.',sid=audio.speaker_id,speed=1.0)
         import numpy as np
         assert len(generated.samples)>1000 and np.isfinite(generated.samples).all()
         # RAM-only loopback through recognition; this never creates a waveform file.

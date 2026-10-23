@@ -237,8 +237,16 @@ class Board(QMainWindow):
         layout.addStretch()
 
     def voice_tab(self):
+        from .voice import KOKORO_VOICES
         layout = self.page('Voice & listening')
         form = QFormLayout()
+        voice = QComboBox()
+        for name in KOKORO_VOICES:
+            gender = 'female' if name.startswith('af_') else 'male'
+            voice.addItem(f'{name[3:].title()} — US English ({gender})', name)
+        voice.setCurrentIndex(max(0, voice.findData(self.settings['kokoro_voice'])))
+        voice.currentIndexChanged.connect(lambda _: self.settings.set('kokoro_voice', voice.currentData()))
+        form.addRow('Kokoro voice (next spoken sentence)', voice)
         self.input_device = QComboBox()
         self.output_device = QComboBox()
         form.addRow('Microphone', self.input_device)
@@ -280,7 +288,7 @@ class Board(QMainWindow):
         button('You can talk now', lambda: self.core.control('talk'), row)
         button('Pronunciation dictionary', lambda: self.edit_json_setting('pronunciation'), row)
         layout.addLayout(row)
-        layout.addWidget(QLabel('Pitch and expressive prosody controls unavailable for this starter voice.\nNo verified speaker echo-cancellation backend is included. Use headphones for voice interruption.'))
+        layout.addWidget(QLabel('Default: local Kokoro v1.0, Heart voice, 24 kHz.\nKokoro selection applies to Kokoro assets; custom Piper folders keep their own voice.\nNo pitch control or verified speaker echo cancellation. Use headphones for voice interruption.'))
         layout.addStretch()
 
     def awareness_tab(self):

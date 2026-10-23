@@ -1,0 +1,57 @@
+{
+  "schema": 1,
+  "platform": "linux",
+  "checks": {
+    "unauthenticated_control_rejected": "passed",
+    "grounded_text": "passed",
+    "generation_cancel_and_recovery": "passed",
+    "real_vision": "passed",
+    "server_cleanup": "passed",
+    "in_memory_tts_stt": "passed",
+    "semantic_recall_delete_restore": "passed"
+  },
+  "metrics": {
+    "model_cold_start_seconds": 3.127086774999043,
+    "text_samples": [
+      {
+        "first_token_seconds": 0.7374801689984452,
+        "total_seconds": 0.9601928009979019
+      },
+      {
+        "first_token_seconds": 0.06919075400219299,
+        "total_seconds": 0.24265979200208676
+      },
+      {
+        "first_token_seconds": 0.06637674699959462,
+        "total_seconds": 0.2703697809993173
+      }
+    ],
+    "cancel_dispatch_seconds": 0.0009435140018467791,
+    "vision_seconds": 2.872851244999765,
+    "tts_first_chunk_seconds": [
+      1.4186470229979022,
+      1.3583070749991748,
+      1.4075024939993455
+    ],
+    "speech_samples": [
+      {
+        "transcript": " Yumi is ready for a local conversation.",
+        "synthesis_plus_recognition_seconds": 2.1806320539981243
+      },
+      {
+        "transcript": " Yumi is ready for a local conversation.",
+        "synthesis_plus_recognition_seconds": 1.935889511998539
+      },
+      {
+        "transcript": " Yumi is ready for a local conversation.",
+        "synthesis_plus_recognition_seconds": 2.060532837997016
+      }
+    ]
+  },
+  "voice": {
+    "backend": "kokoro",
+    "name": "af_heart",
+    "sample_rate": 24000
+  },
+  "status": "passed"
+}

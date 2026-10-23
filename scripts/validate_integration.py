@@ -72,7 +72,7 @@ def run(root):
         def callback(chunk,progress):
             if not chunks:first_chunks.append(time.perf_counter()-begin)
             chunks.append(len(chunk));return 1
-        generated=audio.tts.generate('Yumi is ready for a local conversation.',sid=0,speed=1.08,callback=callback)
+        generated=audio.tts.generate('Yumi is ready for a local conversation.',sid=audio.speaker_id,speed=1.08,callback=callback)
         waveform=np.asarray(generated.samples,dtype=np.float32)
         assert len(waveform)>1000 and np.isfinite(waveform).all()
         resampled=np.interp(np.arange(0,len(waveform),generated.sample_rate/16000),np.arange(len(waveform)),waveform).astype(np.float32)
@@ -82,6 +82,7 @@ def run(root):
         samples.append({'transcript':text,'synthesis_plus_recognition_seconds':time.perf_counter()-begin})
         waveform.fill(0);resampled.fill(0);del generated
     result['checks']['in_memory_tts_stt']='passed'
+    result['voice']={'backend':audio.tts_backend,'name':settings['kokoro_voice'],'sample_rate':audio.rate}
     result['metrics']['tts_first_chunk_seconds']=first_chunks
     result['metrics']['speech_samples']=samples
     encoder=Encoder(paths.models/'embedding')

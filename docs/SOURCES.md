@@ -15,7 +15,7 @@ lock. `requirements-linux-tested.txt` records the separate cloud test environmen
 | Conversation and vision | **Qwen3-VL-4B-Instruct**, official Qwen GGUF, Q4_K_M + F16 projector | Apache 2.0, confirmed against the original Qwen model metadata, not inferred from an unrelated engine license. Original model revision `ebb281ec70b05090aa6165b016eac8ec08e71b17`; GGUF revision in manifest. |
 | Recognition | faster-whisper 1.2.1, Systran `faster-whisper-base.en` | MIT; local CTranslate2 CPU int8 inference. Manifest includes `vocabulary.txt`, tokenizer, config and weights. |
 | Speech engine | sherpa-onnx 1.13.8 | Apache 2.0; native Windows wheel and bundled phonemizer dependencies retain their own notices. |
-| Starter voice | Piper `en_US-ljspeech-medium`, distributed by sherpa-onnx | Piper voice repository declares MIT; individual model card identifies the LJ Speech dataset as **public domain**. Female American English. Model card copied into this project. eSpeak NG phonemization data/code have their own GPL terms; keep them as replaceable third-party components and preserve upstream source references/notices. |
+| Default voice | hexgrad **Kokoro-82M v1.0**, official sherpa-onnx `kokoro-multi-lang-v1_0` conversion | Apache 2.0 model and conversion. Model card and license included as `kokoro-model-card.md` and `kokoro-license.txt`. Heart (`af_heart`) is the default; 20 US English voice IDs are mapped from the official exporter. eSpeak NG data/code retain their own GPL terms; preserve upstream notices and source references. Previous Piper model cards remain for custom legacy folders. |
 | Semantic encoder | Xenova `all-MiniLM-L6-v2`, quantized ONNX | Apache 2.0; local CPU encoder, 384-dimensional vectors. |
 | Audio I/O | sounddevice 0.5.2 | MIT; Windows wheel includes PortAudio. No external audio app needed. |
 | Screen capture | mss 10.0.0 | MIT; screenshots remain in RAM. |
@@ -34,6 +34,10 @@ Primary references:
 - https://huggingface.co/Systran/faster-whisper-base.en
 - https://github.com/k2-fsa/sherpa-onnx/blob/v1.13.8/python-api-examples/offline-tts-play.py
 - https://github.com/k2-fsa/sherpa-onnx/releases/tag/tts-models
+- https://github.com/hexgrad/kokoro
+- https://huggingface.co/hexgrad/Kokoro-82M
+- https://github.com/k2-fsa/sherpa-onnx/tree/master/scripts/kokoro/v1.0
+- https://github.com/espeak-ng/espeak-ng
 - https://huggingface.co/rhasspy/piper-voices
 - https://huggingface.co/rhasspy/piper-voices/blob/main/en/en_US/ljspeech/medium/MODEL_CARD
 - https://keithito.com/LJ-Speech-Dataset/

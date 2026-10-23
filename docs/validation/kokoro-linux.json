@@ -1,0 +1,22 @@
+{
+  "platform": "linux",
+  "backend": "kokoro",
+  "sample_rate": 24000,
+  "speakers": 54,
+  "load_seconds": 1.2112400119985978,
+  "samples": [
+    {
+      "voice": "af_heart",
+      "audio_seconds": 2.8313333333333333,
+      "synthesis_seconds": 1.8762610320009117,
+      "first_callback_seconds": 0.8442285940000147
+    },
+    {
+      "voice": "af_bella",
+      "audio_seconds": 2.729791666666667,
+      "synthesis_seconds": 2.1086392489996797,
+      "first_callback_seconds": 0.8689656909991754
+    }
+  ],
+  "status": "passed"
+}
