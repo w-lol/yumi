@@ -35,6 +35,21 @@ try {
     & (Join-Path $PSScriptRoot 'Inspect-AvatarUnity.ps1') -ProjectRoot $Project -OutputFile $Output
     & (Join-Path $PSScriptRoot 'Install-UnityDesktop.ps1') -ProjectRoot $Project
     if (-not (Test-Path (Join-Path $Nested 'Assets/YumiDesktop/Runtime/YumiDesktopAvatar.cs'))) { throw 'Nested project resolution failed.' }
+    $Plugin=Join-Path $Nested 'Packages/com.vrchat.base/Runtime/VRCSDK/Plugins/VRCCore-Editor.dll.meta'
+    New-Item -ItemType Directory -Force -Path (Split-Path $Plugin -Parent) | Out-Null
+    $OriginalPlugin="fileFormatVersion: 2`r`nguid: 4ecd63eff847044b68db9453ce219299`r`nPluginImporter:`r`n  serializedVersion: 2`r`n  platformData:`r`n  - first:`r`n      Any:`r`n    second:`r`n      enabled: 1`r`n      settings: {}`r`n  userData: keep`r`n"
+    [IO.File]::WriteAllText($Plugin,$OriginalPlugin)
+    & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot
+    $FixedPlugin=[IO.File]::ReadAllText($Plugin)
+    if ($FixedPlugin -notmatch 'Any:\r?\n    second:\r?\n      enabled: 0' -or $FixedPlugin -notmatch 'Editor: Editor\r?\n    second:\r?\n      enabled: 1' -or $FixedPlugin -notmatch 'userData: keep') { throw 'Editor-only plugin repair failed.' }
+    $PluginBackups=@(Get-ChildItem (Join-Path $TestRoot 'backups') -Recurse -Filter VRCCore-Editor.dll.meta)
+    if ($PluginBackups.Count -ne 1 -or [IO.File]::ReadAllText($PluginBackups[0].FullName) -cne $OriginalPlugin) { throw 'Plugin metadata backup mismatch.' }
+    & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot
+    if ([IO.File]::ReadAllText($Plugin) -cne $FixedPlugin) { throw 'Plugin repair is not idempotent.' }
+    $Unknown=$OriginalPlugin.Replace('4ecd63eff847044b68db9453ce219299','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
+    [IO.File]::WriteAllText($Plugin,$Unknown);$Refused=$false
+    try { & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot } catch { $Refused=$true }
+    if (-not $Refused -or [IO.File]::ReadAllText($Plugin) -cne $Unknown) { throw 'Unknown plugin metadata was not preserved.' }
     # The editor-only toolbar must not reflect a nonexistent GUI in batch mode.
     $Toolbar=Join-Path $Nested 'Packages/jp.lilxyzw.editortoolbox/Editor/ToolbarExtension/ToolbarExtension.cs'
     New-Item -ItemType Directory -Force -Path (Split-Path $Toolbar -Parent) | Out-Null
@@ -54,7 +69,7 @@ try {
     Remove-Item -LiteralPath $Toolbar
     & (Join-Path $PSScriptRoot 'Repair-UnityBatchToolbar.ps1') -Root $TestRoot
     $Parsed=$null; $Errors=$null
-    foreach ($File in @('Repair-UnityBatchToolbar.ps1','Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Setup-Avatar.ps1','validate_unity_build.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
+    foreach ($File in @('Repair-UnityEditorPlugin.ps1','Repair-UnityBatchToolbar.ps1','Inspect-AvatarUnity.ps1','Install-UnityInspector.ps1','Install-UnityDesktop.ps1','Build-UnityAvatar.ps1','Setup-Avatar.ps1','validate_unity_build.ps1','Update-Yumi.ps1','setup.ps1','uninstall.ps1')) {
         [Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot $File),[ref]$Parsed,[ref]$Errors) | Out-Null
         if ($Errors.Count) { throw ($Errors | Out-String) }
     }

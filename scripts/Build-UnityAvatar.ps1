@@ -32,6 +32,7 @@ $OpenEditors=@(Get-CimInstance Win32_Process -Filter "Name='Unity.exe'" -ErrorAc
 if ($OpenEditors.Count) { throw 'This duplicated project is already open in Unity. Close that Editor/build process, then retry.' }
 Write-Host "Using Unity $ActualVersion at $UnityEditor"
 & (Join-Path $PSScriptRoot 'Repair-UnityBatchToolbar.ps1') -Root $Root
+& (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $Root
 & (Join-Path $PSScriptRoot 'Install-UnityDesktop.ps1') -ProjectRoot $Project
 $LogFolder=Join-Path $Root 'logs/avatar-unity'
 New-Item -ItemType Directory -Force -Path $LogFolder | Out-Null
