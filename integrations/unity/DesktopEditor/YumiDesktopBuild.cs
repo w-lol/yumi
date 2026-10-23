@@ -17,7 +17,7 @@ namespace Yumi.Desktop.Editor
     public static class YumiDesktopBuild
     {
         const string Output="Assets/YumiDesktopGenerated";
-        const string Source="Assets/lordhavemercy.unity";
+        public const string Source="Assets/prefab-id-v1_avtr_072f0a3c-94e1-4ab0-b9b3-772521da0ae8_5472754516.prefab";
         static readonly List<string> notes=new List<string>();
         public static string DuplicateRoot()
         {
@@ -34,17 +34,20 @@ namespace Yumi.Desktop.Editor
             if(!Application.isBatchMode&&!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())throw new OperationCanceledException("Scene generation canceled");
             notes.Clear();Directory.CreateDirectory(Output);AssetDatabase.Refresh();
             SceneSetup[] previous=EditorSceneManager.GetSceneManagerSetup();
-            Scene sourceScene=default(Scene),scene=default(Scene);
+            Scene scene=default(Scene);
             try
             {
-                // Batch startup has an unsaved untitled scene; replace it before creating an additive scene.
-                // Interactive mode retains the saved Editor scene setup for restoration below.
-                sourceScene=EditorSceneManager.OpenScene(Source,Application.isBatchMode ? OpenSceneMode.Single : OpenSceneMode.Additive);
-                var descriptors=sourceScene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<Component>(true))
+                // Read the selected asset directly; the currently open scene is irrelevant.
+                GameObject prefab=AssetDatabase.LoadAssetAtPath<GameObject>(Source);
+                if(prefab==null)throw new InvalidOperationException("Selected avatar prefab is missing: "+Source);
+                var descriptors=prefab.GetComponentsInChildren<Component>(true)
                     .Where(c=>c!=null&&c.GetType().Name=="VRCAvatarDescriptor").ToArray();
-                if(descriptors.Length!=1)throw new InvalidOperationException("Expected one original avatar descriptor. Restore pinned VPM dependencies first; found "+descriptors.Length);
+                if(descriptors.Length!=1)throw new InvalidOperationException("Selected prefab must contain one loaded VRCAvatarDescriptor; found "+descriptors.Length+" in "+Source);
                 GameObject original=descriptors[0].gameObject;
-                scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,NewSceneMode.Additive);
+                if(original!=prefab)throw new InvalidOperationException("The avatar descriptor must be on the selected prefab root; refusing to discard its parent hierarchy.");
+                notes.Add("Avatar source prefab: "+Source);
+                // Replace the untitled startup scene only in batch mode.
+                scene=EditorSceneManager.NewScene(NewSceneSetup.EmptyScene,Application.isBatchMode ? NewSceneMode.Single : NewSceneMode.Additive);
                 SceneManager.SetActiveScene(scene);
                 GameObject placement=new GameObject("Desktop placement");
                 GameObject clone=UnityEngine.Object.Instantiate(original,placement.transform,false);clone.name="Yumi original avatar";
@@ -66,7 +69,7 @@ namespace Yumi.Desktop.Editor
                     if(mouth.sharedMesh.GetBlendShapeIndex(shape)<0)throw new InvalidOperationException("Missing mapped viseme: "+shape);
                 foreach(string shape in new[]{"blink","smile","jitome"})
                     if(mouth.sharedMesh.GetBlendShapeIndex(shape)<0)notes.Add("Optional facial blendshape absent: "+shape);
-                string fx="Assets/Proppa/Animations/Controller/Fenriru FX.controller";
+                string fx=FindFxController(settings);
                 AnimatorController controller=CreateController(fx,rig);
                 ApplyExpressionDefaults(controller,settings);
                 animator.runtimeAnimatorController=controller;animator.applyRootMotion=false;
@@ -135,11 +138,27 @@ namespace Yumi.Desktop.Editor
                 if(!Application.isBatchMode)EditorSceneManager.RestoreSceneManagerSetup(previous);
             }
         }
+        static string FindFxController(SerializedObject descriptor)
+        {
+            SerializedProperty layers=descriptor.FindProperty("baseAnimationLayers");
+            if(layers!=null&&layers.isArray)
+                for(int i=0;i<layers.arraySize;i++)
+                {
+                    SerializedProperty layer=layers.GetArrayElementAtIndex(i);
+                    SerializedProperty type=layer.FindPropertyRelative("type");
+                    if(type==null||type.enumValueIndex<0||type.enumValueIndex>=type.enumNames.Length||type.enumNames[type.enumValueIndex]!="FX")continue;
+                    SerializedProperty reference=layer.FindPropertyRelative("animatorController");
+                    AnimatorController fx=reference==null?null:reference.objectReferenceValue as AnimatorController;
+                    if(fx==null)throw new InvalidOperationException("Selected prefab's FX controller reference is missing or unsupported. Restore its linked controller; no other avatar's controller will be substituted.");
+                    string path=AssetDatabase.GetAssetPath(fx);notes.Add("Prefab FX controller: "+path);return path;
+                }
+            throw new InvalidOperationException("Selected prefab has no FX animation layer.");
+        }
         static AnimatorController CreateController(string fx,YumiAvatarRig rig)
         {
             string path=Output+"/YumiStandalone.controller";
             if(AssetDatabase.LoadAssetAtPath<AnimatorController>(path)!=null)AssetDatabase.DeleteAsset(path);
-            if(!AssetDatabase.CopyAsset(fx,path))throw new InvalidOperationException("Original Fenriru FX controller missing");
+            if(!AssetDatabase.CopyAsset(fx,path))throw new InvalidOperationException("Could not copy the selected prefab's FX controller: "+fx);
             AnimatorController controller=AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
             foreach(AnimatorControllerLayer layer in controller.layers)StripBehaviours(layer.stateMachine);
             AnimatorStateMachine machine=new AnimatorStateMachine {name="YumiMotion"};AssetDatabase.AddObjectToAsset(machine,controller);

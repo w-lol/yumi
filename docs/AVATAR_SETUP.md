@@ -92,3 +92,9 @@ rejected without modification; absent packages are left alone. Tests are still
 required. PowerShell fixtures verify backup contents, repeated runs, absent
 packages and refusal of unknown source layouts. Actual Unity testing must run
 on the Windows installation.
+
+## Selected prefab source
+
+The desktop builder now reads `Assets/prefab-id-v1_avtr_072f0a3c-94e1-4ab0-b9b3-772521da0ae8_5472754516.prefab` directly. The open scene is irrelevant. It clones the prefab root into the generated scene, reads the FX controller from that prefab descriptor, and retains its expression defaults. Missing controller or parameter references stop generation instead of substituting another avatar’s assets. The source prefab is never saved or unpacked. Editor tests verify source bytes remain unchanged and generated parameter defaults match the selected prefab.
+
+The user verified this prefab renders with its clothing and textures on their PC. Cloud C# parsing and installer fixtures pass, but the updated Unity tests and Windows player build still require that PC. Previously passing scene-based tests do not validate this new source. The separate VRCCore-Editor.dll player inclusion error is not resolved by choosing a prefab.

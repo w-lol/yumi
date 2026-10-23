@@ -17,8 +17,14 @@ namespace Yumi.Desktop.Editor.Tests
         [Test] public void OriginalProjectVersionAndFaceDescriptorSourceAreAvailable()
         {
             Assert.AreEqual("2022.3.22f1",Application.unityVersion);
-            Assert.IsTrue(File.Exists("Assets/lordhavemercy.unity"));
-            Assert.IsNotNull(AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Imported/Fbx/Avatar/Karin_2.fbx"));
+            var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(YumiDesktopBuild.Source);
+            Assert.IsNotNull(prefab,"Selected avatar prefab is missing");
+            var descriptor=prefab.GetComponents<Component>().SingleOrDefault(c=>c!=null&&c.GetType().Name=="VRCAvatarDescriptor");
+            Assert.IsNotNull(descriptor,"Selected prefab root has no loaded descriptor");
+            var animator=prefab.GetComponent<Animator>();
+            Assert.IsNotNull(animator);Assert.IsNotNull(animator.avatar);Assert.IsTrue(animator.avatar.isHuman);
+            var settings=new SerializedObject(descriptor);
+            Assert.IsNotNull(settings.FindProperty("expressionParameters").objectReferenceValue,"Prefab expression parameter reference is missing");
         }
         [Test] public void PantsRepairPreservesActualClothingGeometryAndOriginalAsset()
         {
@@ -76,14 +82,32 @@ namespace Yumi.Desktop.Editor.Tests
         }
         [Test] public void GeneratedSceneRetainsRigMaterialsAndNoSdkRuntimeComponents()
         {
+            byte[] originalPrefab=File.ReadAllBytes(YumiDesktopBuild.Source);
             YumiDesktopBuild.CreateScene();
+            CollectionAssert.AreEqual(originalPrefab,File.ReadAllBytes(YumiDesktopBuild.Source),"Source prefab was modified");
             Scene scene=EditorSceneManager.OpenScene("Assets/YumiDesktopGenerated/YumiDesktop.unity",OpenSceneMode.Single);
             var rig=scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<YumiAvatarRig>(true)).Single();
             Assert.IsTrue(rig.Ready);Assert.Greater(rig.face.mesh.sharedMesh.blendShapeCount,0);
             Assert.IsNotNull(rig.animator.runtimeAnimatorController);
+            StringAssert.Contains(YumiDesktopBuild.Source,File.ReadAllText("Assets/YumiDesktopGenerated/standalone-adaptation.txt"));
             var controller=rig.animator.runtimeAnimatorController as AnimatorController;Assert.IsNotNull(controller);
-            foreach(string outfit in new[]{"Black pants","Hoodie","Shoes","Socks"})
-                Assert.IsTrue(controller.parameters.Single(p=>p.name==outfit).defaultBool,"Original outfit default was lost: "+outfit);
+            var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(YumiDesktopBuild.Source);
+            var descriptor=prefab.GetComponents<Component>().Single(c=>c!=null&&c.GetType().Name=="VRCAvatarDescriptor");
+            var parameterAsset=new SerializedObject(descriptor).FindProperty("expressionParameters").objectReferenceValue;
+            Assert.IsNotNull(parameterAsset);
+            var defaults=new SerializedObject(parameterAsset).FindProperty("parameters");
+            for(int i=0;i<defaults.arraySize;i++)
+            {
+                var entry=defaults.GetArrayElementAtIndex(i);
+                string name=entry.FindPropertyRelative("name").stringValue;
+                float value=entry.FindPropertyRelative("defaultValue").floatValue;
+                foreach(var parameter in controller.parameters.Where(p=>p.name==name))
+                {
+                    if(parameter.type==AnimatorControllerParameterType.Bool)Assert.AreEqual(Mathf.Abs(value)>.5f,parameter.defaultBool,name);
+                    else if(parameter.type==AnimatorControllerParameterType.Int)Assert.AreEqual(Mathf.RoundToInt(value),parameter.defaultInt,name);
+                    else if(parameter.type==AnimatorControllerParameterType.Float)Assert.AreEqual(value,parameter.defaultFloat,name);
+                }
+            }
             foreach(var renderer in rig.GetComponentsInChildren<Renderer>(true))
                 foreach(var material in renderer.sharedMaterials.Where(m=>m!=null))
                 {Assert.IsNotNull(material.shader);Assert.AreNotEqual("Hidden/InternalErrorShader",material.shader.name);}
