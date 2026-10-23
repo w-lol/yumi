@@ -14,6 +14,23 @@ namespace Yumi.Desktop.Editor.Tests
     {
         const string Pants="Assets/ITEMS/Model/tda_dl_pouchy_v1_cyberpunk__by_kakaiya_ddawp25/untitled.fbx";
         const string Belts="Assets/ITEMS/Model/tda_dl_pouchy_v1_cyberpunk__by_kakaiya_ddawp25/Material/Belts.mat";
+        [Test] public void OnlyDisabledParticleTrailSlotsAreOptional()
+        {
+            var host=new GameObject("Particle material validation test");
+            try
+            {
+                var system=host.AddComponent<ParticleSystem>();
+                var renderer=host.GetComponent<ParticleSystemRenderer>();
+                var trails=system.trails;trails.enabled=false;
+                Assert.IsTrue(YumiDesktopBuild.IsUnusedParticleTrailSlot(renderer,1,null));
+                Assert.IsFalse(YumiDesktopBuild.IsUnusedParticleTrailSlot(renderer,0,null));
+                trails.enabled=true;
+                Assert.IsFalse(YumiDesktopBuild.IsUnusedParticleTrailSlot(renderer,1,null));
+                var mesh=new GameObject("Mesh material validation test");mesh.transform.SetParent(host.transform);
+                Assert.IsFalse(YumiDesktopBuild.IsUnusedParticleTrailSlot(mesh.AddComponent<MeshRenderer>(),1,null));
+            }
+            finally {UnityEngine.Object.DestroyImmediate(host);}
+        }
         [Test] public void OriginalProjectVersionAndFaceDescriptorSourceAreAvailable()
         {
             Assert.AreEqual("2022.3.22f1",Application.unityVersion);

@@ -93,6 +93,11 @@ namespace Yumi.Desktop.Editor
                     for(int slot=0;slot<materials.Length;slot++)
                     {
                         Material material=materials[slot];
+                        if(IsUnusedParticleTrailSlot(renderer,slot,material))
+                        {
+                            notes.Add("Unused particle trail material slot retained: "+AnimationUtility.CalculateTransformPath(renderer.transform,clone.transform));
+                            continue;
+                        }
                         SkinnedMeshRenderer skinned=renderer as SkinnedMeshRenderer;
                         MeshFilter filter=renderer.GetComponent<MeshFilter>();
                         Mesh materialMesh=skinned!=null?skinned.sharedMesh:(filter==null?null:filter.sharedMesh);
@@ -139,6 +144,12 @@ namespace Yumi.Desktop.Editor
                 // last scene loaded. Closing it is invalid and obscures the real error.
                 if(!Application.isBatchMode)EditorSceneManager.RestoreSceneManagerSetup(previous);
             }
+        }
+        public static bool IsUnusedParticleTrailSlot(Renderer renderer,int slot,Material material)
+        {
+            if(material!=null||slot!=1||!(renderer is ParticleSystemRenderer))return false;
+            ParticleSystem system=renderer.GetComponent<ParticleSystem>();
+            return system!=null&&!system.trails.enabled;
         }
         static string FindFxController(SerializedObject descriptor)
         {

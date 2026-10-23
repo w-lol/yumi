@@ -100,3 +100,7 @@ The desktop builder now reads `Assets/prefab-id-v1_avtr_072f0a3c-94e1-4ab0-b9b3-
 The user verified this prefab renders with its clothing and textures on their PC. Cloud C# parsing and installer fixtures pass, but the updated Unity tests and Windows player build still require that PC. Previously passing scene-based tests do not validate this new source. The separate VRCCore-Editor.dll player inclusion error is not resolved by choosing a prefab.
 
 The user may explicitly pass `-SkipTests` to attempt the actual build without rerunning Editor tests. This does not waive build success or output checks. It must not be described as test-validated. Missing prefab references are repaired read-only during generation, never saved back into original assets. Updated Editor tests check source prefab, original FX, and parameter asset bytes remain unchanged.
+
+## Optional particle trail materials
+
+The selected prefab contains particle renderers with a valid body material and an empty slot 1 for trails. When the ParticleSystem trails module is disabled, this slot is unused and is now accepted without changing its materials, activation state or source prefab. Missing particle body materials, enabled trail materials and mesh materials still fail validation. A focused Editor regression test covers these distinctions; that test requires Unity on Windows and has not run in the cloud.
