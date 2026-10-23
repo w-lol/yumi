@@ -20,6 +20,7 @@ namespace Yumi.Desktop
         string pending="",pendingType="";
         float deadline,lastReport;
         bool lastStationary=true,lastActive,follow;
+        float travelYaw=180;
         const float Unit=.005f;
         void Start()
         {
@@ -103,13 +104,25 @@ namespace Yumi.Desktop
             float scale=state==null?1:Mathf.Clamp(state.scale,.25f,3);
             placement.localScale=Vector3.one*(320*Unit*scale/Mathf.Max(.1f,originalHeight));
             rig.Motion=motion.State.ToString();
+            bool travelling=motion.State==CharacterMotion.Walking||motion.State==CharacterMotion.Running||motion.State==CharacterMotion.JumpStart||motion.State==CharacterMotion.JumpAirborne;
+            if(travelling&&motion.Sidestepping)rig.Motion="Sidestepping";
+            if(travelling&&Math.Abs(motion.VelocityX)>1)travelYaw=motion.VelocityX>0?90:270;
+            float desiredYaw=travelling&&!motion.Sidestepping?travelYaw:180;
+            rig.transform.localRotation=Quaternion.RotateTowards(rig.transform.localRotation,Quaternion.Euler(0,desiredYaw,0),360*Time.unscaledDeltaTime);
             if(motion.State==CharacterMotion.JumpAirborne)rig.Motion="Jumping";
             if(motion.State==CharacterMotion.JumpStart)rig.Motion="Jumping";
             if(state!=null&&state.speaking&&motion.State==CharacterMotion.Idle)rig.Motion="Talking";
             DesktopGeometry.POINT cursor;
             // The avatar root faces the camera at 180 degrees: positive local yaw
             // turns toward desktop left. Vertical pitch already follows correctly.
-            if(DesktopGeometry.GetCursorPos(out cursor))rig.Gaze=new Vector3(Mathf.Clamp((float)(motion.X-cursor.X)/60,-12,12),Mathf.Clamp((float)(cursor.Y-motion.Y+220)/80,-8,8),0);
+            rig.ReachForCursor=false;
+            if(DesktopGeometry.GetCursorPos(out cursor))
+            {
+                rig.Gaze=travelling&&!motion.Sidestepping?Vector3.zero:new Vector3(Mathf.Clamp((float)(motion.X-cursor.X)/60,-12,12),Mathf.Clamp((float)(cursor.Y-motion.Y+220)/80,-8,8),0);
+                rig.ReachForCursor=state!=null&&state.active&&!motion.Navigating&&motion.State==CharacterMotion.Idle&&Math.Abs(cursor.X-motion.X)<90*scale&&cursor.Y>motion.Y-300*scale&&cursor.Y<motion.Y-80*scale;
+                float depth=view.WorldToScreenPoint(rig.transform.position).z;
+                rig.ReachTarget=view.ScreenToWorldPoint(new Vector3((float)(cursor.X-desktop.X),(float)(desktop.Height-cursor.Y+desktop.Y),depth));
+            }
         }
         void Action(string id,AvatarAction action)
         {
@@ -130,7 +143,17 @@ namespace Yumi.Desktop
                 case "follow_cursor":follow=true;motion.Stationary=false;backend.CompleteAction(id,true,"Following cursor along current supporting edge; stop to cancel");return;
                 case "other_monitor":
                     var current=motion.Desktop.Surfaces.FirstOrDefault(s=>s.Id==motion.SupportId);
-                    var destination=motion.Desktop.Surfaces.FirstOrDefault(s=>s.Id.StartsWith("floor:")&&(current==null||s.MonitorId!=current.MonitorId));
+                    var floors=motion.Desktop.Surfaces.Where(s=>s.Id.StartsWith("floor:")&&(current==null||s.MonitorId!=current.MonitorId));
+                    if(action.target=="left")floors=floors.Where(s=>(s.Left+s.Right)/2<motion.X).OrderByDescending(s=>s.Right);
+                    else if(action.target=="right")floors=floors.Where(s=>(s.Left+s.Right)/2>motion.X).OrderBy(s=>s.Left);
+                    else floors=floors.OrderBy(s=>Math.Abs((s.Left+s.Right)/2-motion.X));
+                    var destination=floors.FirstOrDefault();
+                    if(action.target=="next")
+                    {
+                        var ordered=motion.Desktop.Surfaces.Where(s=>s.Id.StartsWith("floor:")).OrderBy(s=>s.Left).ThenBy(s=>s.Y).ToArray();
+                        int index=Array.FindIndex(ordered,s=>current!=null&&s.MonitorId==current.MonitorId);
+                        destination=ordered.Length>1?ordered[(index+1)%ordered.Length]:null;
+                    }
                     accepted=destination!=null&&motion.RequestSurface(destination.Id);break;
                 case "walk_to_position":case "run_to_position":
                     DesktopGeometry.POINT point;if(DesktopGeometry.GetCursorPos(out point))accepted=motion.WalkToCursor(point.X,action.type=="run_to_position");break;

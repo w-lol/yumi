@@ -154,13 +154,31 @@ static class Program
     {for(int i=0;i<(int)(seconds*rate);i++)m.Tick(1/rate);}
     static void TestMotion()
     {
+        var gait=new DesktopMotion();gait.SetGeometry(MotionFixture());Simulate(gait,.5);
+        gait.WalkToCursor(gait.X+40);gait.Tick(.05);Check(gait.Sidestepping&&gait.State==CharacterMotion.Walking,"Nearby cursor should use a sidestep");
+        gait.WalkToCursor(gait.X+250);gait.Tick(.05);Check(!gait.Sidestepping&&gait.State==CharacterMotion.Walking,"Medium trip should walk");
+        gait.WalkToCursor(gait.X+650);gait.Tick(.05);Check(gait.State==CharacterMotion.Running,"Long trip should run automatically");
+        var cross=new DesktopMotion();cross.SetGeometry(MotionFixture());Simulate(cross,.5);
+        int originalRecoveries=cross.Recoveries;
+        Check(cross.RequestSurface("floor:b"),"Adjacent monitor floor should be reachable");
+        for(int i=0;i<2000&&cross.Navigating;i++)
+        {
+            double before=cross.X;cross.Tick(1.0/60);
+            Check(Math.Abs(cross.X-before)<=cross.Speed*1.6/60+.001,"Adjacent monitor transition must not teleport");
+            Check(cross.State!=CharacterMotion.JumpAirborne&&cross.State!=CharacterMotion.JumpStart,"Aligned adjoining monitor floors should not require a jump");
+        }
+        Check(cross.SupportId=="floor:b"&&!cross.Navigating&&cross.Recoveries==originalRecoveries,"Cross-monitor walk failed to arrive without recovery");
+        var interrupted=new DesktopMotion();interrupted.SetGeometry(MotionFixture());Simulate(interrupted,.5);interrupted.RequestSurface("floor:b");
+        for(int i=0;i<1000&&interrupted.X<1405;i++)interrupted.Tick(1.0/60);
+        interrupted.Stay();double stopped=interrupted.X;interrupted.SetGeometry(MotionFixture());Simulate(interrupted,1);
+        Check(Math.Abs(interrupted.X-stopped)<.001&&interrupted.SupportId=="floor:b","Stop at a monitor seam must hold its actual supporting monitor");
         DesktopMotion m=new DesktopMotion();m.SetGeometry(MotionFixture());Simulate(m,.5);
         Check(m.RequestWindow("Discord",true),"Multi-hop route was not found");
         bool walking=false,jumping=false,landing=false;
         for(int i=0;i<2400;i++)
         {
             m.Tick(1.0/60);
-            walking|=m.State==CharacterMotion.Walking;jumping|=m.State==CharacterMotion.JumpAirborne;landing|=m.State==CharacterMotion.Landing;
+            walking|=m.State==CharacterMotion.Walking||m.State==CharacterMotion.Running;jumping|=m.State==CharacterMotion.JumpAirborne;landing|=m.State==CharacterMotion.Landing;
         }
         Check(walking&&jumping&&landing,"Navigation did not use walking, flight and landing states");
         Check(m.State==CharacterMotion.Sitting&&m.SupportId.StartsWith("three:"),"Multi-hop target was not reached and seated");

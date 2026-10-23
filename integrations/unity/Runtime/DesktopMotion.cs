@@ -25,16 +25,17 @@ namespace Yumi.Desktop
             }
         }
         public bool FollowCursor;
+        public bool Sidestepping {get;private set;}
         public bool AutonomousActive { get; private set; }
-        public bool Navigating { get { return goal.HasValue||pending!=null||route.Count>0||SupportId==""; } }
+        public bool Navigating { get { return goal.HasValue||pending!=null||crossing!=null||route.Count>0||SupportId==""; } }
         public int Recoveries { get; private set; }
         public DesktopSnapshot Desktop { get; private set; }
         readonly Queue<Edge> route=new Queue<Edge>();
         double? goal;
-        Edge pending;
+        Edge pending,crossing;
         bool run,sitAfter;
         double clock,manualUntil,timer,nextAutonomy=30;
-        sealed class Edge { public string From,To;public double LaunchX,EndX,Duration,VX,VY; }
+        sealed class Edge { public string From,To;public double LaunchX,EndX,Duration,VX,VY;public bool Walk; }
         public DesktopMotion() { Desktop=new DesktopSnapshot(); }
         static bool Contains(DesktopSurface s,double x,double margin) { return x>=s.Left+margin-1e-6&&x<=s.Right-margin+1e-6; }
         static double Clamp(double x,double a,double b) { return Math.Max(a,Math.Min(b,x)); }
@@ -51,8 +52,9 @@ namespace Yumi.Desktop
                 double dx=before!=null&&after!=null?after.Bounds.X-before.Bounds.X:0;
                 double newX=X+dx;
                 if(support==null)support=snapshot.Surfaces.FirstOrDefault(p=>p.WindowId==old.WindowId&&p.MonitorId==old.MonitorId&&Contains(p,newX,FootMargin));
-                if(support!=null&&Contains(support,newX,FootMargin)) {X=newX;Y=support.Y;SupportId=support.Id;}
-                else {SupportId="";VelocityY=0;State=CharacterMotion.Recovering;route.Clear();goal=null;pending=null;Message="Supporting window changed; falling to a valid surface.";}
+                if(crossing!=null&&Surface(crossing.From)!=null&&Surface(crossing.To)!=null) { /* Continuous floor crossing owns support until arrival. */ }
+                else if(support!=null&&Contains(support,newX,support.Id.StartsWith("floor:")?0:FootMargin)) {X=newX;Y=support.Y;SupportId=support.Id;}
+                else {SupportId="";VelocityY=0;State=CharacterMotion.Recovering;route.Clear();goal=null;pending=null;crossing=null;Message="Supporting window changed; falling to a valid surface.";}
             }
             if(snapshot.Surfaces.Length>0&&previous.Surfaces.Length==0)Recover();
             if(TargetWindow!=""&&SupportId!=""&&Surface(SupportId).WindowId!=TargetWindow&&snapshot.Revision!=previous.Revision)
@@ -70,7 +72,7 @@ namespace Yumi.Desktop
         }
         public void Stop()
         {
-            AutonomousActive=false;route.Clear();goal=null;pending=null;VelocityX=0;TargetWindow="";FollowCursor=false;sitAfter=false;
+            AutonomousActive=false;route.Clear();goal=null;pending=null;crossing=null;VelocityX=0;TargetWindow="";FollowCursor=false;sitAfter=false;Sidestepping=false;
             if(SupportId!="")State=CharacterMotion.Idle;
         }
         public void Stay() { Stop();Stationary=true;manualUntil=Double.PositiveInfinity; }
@@ -101,8 +103,10 @@ namespace Yumi.Desktop
         {
             DesktopSurface source=Surface(SupportId);if(source==null)return false;
             Stop();Stationary=false;manualUntil=clock+30;run=running;
-            goal=Clamp(x,source.Left+FootMargin,source.Right-FootMargin);return true;
+            goal=Clamp(x,source.Left+FootMargin,source.Right-FootMargin);SelectGait(Math.Abs(goal.Value-X),running);return true;
         }
+        void SelectGait(double distance,bool forceRun=false)
+        {run=forceRun||distance>=600;Sidestepping=!run&&distance<=90;}
         public void Sit()
         {
             if(SupportId=="")return;
@@ -129,6 +133,13 @@ namespace Yumi.Desktop
         }
         Edge BestEdge(DesktopSurface a,DesktopSurface b)
         {
+            if(a.Id.StartsWith("floor:")&&b.Id.StartsWith("floor:")&&Math.Abs(a.Y-b.Y)<1&&
+                Math.Max(a.Left,b.Left)<=Math.Min(a.Right,b.Right)+1)
+            {
+                double launch=Clamp((b.Left+b.Right)/2,a.Left+FootMargin,a.Right-FootMargin);
+                double end=Clamp(launch,b.Left+FootMargin,b.Right-FootMargin);
+                return new Edge {From=a.Id,To=b.Id,LaunchX=launch,EndX=end,Duration=Math.Abs(end-launch)/Speed,Walk=true};
+            }
             Edge best=null;
             double[] starts={Clamp((b.Left+b.Right)/2,a.Left+FootMargin,a.Right-FootMargin),a.Left+FootMargin,a.Right-FootMargin};
             foreach(double start in starts)
@@ -145,7 +156,7 @@ namespace Yumi.Desktop
             if(source==null) {Message="Land before choosing a route.";return false;}
             if(source.Id==target.Id)
             {
-                route.Clear();pending=null;goal=(target.Left+target.Right)/2;Stationary=false;manualUntil=clock+30;return true;
+                route.Clear();pending=null;goal=(target.Left+target.Right)/2;SelectGait(Math.Abs(goal.Value-X));Stationary=false;manualUntil=clock+30;return true;
             }
             Dictionary<string,double> costs=new Dictionary<string,double>{{source.Id,0}};
             Dictionary<string,Edge> parents=new Dictionary<string,Edge>();HashSet<string> done=new HashSet<string>();
@@ -166,7 +177,7 @@ namespace Yumi.Desktop
             List<Edge> reversed=new List<Edge>();string cursor=target.Id;
             while(cursor!=source.Id) {Edge e=parents[cursor];reversed.Add(e);cursor=e.From;}
             reversed.Reverse();route.Clear();foreach(Edge e in reversed)route.Enqueue(e);
-            pending=null;goal=null;Stationary=false;manualUntil=clock+30;run=false;Message="Reachable route planned.";return true;
+            pending=null;goal=null;Stationary=false;manualUntil=clock+30;SelectGait(Math.Abs((target.Left+target.Right)/2-X)+Math.Abs(target.Y-Y));Message="Reachable route planned.";return true;
         }
 
         public void Tick(double delta,bool autonomous=false,bool busy=false,double frequency=.3)
@@ -185,6 +196,17 @@ namespace Yumi.Desktop
         void Step(double dt)
         {
             timer=Math.Max(0,timer-dt);
+            if(crossing!=null)
+            {
+                DesktopSurface destination=Surface(crossing.To);
+                if(destination==null) {Stop();SupportId="";State=CharacterMotion.Recovering;return;}
+                double difference=crossing.EndX-X;
+                double dx=Math.Sign(difference)*Math.Min(Math.Abs(difference),Speed*(run?1.6:1)*dt);
+                X+=dx;Distance+=Math.Abs(dx);VelocityX=dt>0?dx/dt:0;State=run?CharacterMotion.Running:CharacterMotion.Walking;
+                if(Contains(destination,X,0))SupportId=destination.Id;
+                if(Math.Abs(crossing.EndX-X)<.001) {SupportId=destination.Id;Y=destination.Y;crossing=null;VelocityX=0;State=CharacterMotion.Idle;if(route.Count==0)goal=(destination.Left+destination.Right)/2;}
+                return;
+            }
             if(SupportId!="")
             {
                 if((State==CharacterMotion.Landing||State==CharacterMotion.Recovering||State==CharacterMotion.Waving)&&timer>0)return;
@@ -195,9 +217,10 @@ namespace Yumi.Desktop
                 {
                     if(timer>0)return;
                     DesktopSurface from=Surface(pending.From),to=Surface(pending.To);
-                    Edge current=from==null||to==null?null:Flight(from,to,X,pending.EndX);
+                    Edge current=from==null||to==null?null:(pending.Walk?BestEdge(from,to):Flight(from,to,X,pending.EndX));
                     pending=null;
                     if(current==null) {Stop();Message="Route changed before launch.";return;}
+                    if(current.Walk) {crossing=current;return;}
                     VelocityX=current.VX;VelocityY=current.VY;SupportId="";State=CharacterMotion.JumpAirborne;return;
                 }
                 if(route.Count>0)goal=route.Peek().LaunchX;
@@ -212,7 +235,7 @@ namespace Yumi.Desktop
                     else
                     {
                         goal=null;VelocityX=0;
-                        if(route.Count>0) {pending=route.Dequeue();State=CharacterMotion.JumpStart;timer=.15;}
+                        if(route.Count>0) {pending=route.Dequeue();State=pending.Walk?CharacterMotion.Walking:CharacterMotion.JumpStart;timer=pending.Walk?0:.15;}
                         else {State=sitAfter?CharacterMotion.Sitting:CharacterMotion.Idle;sitAfter=false;}
                     }
                 }

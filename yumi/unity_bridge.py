@@ -19,11 +19,16 @@ def action_intent(text):
     text=re.sub(r'^\s*(?:hey\s+)?yumi[, !]*','',text.strip(),flags=re.I)
     text=re.sub(r'^please\s+','',text,flags=re.I).strip(' .!?')
     exact={'stop moving':'stop_movement','stay on this window':'stay','stand up':'stand',
+           'stop following my mouse':'stop_movement','stop following the mouse':'stop_movement',
+           'stop following the cursor':'stop_movement','stop following me':'stop_movement',
+           'stop following mouse':'stop_movement',
            'wave':'wave','wave at me':'wave','follow my mouse':'follow_cursor',
            'follow the cursor':'follow_cursor','jump to the other monitor':'other_monitor',
            'come over here':'walk_to_position','jump over there':'jump_to_platform',
            'run across the screen':'run_to_position','sit down':'sit'}
     if text.casefold() in exact:return {'type':exact[text.casefold()],'target':'cursor'}
+    monitor=re.fullmatch(r'(?:walk|run|go|move)(?: over)? (?:to|across|onto) (?:the )?(?:(other|next|left|right) (?:monitor|screen)|(?:different )?(?:monitors|screens))',text,re.I)
+    if monitor:return {'type':'other_monitor','target':(monitor[1] or 'next').lower()}
     match=re.fullmatch(r'(?:go (?:over )?to|move to|jump to|go sit on|sit on) (.{1,100})',text,re.I)
     if match:return {'type':'sit' if 'sit' in text.casefold().split()[:2] else 'move_to_window','target':match[1]}
     return None

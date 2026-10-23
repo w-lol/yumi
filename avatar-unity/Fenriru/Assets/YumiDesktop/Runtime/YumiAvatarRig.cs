@@ -20,6 +20,9 @@ namespace Yumi.Desktop
         public string Motion="Idle";
         public Vector3 Gaze;
         public float MotionSpeed=1;
+        public bool ReachForCursor;
+        public Vector3 ReachTarget;
+        float reachBlend;
         readonly PlaybackTimeline timeline=new PlaybackTimeline();
         readonly Dictionary<Transform,Quaternion> restore=new Dictionary<Transform,Quaternion>();
         readonly Dictionary<string,int> shapes=new Dictionary<string,int>();
@@ -97,6 +100,32 @@ namespace Yumi.Desktop
             }
             if(Motion=="Waving")
             {Add(HumanBodyBones.RightUpperArm,Quaternion.Euler(0,0,65));Add(HumanBodyBones.RightLowerArm,Quaternion.Euler(0,0,40+Mathf.Sin(phase*9)*15));}
+            if(Motion=="Sidestepping")
+            {
+                float step=Mathf.Sin(phase*7);
+                Add(HumanBodyBones.LeftUpperLeg,Quaternion.Euler(0,0,step*12));
+                Add(HumanBodyBones.RightUpperLeg,Quaternion.Euler(0,0,-step*12));
+                Add(HumanBodyBones.LeftLowerLeg,Quaternion.Euler(Mathf.Max(0,-step)*12,0,0));
+                Add(HumanBodyBones.RightLowerLeg,Quaternion.Euler(Mathf.Max(0,step)*12,0,0));
+            }
+            reachBlend=Mathf.MoveTowards(reachBlend,ReachForCursor?1:0,dt*3);
+            if(reachBlend>0)
+            {
+                bool right=animator.transform.InverseTransformPoint(ReachTarget).x>=0;
+                Transform arm=animator.GetBoneTransform(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm);
+                Transform elbow=animator.GetBoneTransform(right?HumanBodyBones.RightLowerArm:HumanBodyBones.LeftLowerArm);
+                if(arm!=null&&elbow!=null&&arm.parent!=null)
+                {
+                    Vector3 current=elbow.position-arm.position,reachDirection=ReachTarget-arm.position;
+                    if(current.sqrMagnitude>.0001f&&reachDirection.sqrMagnitude>.0001f)
+                    {
+                        Quaternion desired=Quaternion.FromToRotation(current,reachDirection)*arm.rotation;
+                        Quaternion local=Quaternion.Inverse(arm.parent.rotation)*desired;
+                        Quaternion offset=Quaternion.Inverse(arm.localRotation)*local;
+                        Add(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm,Quaternion.Slerp(Quaternion.identity,offset,reachBlend*.8f));
+                    }
+                }
+            }
         }
         void Add(HumanBodyBones bone,Quaternion offset)
         {Transform t=animator.GetBoneTransform(bone);if(t==null)return;if(!restore.ContainsKey(t))restore[t]=t.localRotation;t.localRotation=t.localRotation*offset;}
