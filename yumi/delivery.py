@@ -5,7 +5,7 @@ import re
 
 STYLES = {'neutral': 1.0, 'playful': 1.04, 'excited': 1.09, 'amused': 1.03,
           'curious': 1.0, 'thoughtful': .94, 'serious': .96, 'frustrated': .97,
-          'comforting': .90}
+          'comforting': .90, 'mock-annoyed': .95}
 
 
 @dataclass(frozen=True)
@@ -52,12 +52,37 @@ def classify(text, ongoing=False, talkativeness=.7):
     return Delivery('ongoing' if ongoing else 'small_talk', 'neutral', max(160, int(220 + talkativeness * 300)), follow_up)
 
 
+def outside_parentheses(text):
+    """Drop parenthetical asides, including unfinished streamed directions."""
+    depth = 0
+    result = []
+    for char in text:
+        if char in '(（':
+            depth += 1
+            if depth == 1: result.append(' ')
+        elif char in ')）':
+            depth = max(0, depth - 1)
+        elif depth == 0:
+            result.append(char)
+    return ''.join(result)
+
+
+def phrase_boundary(text):
+    """A phrase cannot end inside presentation syntax arriving token by token."""
+    depth = 0
+    for char in text:
+        if char in '(（': depth += 1
+        elif char in ')）': depth = max(0, depth - 1)
+    return depth == 0 and text.count('*') % 2 == 0
+
+
 def speech_text(text):
     """Keep visible text intact; discard presentation/control syntax from speech."""
     text = re.sub(r'```[\s\S]*?```', ' ', text)
     text = re.sub(r'(?<!\*)\*(?!\*)([^*\n]+)\*(?!\*)', ' ', text)
     text = re.sub(r'<(?:think|analysis|reasoning|tool_call)\b[^>]*>[\s\S]*?</[^>]+>', ' ', text, flags=re.I)
     text = re.sub(r'\[[^\]]*\]\(([^)]+)\)', lambda m: re.sub(r'\]\(.*', '', m.group(0))[1:], text)
+    text = outside_parentheses(text)
     text = re.sub(r'https?://\S+', ' ', text)
     text = re.sub(r'\*[^*\n]{1,100}\*', lambda m: ' ' if re.search(r'\b(sighs?|laughs?|smiles?|thinks?|whispers?|pauses?|chuckles?|waves?|nods?)\b', m[0], re.I) else m[0].strip('*'), text)
     text = re.sub(r'\[(?:laughs?|sighs?|pause|thinking|emotion|action)[^\]]*\]', ' ', text, flags=re.I)
@@ -87,12 +112,12 @@ class Phrases:
                 continue
             limit = fence if fence >= 0 else len(self.buffer)
             matches = re.finditer(r'(?<!\bMr)(?<!\bDr)(?<!\bMs)[.!?;](?:\s+|$)|\n\s*\n', self.buffer[:limit])
-            match = next((m for m in matches if self.buffer[:m.end()].count('*')%2==0),None)
+            match = next((m for m in matches if phrase_boundary(self.buffer[:m.end()])),None)
             end = match.end() if match else None
             if match and not final:
                 raw=self.buffer[:end]
                 if end==len(self.buffer) and raw.endswith('.'):break
-            if end is None and limit > 240:
+            if end is None and limit > 240 and phrase_boundary(self.buffer[:limit]):
                 end = self.buffer.rfind(', ', 60, 240) + 1
                 if end <= 0: end = self.buffer.rfind(' ', 80, 240)
             if end is None or end <= 0:

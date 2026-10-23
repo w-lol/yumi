@@ -29,3 +29,11 @@ class DeliveryTests(unittest.TestCase):
             result.extend(phrases.feed(c))
         result.extend(phrases.feed('',final=True))
         self.assertEqual(result,['Version 3.14 is ready.','Next sentence.'])
+
+    def test_parenthetical_asides_remain_unspoken_across_stream_boundaries(self):
+        phrases=Phrases();result=[]
+        for c in 'Hello. (looks away. (sighs) smiles.) Here is **the answer**.':
+            result.extend(phrases.feed(c))
+        result.extend(phrases.feed('',final=True))
+        self.assertEqual(result,['Hello.','Here is the answer .'])
+        self.assertEqual(speech_text('Keep this (unclosed direction'), 'Keep this')

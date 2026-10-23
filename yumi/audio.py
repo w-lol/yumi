@@ -73,6 +73,7 @@ class Audio:
         self.mouth = {'aa': 0.0, 'ih': 0.0, 'ou': 0.0}
         self.mouth_time_ms = int(time.time()*1000)
         self.speech_style = 'neutral'
+        self.playback_style = 'neutral'
         self.threads = []
         self.current = np.empty(0, np.float32)
         self.current_epoch = 0
@@ -169,7 +170,9 @@ class Audio:
         while filled < frames:
             if self.current_epoch != self.epoch or self.current_offset >= len(self.current):
                 try:
-                    epoch, self.current = self.playback.get_nowait()
+                    packet = self.playback.get_nowait()
+                    epoch, self.current = packet[:2]
+                    if len(packet) > 2: self.playback_style = packet[2]
                     self.current_epoch, self.current_offset = epoch, 0
                     if epoch != self.epoch:
                         self.current = np.empty(0, np.float32)
@@ -242,7 +245,7 @@ class Audio:
     def delivery_style(self):
         return self.speech_style if self.settings['speech_style']=='auto' else self.settings['speech_style']
 
-    def say(self, text, wait=False, cancel=None):
+    def say(self, text, wait=False, cancel=None, audition=None):
         text = speech_text(text)
         if not text: return
         if not self.settings['voice'] or not self.active.is_set() or not self.tts:
@@ -250,7 +253,16 @@ class Audio:
         if self.silenced.is_set():
             return
         epoch=self.epoch
-        packet=(epoch,text[:700],self.delivery_style)
+        # Capture synthesis settings with each phrase so a later UI change cannot
+        # change an already queued voice or expression halfway through an audition.
+        options = audition or {}
+        style = options.get('style', self.delivery_style)
+        if style not in STYLES: raise ValueError('Unsupported speech delivery')
+        selected = speaker_id(options.get('voice', self.settings['kokoro_voice'])) if self.tts_backend == 'kokoro' else 0
+        presets = self.settings['delivery_presets']
+        multiplier = presets.get(style, STYLES[style])
+        speed = max(.6, min(1.6, float(options.get('rate', self.settings['voice_rate'])) * float(multiplier)))
+        packet=(epoch,text,style,selected,speed)
         while self.active.is_set() and not self.silenced.is_set() and self.settings['voice'] and epoch==self.epoch:
             if cancel and cancel.is_set():return
             try:
@@ -269,7 +281,7 @@ class Audio:
     def _synthesize(self):
         while not self.shutdown_event.is_set():
             try:
-                epoch, text, style = self.speech.get(timeout=0.1)
+                epoch, text, style, selected, speed = self.speech.get(timeout=0.1)
             except queue.Empty:
                 continue
             if epoch != self.epoch or self.silenced.is_set() or not self.active.is_set():
@@ -290,7 +302,7 @@ class Audio:
                 for offset in range(0, len(samples), self.rate // 4):
                     while epoch == self.epoch and self.active.is_set():
                         try:
-                            self.playback.put((epoch, samples[offset:offset+self.rate//4].copy()), timeout=0.1)
+                            self.playback.put((epoch, samples[offset:offset+self.rate//4].copy(), style), timeout=0.1)
                             break
                         except queue.Full:
                             continue
@@ -298,8 +310,7 @@ class Audio:
                         return 0
                 return 1
             try:
-                speed = self.settings['voice_rate'] * STYLES.get(style, 1.0)
-                audio = self.tts.generate(text, sid=self.speaker_id, speed=max(0.6,min(1.6,speed)), callback=callback)
+                audio = self.tts.generate(text, sid=selected, speed=speed, callback=callback)
                 self.stats['synthesis_ms'] = (time.perf_counter() - start) * 1000
                 self.stats['synthesis_rtf'] = (time.perf_counter() - start) / max(0.001, len(audio.samples) / audio.sample_rate)
                 del audio

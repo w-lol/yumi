@@ -16,6 +16,7 @@ from .controller import Controller
 from .avatar import Avatar
 from .settings import PERSONA
 from .paths import atomic_json
+from .delivery import STYLES
 
 STYLE = '''
 QWidget { background: #0e1420; color: #dce5f3; font-family: 'Segoe UI'; font-size: 13px; }
@@ -334,6 +335,33 @@ class Board(QMainWindow):
         button('You can talk now', lambda: self.core.control('talk'), row)
         button('Pronunciation dictionary', lambda: self.edit_json_setting('pronunciation'), row)
         layout.addLayout(row)
+        audition = QGroupBox('Compare delivery')
+        af = QFormLayout(audition)
+        self.audition_text = QTextEdit(self.settings['voice_audition_text'])
+        self.audition_text.setMaximumHeight(95)
+        af.addRow('Same dialogue for every test', self.audition_text)
+        self.audition_voice = QComboBox()
+        for name in KOKORO_VOICES: self.audition_voice.addItem(name[3:].title(), name)
+        self.audition_voice.setCurrentIndex(max(0, self.audition_voice.findData(self.settings['kokoro_voice'])))
+        af.addRow('Test voice', self.audition_voice)
+        self.audition_style = QComboBox()
+        self.audition_style.addItems(list(STYLES))
+        af.addRow('Delivery preset', self.audition_style)
+        self.audition_speed = QDoubleSpinBox()
+        self.audition_speed.setRange(.8, 1.2)
+        self.audition_speed.setSingleStep(.01)
+        self.audition_speed.setDecimals(2)
+        def load_preset(style):
+            self.audition_speed.setValue(self.settings['delivery_presets'].get(style, STYLES[style]))
+        self.audition_style.currentTextChanged.connect(load_preset)
+        load_preset(self.audition_style.currentText())
+        af.addRow('Rate multiplier (Kokoro native control)', self.audition_speed)
+        actions = QHBoxLayout()
+        button('Audition selected', self.audition_selected, actions)
+        button('Audition neutral baseline', lambda: self.audition_selected(True), actions)
+        button('Save delivery preset', self.save_delivery_preset, actions)
+        af.addRow(actions)
+        layout.addWidget(audition)
         layout.addWidget(QLabel('Default: local Kokoro v1.0, Heart voice, 24 kHz.\nKokoro selection applies to Kokoro assets; custom Piper folders keep their own voice.\nNo pitch control or verified speaker echo cancellation. Use headphones for voice interruption.'))
         layout.addStretch()
 
@@ -506,6 +534,27 @@ class Board(QMainWindow):
             return
         self.core.audio.new_turn()
         self.core.audio.say("Hey Jason. I'm Yumi. Let's make this thing actually useful.")
+
+    def save_delivery_preset(self):
+        presets = dict(self.settings['delivery_presets'])
+        presets[self.audition_style.currentText()] = self.audition_speed.value()
+        self.settings.set('delivery_presets', presets)
+        self.notice('Saved native speaking-rate preset. Kokoro has no emotion or pitch parameter.')
+
+    def audition_selected(self, baseline=False):
+        if not self.core.audio.active.is_set():
+            self.notice('Start Yumi and select a working output device first.')
+            return
+        text = self.audition_text.toPlainText().strip()[:3000]
+        if not text: return
+        self.settings.set('voice_audition_text', text)
+        style = 'neutral' if baseline else self.audition_style.currentText()
+        # Use an explicit rate to compare settings without changing normal voice selection.
+        factor = self.settings['delivery_presets'].get(style, STYLES[style])
+        rate = self.settings['voice_rate'] if baseline else self.settings['voice_rate'] * self.audition_speed.value() / factor
+        self.core.cancel(silence_only=True)
+        self.core.audio.new_turn()
+        self.core.audio.say(text, audition={'voice': self.audition_voice.currentData(), 'style': style, 'rate': rate})
 
     def correct_transcript(self):
         text, ok = QInputDialog.getText(self, 'Correct transcript', 'Corrected text:', text=self.core.last_input[0])

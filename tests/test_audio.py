@@ -88,3 +88,18 @@ class AudioTests(unittest.TestCase):
             self.assertNotIn('audio',text)
             self.assertNotIn('frame',text)
             self.assertIn('"count": 2',text)
+
+    def test_queued_audition_captures_voice_rate_and_playback_style(self):
+        from yumi.voice import speaker_id
+        with tempfile.TemporaryDirectory() as tmp:
+            paths=Paths(tmp);audio=Audio(paths,Settings(paths),lambda *_:None,lambda _:None)
+            audio.tts=object();audio.tts_backend='kokoro';audio.active.set()
+            audio.say('Hello (smiles).',audition={'voice':'af_bella','style':'excited','rate':1.0})
+            packet=audio.speech.get_nowait()
+            self.assertNotIn('smiles',packet[1]);self.assertEqual(packet[3],speaker_id('af_bella'))
+            self.assertAlmostEqual(packet[4],1.09)
+            audio.settings.set('kokoro_voice','am_adam')
+            self.assertEqual(packet[3],speaker_id('af_bella'))
+            audio.playback.put((audio.epoch,np.ones(512,dtype=np.float32)*.1,'excited'))
+            audio._output(np.empty((512,1),dtype=np.float32),512,None,None)
+            self.assertEqual(audio.playback_style,'excited')

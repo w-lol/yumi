@@ -85,7 +85,7 @@ class Controller:
                 'audio_epoch':audio.epoch,'mouth':{k:min(1,v*self.settings['unity_lip_gain']) for k,v in audio.mouth.items()},'audio_level':audio.output_level,
                 'mouth_time_ms':audio.mouth_time_ms+self.settings['unity_lip_offset_ms'],
                 'lip_sync_source':'played_audio_envelope_and_spectral_estimate',
-                'style':audio.delivery_style,'affect':dict(self.affect),
+                'style':audio.playback_style if audio.speaking else 'neutral','affect':dict(self.affect),
                 'scale':self.settings['unity_scale'],'topmost':self.settings['unity_topmost'],
                 'clickthrough':self.settings['unity_clickthrough'],
                 'stationary':self.settings['unity_stationary'],
