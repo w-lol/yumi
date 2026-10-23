@@ -1,0 +1,15 @@
+{
+  "history_records": 10001,
+  "indexed_records": 300,
+  "retrieval_samples": 40,
+  "retrieval_median_ms": 42.930535000095915,
+  "retrieval_p95_ms": 67.49826700024641,
+  "database_mib": 8.140586853027344,
+  "completed_turns": 6,
+  "cancelled_turns": 6,
+  "elapsed_seconds": 65.08173811500001,
+  "parent_rss_mib_min": 123.078125,
+  "parent_rss_mib_max": 125.6640625,
+  "scope": "Cloud CPU bounded-history/repeated-interruption run; not a target-machine long-duration soak",
+  "status": "passed"
+}
