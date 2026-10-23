@@ -4,6 +4,7 @@ using System.Linq;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
+using UnityEditor.Animations;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -80,6 +81,9 @@ namespace Yumi.Desktop.Editor.Tests
             var rig=scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<YumiAvatarRig>(true)).Single();
             Assert.IsTrue(rig.Ready);Assert.Greater(rig.face.mesh.sharedMesh.blendShapeCount,0);
             Assert.IsNotNull(rig.animator.runtimeAnimatorController);
+            var controller=rig.animator.runtimeAnimatorController as AnimatorController;Assert.IsNotNull(controller);
+            foreach(string outfit in new[]{"Black pants","Hoodie","Shoes","Socks"})
+                Assert.IsTrue(controller.parameters.Single(p=>p.name==outfit).defaultBool,"Original outfit default was lost: "+outfit);
             foreach(var renderer in rig.GetComponentsInChildren<Renderer>(true))
                 foreach(var material in renderer.sharedMaterials.Where(m=>m!=null))
                 {Assert.IsNotNull(material.shader);Assert.AreNotEqual("Hidden/InternalErrorShader",material.shader.name);}

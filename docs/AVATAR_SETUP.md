@@ -52,7 +52,8 @@ The first two referenced absent materials. Assigning arbitrary materials would r
 unwanted donor geometry. The builder instead creates a **separate generated mesh**
 with those two submesh index arrays empty. It retains all 4,945 clothing triangles,
 original Belts material, vertex arrays, skin weights, bind poses and blendshape data.
-The primary Karin face is excluded from this repair. Original FBX/materials are unchanged.
+The primary Karin face is excluded from this repair. Original expression parameter
+defaults are applied to the generated FX controller so clothing is enabled as intended. Original FBX/materials are unchanged.
 
 This is allowed only for the exact source SHA-256, mesh GUID, material GUID,
 `pants/Body` hierarchy and expected three-slot layout, with both donor materials

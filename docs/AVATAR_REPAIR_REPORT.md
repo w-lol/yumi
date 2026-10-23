@@ -15,6 +15,8 @@ Implemented in this session:
 - Exact repair policy with rejection tests for changed hashes/GUIDs, face references,
   assigned materials, unexpected layouts and missing clothing shaders.
 - Unity Editor repair implementation and four actual-asset/scene/playback tests.
+- Original descriptor expression defaults copied into the generated FX controller,
+  preserving default hoodie, pants, shoes and socks rather than using all-false defaults.
 - Correct Editor discovery/version checks, explicit process waiting/exit-code capture,
   preflight test gating, separate output staging, prior-player preservation/backup.
 - Windows fake-process fixture covering quoted paths and real wait/exit behavior,

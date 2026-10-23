@@ -68,6 +68,7 @@ namespace Yumi.Desktop.Editor
                     if(mouth.sharedMesh.GetBlendShapeIndex(shape)<0)notes.Add("Optional facial blendshape absent: "+shape);
                 string fx="Assets/Proppa/Animations/Controller/Fenriru FX.controller";
                 AnimatorController controller=CreateController(fx,rig);
+                ApplyExpressionDefaults(controller,settings);
                 animator.runtimeAnimatorController=controller;animator.applyRootMotion=false;
                 // SDK runtime behaviours do not work standalone. Remove them only from this
                 // generated clone, and record each missing feature rather than imply it works.
@@ -160,6 +161,30 @@ namespace Yumi.Desktop.Editor
             controller.layers=new[]{body}.Concat(prior).ToArray();rig.clips=bindings.ToArray();
             notes.Add("Original FX copied with parameters/layers. VRChat parameter/layer drivers removed; contacts, PhysBones and menus need standalone replacements.");
             return controller;
+        }
+        static void ApplyExpressionDefaults(AnimatorController controller,SerializedObject descriptor)
+        {
+            SerializedProperty reference=descriptor.FindProperty("expressionParameters");
+            if(reference==null||reference.objectReferenceValue==null)
+                throw new InvalidOperationException("Original expression parameter defaults are missing; refusing to guess the outfit state.");
+            SerializedProperty values=new SerializedObject(reference.objectReferenceValue).FindProperty("parameters");
+            if(values==null||!values.isArray)throw new InvalidOperationException("Original expression parameter defaults could not be read.");
+            AnimatorControllerParameter[] parameters=controller.parameters;
+            for(int i=0;i<values.arraySize;i++)
+            {
+                SerializedProperty entry=values.GetArrayElementAtIndex(i);
+                string name=entry.FindPropertyRelative("name").stringValue;
+                float value=entry.FindPropertyRelative("defaultValue").floatValue;
+                foreach(AnimatorControllerParameter parameter in parameters)
+                {
+                    if(parameter.name!=name)continue;
+                    if(parameter.type==AnimatorControllerParameterType.Bool)parameter.defaultBool=Mathf.Abs(value)>.5f;
+                    else if(parameter.type==AnimatorControllerParameterType.Float)parameter.defaultFloat=value;
+                    else if(parameter.type==AnimatorControllerParameterType.Int)parameter.defaultInt=Mathf.RoundToInt(value);
+                    notes.Add("Original expression default retained: "+name+" = "+value);
+                }
+            }
+            controller.parameters=parameters;EditorUtility.SetDirty(controller);
         }
         static void StripBehaviours(AnimatorStateMachine machine)
         {
