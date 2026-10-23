@@ -1,5 +1,6 @@
 """Disk-backed, bounded retrieval with provenance and durable deletion tombstones."""
 from __future__ import annotations
+from contextlib import closing
 import json
 import re
 import sqlite3
@@ -186,13 +187,13 @@ class Memory:
         return count
 
     def backup(self, path):
-        with self.lock, sqlite3.connect(path) as dest:
+        with self.lock, closing(sqlite3.connect(path)) as dest:
             self.db.backup(dest)
 
     def restore(self, path):
         with self.lock:
             tombstones = list(self.db.execute('SELECT id,deleted FROM tombstones'))
-            with sqlite3.connect(f'file:{Path(path).resolve().as_posix()}?mode=ro', uri=True) as source:
+            with closing(sqlite3.connect(f'file:{Path(path).resolve().as_posix()}?mode=ro', uri=True)) as source:
                 if source.execute('PRAGMA integrity_check').fetchone()[0] != 'ok':
                     raise ValueError('Backup failed integrity check')
                 if source.execute("SELECT value FROM meta WHERE key='schema'").fetchone()[0] not in ('1','2'):

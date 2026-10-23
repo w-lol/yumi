@@ -46,6 +46,9 @@ class CoreTests(unittest.TestCase):
         self.assertEqual(self.memory.retrieve('blue'), [])
         self.assertIsNone(self.memory.get(episode))
 
+        # Windows must be able to release the backup immediately, without GC.
+        backup.unlink()
+
     def test_import_export_and_expiry(self):
         expired = self.memory.add('temporary pineapple', expires=time.time()-1)
         live = self.memory.add('durable banana')
