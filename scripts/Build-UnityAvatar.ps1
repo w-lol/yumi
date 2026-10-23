@@ -13,7 +13,9 @@ if (-not (Test-Path -LiteralPath $UnityEditor)) { throw 'Install Unity 2022.3.22
 $Log=Join-Path $Root 'logs/avatar-unity/build.log'
 New-Item -ItemType Directory -Force -Path (Split-Path $Log -Parent) | Out-Null
 $Output=Join-Path $Root 'Builds/YumiAvatar/YumiAvatar.exe'
-# Arguments are an array; no shell interpolation of user paths.
-& $UnityEditor -batchmode -quit -projectPath $Project -buildTarget Win64 -executeMethod Yumi.Desktop.Editor.YumiDesktopBuild.BuildWindows -yumiOutput $Output -logFile $Log
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $Output)) { throw "Unity build failed. See $Log. Restore the project's pinned VPM packages in Creator Companion before retrying." }
+# Start-Process explicitly waits for the GUI executable; PowerShell must not
+# check output or a stale LASTEXITCODE while Unity is still importing/building.
+$Arguments='-batchmode -quit -projectPath "{0}" -buildTarget Win64 -executeMethod Yumi.Desktop.Editor.YumiDesktopBuild.BuildWindows -yumiOutput "{1}" -logFile "{2}"' -f $Project,$Output,$Log
+$Build=Start-Process -FilePath $UnityEditor -ArgumentList $Arguments -Wait -PassThru
+if ($Build.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $Output)) { throw "Unity build failed (exit code $($Build.ExitCode)). See $Log for the actual error." }
 Write-Host "Built $Output. Transparency, materials, rig and motion still require the Windows acceptance checklist."
