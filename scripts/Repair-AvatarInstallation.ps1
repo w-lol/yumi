@@ -18,7 +18,7 @@ if (Get-Command Get-CimInstance -ErrorAction SilentlyContinue) {
     if ($Open.Count) { throw 'Close the duplicated Unity Editor and the Yumi avatar player before repairing.' }
 }
 # Every file is pinned to one revision and verified before installation starts.
-$Revision='5282bc1be04457a27b2b696102f1baa0bd44ba93'
+$Revision='5a72e07133d67b0aaf6fc1a79644d7d445b0eb88'
 $Manifest=@'
 [
   {
@@ -59,7 +59,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/Runtime/DesktopMotion.cs",
-    "sha256": "db3fb5c3be87fa48674b50faa1fb10bbba4f4b6bf0e2e02f78f8abca1e0904fe"
+    "sha256": "32001ff3ec7c53b9159f6b4f3eaa21ff84b1222f8b408ddab7f92aa14411c73c"
   },
   {
     "path": "integrations/unity/Runtime/OverlayWindowPolicy.cs",
@@ -75,7 +75,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/Runtime/YumiAvatarRig.cs",
-    "sha256": "8d5221750521395b0ca544ba72cf2b3b03a2a0f2ea215c1781cd100288dadddb"
+    "sha256": "b740c95cec0d87fc92e08eb01651c08b37029a5a35354d7338a24be80f709343"
   },
   {
     "path": "integrations/unity/Runtime/YumiBackendClient.cs",
@@ -83,7 +83,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/Runtime/YumiDesktopAvatar.cs",
-    "sha256": "9bd39f84a550e2254c43f9e9c18e878e3e16c5e736abd99a863e4a9915cee7e9"
+    "sha256": "310e2aee731f3c8cf3f5a806872e7688620f220f8ecf6c0e394956c08d9db509"
   },
   {
     "path": "integrations/unity/Runtime/YumiWindowsOverlay.cs",
@@ -95,7 +95,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/Tests/Program.cs",
-    "sha256": "35b5c99df087effbd0dd66a7e1d48d612a859757b859ab8b3cd66b7b7de042a6"
+    "sha256": "c2e2b289a4181a7b1d67f80f55192c4b45fecb13a4e1b284405e6b015393e8c8"
   },
   {
     "path": "scripts/Build-UnityAvatar.ps1",
@@ -124,6 +124,18 @@ $Manifest=@'
   {
     "path": "scripts/Setup-Avatar.ps1",
     "sha256": "60f42515ffad889fae13c82c891f1856f106b4c94e9ff868e9ba2b1dc110e2ea"
+  },
+  {
+    "path": "yumi/controller.py",
+    "sha256": "692f0be18fabc17c3106dd1e358a34767977219cfb9981b0b165412fde9d8bd9"
+  },
+  {
+    "path": "yumi/settings.py",
+    "sha256": "dbc4889adb2be1f3fede770154318fd9e9020c4cbd23201ba26f07d5086e7200"
+  },
+  {
+    "path": "yumi/unity_bridge.py",
+    "sha256": "a58e7b00c540581827a0807381b9d9ae010d2b505fcfff227c35fd49972aee29"
   }
 ]
 '@ | ConvertFrom-Json
