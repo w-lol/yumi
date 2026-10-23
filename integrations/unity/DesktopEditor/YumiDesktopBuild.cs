@@ -89,9 +89,9 @@ namespace Yumi.Desktop.Editor
                         if(material!=null&&material.shader!=null&&material.shader.name!="Hidden/InternalErrorShader")continue;
                         string hierarchy=AnimationUtility.CalculateTransformPath(renderer.transform,clone.transform);
                         string path=material==null?"<missing material>":AssetDatabase.GetAssetPath(material);
-                        string original=material==null?"":material.GetTag("OriginalShader",false,"");
+                        string originalShader=material==null?"":material.GetTag("OriginalShader",false,"");
                         materialErrors.Add("Renderer="+hierarchy+"; active="+renderer.gameObject.activeInHierarchy+"; enabled="+renderer.enabled+
-                            "; slot="+slot+"; material="+path+"; original shader="+original);
+                            "; slot="+slot+"; material="+path+"; original shader="+originalShader);
                     }
                 }
                 if(materialErrors.Count>0)

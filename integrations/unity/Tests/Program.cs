@@ -57,7 +57,14 @@ static class Program
                 {
                     var tree=CSharpSyntaxTree.ParseText(File.ReadAllText(path),new CSharpParseOptions(LanguageVersion.CSharp9,preprocessorSymbols:symbols));
                     var errors=tree.GetDiagnostics().Where(d=>d.Severity==DiagnosticSeverity.Error).ToArray();
-                    Check(errors.Length==0,path+": "+String.Join("; ",errors.Select(d=>d.ToString())));count++;
+                    Check(errors.Length==0,path+": "+String.Join("; ",errors.Select(d=>d.ToString())));
+                    // Unity references are unavailable here, but local-name conflicts can
+                    // still be diagnosed semantically despite unresolved external types.
+                    var compilation=CSharpCompilation.Create("LocalScopeCheck",new[]{tree},
+                        new[]{MetadataReference.CreateFromFile(typeof(object).Assembly.Location)},
+                        new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+                    var scopeErrors=compilation.GetDiagnostics().Where(d=>d.Id=="CS0136"||d.Id=="CS0128").ToArray();
+                    Check(scopeErrors.Length==0,path+": "+String.Join("; ",scopeErrors.Select(d=>d.ToString())));count++;
                 }
         Console.WriteLine("C#9 source parsing passed ("+count+" platform variants). This does not validate Unity API references.");
     }
