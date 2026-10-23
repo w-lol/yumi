@@ -42,9 +42,45 @@ $Newline="`n"
 if ($Text.Contains("`r`n")) { $Newline="`r`n" }
 $Platforms=($Platforms -replace '\r?\n',$Newline)+$Newline
 $Updated=$Text.Remove($Blocks[0].Index,$Blocks[0].Length).Insert($Blocks[0].Index,$Platforms)
-if ($Updated -ceq $Text) { Write-Host 'VRCCore-Editor is already restricted to the Unity Editor.'; return }
-$Backup=Join-Path $Root ('backups/unity-editor-plugin-'+[guid]::NewGuid().ToString('N')+'/VRCCore-Editor.dll.meta')
-New-Item -ItemType Directory -Force -Path (Split-Path $Backup -Parent) | Out-Null
-Copy-Item -LiteralPath $File -Destination $Backup
-[IO.File]::WriteAllText($File,$Updated,(New-Object Text.UTF8Encoding($false)))
-Write-Host "Restricted VRCCore-Editor.dll to Editor only. DLL and GUID unchanged. Backup: $Backup"
+if ($Updated -ceq $Text) { Write-Host 'VRCCore-Editor is already restricted to the Unity Editor.' }
+else {
+    $Backup=Join-Path $Root ('backups/unity-editor-plugin-'+[guid]::NewGuid().ToString('N')+'/VRCCore-Editor.dll.meta')
+    New-Item -ItemType Directory -Force -Path (Split-Path $Backup -Parent) | Out-Null
+    Copy-Item -LiteralPath $File -Destination $Backup
+    [IO.File]::WriteAllText($File,$Updated,(New-Object Text.UTF8Encoding($false)))
+    Write-Host "Restricted VRCCore-Editor.dll to Editor only. DLL and GUID unchanged. Backup: $Backup"
+}
+# SDK 3.6.1 WorldValidation refers to an Editor-only logger in runtime source.
+# Preserve Editor logging and route the two player warnings to Unity's logger.
+$Source=Join-Path $Project 'Packages/com.vrchat.base/Runtime/VRCSDK/Dependencies/VRChat/Scripts/Validation/WorldValidation.cs'
+if (-not (Test-Path -LiteralPath $Source)) { Write-Host 'WorldValidation source not present; no logging adaptation needed.'; return }
+$SourceText=[IO.File]::ReadAllText($Source)
+$Marker='// Yumi standalone SDK logging'
+if ($SourceText.Contains($Marker)) {
+    if ([regex]::Matches($SourceText,[regex]::Escape($Marker)).Count -ne 4) { throw 'Incomplete SDK logging adaptation; restore the source backup before retrying.' }
+    Write-Host 'WorldValidation standalone logging adaptation already present.'; return
+}
+$Calls=@(
+    @('VRC.Core.Logger.DescribeDebugLevel(hashCode, "WorldValidation", VRC.Core.Logger.Color.red);',''),
+    @('VRC.Core.Logger.AddDebugLevel(hashCode);',''),
+    @('VRC.Core.Logger.LogWarning("PlayableDirector containing prefab removed", DebugLevel, playableDirector.gameObject);','UnityEngine.Debug.LogWarning("PlayableDirector containing prefab removed", playableDirector.gameObject);'),
+    @('VRC.Core.Logger.LogWarning("VideoPlayer using DIRECT audio output fixed.");','UnityEngine.Debug.LogWarning("VideoPlayer using DIRECT audio output fixed.");')
+)
+foreach ($Pair in $Calls) {
+    if ([regex]::Matches($SourceText,[regex]::Escape($Pair[0])).Count -ne 1) { throw 'Unrecognized SDK logging source; WorldValidation was not changed.' }
+}
+if ([regex]::Matches($SourceText,'VRC\.Core\.Logger\.').Count -ne 5) { throw 'Unexpected SDK logger dependencies; WorldValidation was not changed.' }
+$SourceNewline="`n"
+if ($SourceText.Contains("`r`n")) { $SourceNewline="`r`n" }
+$Adapted=$SourceText
+foreach ($Pair in $Calls) {
+    $Replacement=$Marker+$SourceNewline+'#if UNITY_EDITOR'+$SourceNewline+$Pair[0]+$SourceNewline
+    if ($Pair[1]) { $Replacement+='#else'+$SourceNewline+$Pair[1]+$SourceNewline }
+    $Replacement+='#endif'+$SourceNewline
+    $Adapted=$Adapted.Replace($Pair[0],$Replacement)
+}
+$SourceBackup=Join-Path $Root ('backups/unity-sdk-logging-'+[guid]::NewGuid().ToString('N')+'/WorldValidation.cs')
+New-Item -ItemType Directory -Force -Path (Split-Path $SourceBackup -Parent) | Out-Null
+Copy-Item -LiteralPath $Source -Destination $SourceBackup
+[IO.File]::WriteAllText($Source,$Adapted,(New-Object Text.UTF8Encoding($false)))
+Write-Host "Adapted WorldValidation player logging; Editor behavior retained. Backup: $SourceBackup"

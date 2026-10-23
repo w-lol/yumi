@@ -46,6 +46,25 @@ try {
     if ($PluginBackups.Count -ne 1 -or [IO.File]::ReadAllText($PluginBackups[0].FullName) -cne $OriginalPlugin) { throw 'Plugin metadata backup mismatch.' }
     & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot
     if ([IO.File]::ReadAllText($Plugin) -cne $FixedPlugin) { throw 'Plugin repair is not idempotent.' }
+    $World=Join-Path $Nested 'Packages/com.vrchat.base/Runtime/VRCSDK/Dependencies/VRChat/Scripts/Validation/WorldValidation.cs'
+    New-Item -ItemType Directory -Force -Path (Split-Path $World -Parent) | Out-Null
+    $WorldOriginal=@'
+VRC.Core.Logger.DescribeDebugLevel(hashCode, "WorldValidation", VRC.Core.Logger.Color.red);
+VRC.Core.Logger.AddDebugLevel(hashCode);
+VRC.Core.Logger.LogWarning("PlayableDirector containing prefab removed", DebugLevel, playableDirector.gameObject);
+VRC.Core.Logger.LogWarning("VideoPlayer using DIRECT audio output fixed.");
+'@
+    [IO.File]::WriteAllText($World,$WorldOriginal)
+    & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot
+    $WorldFixed=[IO.File]::ReadAllText($World)
+    if ([regex]::Matches($WorldFixed,'// Yumi standalone SDK logging').Count -ne 4 -or [regex]::Matches($WorldFixed,'#if UNITY_EDITOR').Count -ne 4 -or [regex]::Matches($WorldFixed,'UnityEngine.Debug.LogWarning').Count -ne 2) { throw 'Standalone SDK logging adaptation failed.' }
+    $WorldBackups=@(Get-ChildItem (Join-Path $TestRoot 'backups') -Recurse -Filter WorldValidation.cs)
+    if ($WorldBackups.Count -ne 1 -or [IO.File]::ReadAllText($WorldBackups[0].FullName) -cne $WorldOriginal) { throw 'SDK logging backup mismatch.' }
+    & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot
+    if ([IO.File]::ReadAllText($World) -cne $WorldFixed) { throw 'SDK logging adaptation is not idempotent.' }
+    [IO.File]::WriteAllText($World,'unexpected SDK source');$WorldRefused=$false
+    try { & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot } catch { $WorldRefused=$true }
+    if (-not $WorldRefused -or [IO.File]::ReadAllText($World) -cne 'unexpected SDK source') { throw 'Unknown SDK logging source was not preserved.' }
     $Unknown=$OriginalPlugin.Replace('4ecd63eff847044b68db9453ce219299','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa')
     [IO.File]::WriteAllText($Plugin,$Unknown);$Refused=$false
     try { & (Join-Path $PSScriptRoot 'Repair-UnityEditorPlugin.ps1') -Root $TestRoot } catch { $Refused=$true }
