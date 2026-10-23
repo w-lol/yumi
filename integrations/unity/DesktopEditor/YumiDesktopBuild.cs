@@ -37,7 +37,9 @@ namespace Yumi.Desktop.Editor
             Scene sourceScene=default(Scene),scene=default(Scene);
             try
             {
-                sourceScene=EditorSceneManager.OpenScene(Source,OpenSceneMode.Additive);
+                // Batch startup has an unsaved untitled scene; replace it before creating an additive scene.
+                // Interactive mode retains the saved Editor scene setup for restoration below.
+                sourceScene=EditorSceneManager.OpenScene(Source,Application.isBatchMode ? OpenSceneMode.Single : OpenSceneMode.Additive);
                 var descriptors=sourceScene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<Component>(true))
                     .Where(c=>c!=null&&c.GetType().Name=="VRCAvatarDescriptor").ToArray();
                 if(descriptors.Length!=1)throw new InvalidOperationException("Expected one original avatar descriptor. Restore pinned VPM dependencies first; found "+descriptors.Length);
