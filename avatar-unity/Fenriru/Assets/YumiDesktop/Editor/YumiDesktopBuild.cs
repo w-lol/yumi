@@ -79,10 +79,27 @@ namespace Yumi.Desktop.Editor
                     {notes.Add("Standalone clone excludes "+type+" on "+component.gameObject.name);UnityEngine.Object.DestroyImmediate(component);}
                 }
                 foreach(Transform t in clone.GetComponentsInChildren<Transform>(true))GameObjectUtility.RemoveMonoBehavioursWithMissingScript(t.gameObject);
+                var materialErrors=new List<string>();
                 foreach(Renderer renderer in clone.GetComponentsInChildren<Renderer>(true))
-                    foreach(Material material in renderer.sharedMaterials)
-                        if(material==null||material.shader==null||material.shader.name=="Hidden/InternalErrorShader")
-                            throw new InvalidOperationException("Missing original material/shader on "+renderer.name);
+                {
+                    Material[] materials=renderer.sharedMaterials;
+                    for(int slot=0;slot<materials.Length;slot++)
+                    {
+                        Material material=materials[slot];
+                        if(material!=null&&material.shader!=null&&material.shader.name!="Hidden/InternalErrorShader")continue;
+                        string hierarchy=AnimationUtility.CalculateTransformPath(renderer.transform,clone.transform);
+                        string path=material==null?"<missing material>":AssetDatabase.GetAssetPath(material);
+                        string original=material==null?"":material.GetTag("OriginalShader",false,"");
+                        materialErrors.Add("Renderer="+hierarchy+"; active="+renderer.gameObject.activeInHierarchy+"; enabled="+renderer.enabled+
+                            "; slot="+slot+"; material="+path+"; original shader="+original);
+                    }
+                }
+                if(materialErrors.Count>0)
+                {
+                    string report=Path.GetFullPath(Path.Combine(DuplicateRoot(),"../logs/avatar-unity/material-errors.txt"));
+                    Directory.CreateDirectory(Path.GetDirectoryName(report));File.WriteAllLines(report,materialErrors);
+                    throw new InvalidOperationException("Original material/shader references unresolved:\n"+String.Join("\n",materialErrors.ToArray())+"\nReport: "+report);
+                }
                 clone.transform.localPosition=Vector3.zero;clone.transform.localRotation=Quaternion.Euler(0,180,0);
                 Bounds bounds=new Bounds(clone.transform.position,Vector3.zero);bool first=true;
                 foreach(SkinnedMeshRenderer renderer in clone.GetComponentsInChildren<SkinnedMeshRenderer>())
@@ -107,8 +124,8 @@ namespace Yumi.Desktop.Editor
             }
             finally
             {
-                if(scene.IsValid()&&scene.isLoaded)EditorSceneManager.CloseScene(scene,true);
-                if(sourceScene.IsValid()&&sourceScene.isLoaded)EditorSceneManager.CloseScene(sourceScene,true);
+                // Batch owns the whole session and quits after this method; leave its
+                // last scene loaded. Closing it is invalid and obscures the real error.
                 if(!Application.isBatchMode)EditorSceneManager.RestoreSceneManagerSetup(previous);
             }
         }
