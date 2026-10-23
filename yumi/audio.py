@@ -7,6 +7,7 @@ import time
 from collections import deque
 import numpy as np
 from .voice import configuration, speaker_id
+from .delivery import speech_text, STYLES
 
 
 class Utterances:
@@ -69,6 +70,8 @@ class Audio:
         self.input_stream = self.output_stream = None
         self.output_level = 0.0
         self.input_level = 0.0
+        self.mouth = {'aa': 0.0, 'ih': 0.0, 'ou': 0.0}
+        self.speech_style = 'neutral'
         self.threads = []
         self.current = np.empty(0, np.float32)
         self.current_epoch = 0
@@ -177,6 +180,11 @@ class Audio:
             self.current_offset += count
             filled += count
         self.output_level = float(np.sqrt(np.mean(outdata * outdata) + 1e-12))
+        energy = min(1.0, self.output_level * 14)
+        spectrum = np.abs(np.fft.rfft(outdata[:, 0]))
+        total = float(spectrum.sum()) + 1e-9
+        self.mouth = {'aa': energy, 'ou': energy * float(spectrum[:12].sum()) / total,
+                      'ih': energy * float(spectrum[12:70].sum()) / total}
         self.speaking = filled > 0
         if filled:
             self.last_played = time.monotonic()
@@ -227,15 +235,16 @@ class Audio:
                 del utterance
 
     def say(self, text):
-        if text.lstrip().startswith(('{', '[', '```')):
-            return
-        text = re.sub(r'```.*?```', '', text, flags=re.S)
+        text = speech_text(text)
+        if not text: return
         if not self.settings['voice'] or not self.active.is_set() or not self.tts:
             return
         if self.silenced.is_set():
             return
         try:
-            self.speech.put_nowait((self.epoch, text[:700]))
+            style = self.settings['speech_style']
+            if style == 'auto': style = self.speech_style
+            self.speech.put_nowait((self.epoch, text[:700], style))
         except queue.Full:
             self.event('speech_backpressure', {'reason': 'Speech queue full; remaining text stays in chat'})
 
@@ -247,7 +256,7 @@ class Audio:
     def _synthesize(self):
         while not self.shutdown_event.is_set():
             try:
-                epoch, text = self.speech.get(timeout=0.1)
+                epoch, text, style = self.speech.get(timeout=0.1)
             except queue.Empty:
                 continue
             if epoch != self.epoch or self.silenced.is_set() or not self.active.is_set():
@@ -276,7 +285,7 @@ class Audio:
                         return 0
                 return 1
             try:
-                speed = self.settings['voice_rate'] * (0.95 + 0.1 * self.presentation().get('energy',0.5))
+                speed = self.settings['voice_rate'] * STYLES.get(style, 1.0)
                 audio = self.tts.generate(text, sid=self.speaker_id, speed=max(0.6,min(1.6,speed)), callback=callback)
                 self.stats['synthesis_ms'] = (time.perf_counter() - start) * 1000
                 self.stats['synthesis_rtf'] = (time.perf_counter() - start) / max(0.001, len(audio.samples) / audio.sample_rate)
@@ -300,6 +309,7 @@ class Audio:
         self.speaking = False
         self.output_level = 0
         self.current = np.empty(0, np.float32)
+        self.mouth = {'aa': 0.0, 'ih': 0.0, 'ou': 0.0}
         self.current_offset = 0
         for q in (self.speech, self.playback):
             self.drain(q)

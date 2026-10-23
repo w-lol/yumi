@@ -237,9 +237,15 @@ class Board(QMainWindow):
         layout.addStretch()
 
     def voice_tab(self):
+        from .delivery import STYLES
         from .voice import KOKORO_VOICES
         layout = self.page('Voice & listening')
         form = QFormLayout()
+        delivery = QComboBox()
+        delivery.addItems(['auto', *STYLES])
+        delivery.setCurrentText(self.settings['speech_style'])
+        delivery.currentTextChanged.connect(lambda value: self.settings.set('speech_style', value))
+        form.addRow('Speech delivery (native speed; no pitch API)', delivery)
         voice = QComboBox()
         for name in KOKORO_VOICES:
             gender = 'female' if name.startswith('af_') else 'male'

@@ -20,6 +20,7 @@ DEFAULTS = {
     'max_tokens': 260, 'context': 4096, 'gpu_layers': 99, 'threads': 4,
     'voice': True, 'voice_rate': 1.08, 'volume': 0.8,
     'voice_folder': 'models/voice', 'kokoro_voice': 'af_heart', 'pronunciation': {},
+    'speech_style': 'auto',
     'input_device': None, 'output_device': None,
     'audio_mode': 'speaker_safe', 'vad_threshold': 0.015,
     'mic_enabled': True, 'camera_enabled': True, 'screen_enabled': True,
