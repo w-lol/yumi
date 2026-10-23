@@ -70,7 +70,7 @@ routes, jumps, carried supports, disappearing windows, timeout/failure acknowled
 manual stop and explicit recovery. Cursor following is restricted to the current
 supporting edge; it does not yet plan multi-window pursuit. User movement commands
 supersede earlier routes. Pausing/disconnecting stops movement, and disabling autonomy
-stops new autonomous route selection. Monitor layout updates reconfigure the overlay.
+cancels active autonomous routes while preserving manual routes. Monitor layout updates reconfigure the overlay.
 
 ## Build and launch on the Windows PC
 

@@ -49,7 +49,7 @@ namespace Yumi.Desktop
         [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hwnd,out uint process);
         [DllImport("user32.dll",EntryPoint="GetWindowLongW")] static extern int GetWindowLong(IntPtr hwnd,int index);
         [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
-        [DllImport("user32.dll")] public static extern bool GetCursorPos(out POINT point);
+        [DllImport("user32.dll",EntryPoint="GetPhysicalCursorPos")] public static extern bool GetCursorPos(out POINT point);
         [DllImport("user32.dll")] static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
         [DllImport("dwmapi.dll")] static extern int DwmGetWindowAttribute(IntPtr hwnd,int attribute,out RECT value,int size);
         [DllImport("dwmapi.dll",EntryPoint="DwmGetWindowAttribute")] static extern int DwmGetWindowCloaked(IntPtr hwnd,int attribute,out uint value,int size);

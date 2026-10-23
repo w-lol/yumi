@@ -5,6 +5,12 @@ in the master brief has passed Windows acceptance. Source and installer are deli
 Windows 10, NVIDIA driver/CUDA execution, physical devices and long-duration use on the
 4070 Super remain unverified. No access to Jason's computer was available.
 
+## Current integration update
+
+See [OVERNIGHT_UPDATE.md](OVERNIGHT_UPDATE.md) for the latest 39-test suite, real
+Kokoro/application-queue validation, original Unity asset audit and exact remaining
+Unity Editor acceptance. The earlier checks below document the initial build.
+
 ## Executed in the cloud
 
 - 20 unit/contract tests passed: memory correction/deletion/restart, derived-record

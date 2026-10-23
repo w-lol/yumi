@@ -13,6 +13,7 @@ namespace Yumi.Desktop
         [DllImport("dwmapi.dll")] static extern int DwmExtendFrameIntoClientArea(IntPtr h,ref Margins margins);
         [DllImport("user32.dll",EntryPoint="GetWindowLongW")] static extern int GetWindowLong(IntPtr h,int index);
         [DllImport("user32.dll",EntryPoint="SetWindowLongW")] static extern int SetWindowLong(IntPtr h,int index,int value);
+        [DllImport("user32.dll")] static extern IntPtr SetThreadDpiAwarenessContext(IntPtr context);
         [DllImport("user32.dll")] static extern bool SetWindowPos(IntPtr h,IntPtr order,int x,int y,int width,int height,uint flags);
         IntPtr handle;
         int previousStyle,previousExtended;
@@ -20,9 +21,10 @@ namespace Yumi.Desktop
         public bool Topmost=true,ClickThrough=true;
         public bool Available { get { return handle!=IntPtr.Zero; } }
         bool priorTop,priorClick;
+        int settleFrames;
         public void Configure(DesktopRect bounds)
         {
-            Bounds=bounds;
+            Bounds=bounds;settleFrames=3;
 #if UNITY_STANDALONE_WIN && !UNITY_EDITOR
             if(handle==IntPtr.Zero)
             {
@@ -37,15 +39,18 @@ namespace Yumi.Desktop
             Apply();
 #endif
         }
-        void Update() { if(Available&&(priorTop!=Topmost||priorClick!=ClickThrough))Apply(); }
+        void Update() { if(Available&&(settleFrames-->0||priorTop!=Topmost||priorClick!=ClickThrough))Apply(); }
         void Apply()
         {
             // TOOLWINDOW | NOACTIVATE. Never SetForegroundWindow/SetFocus/SendInput.
             int style=previousExtended|0x80|0x08000000;
             if(ClickThrough)style|=0x20|0x80000;
+            SetWindowLong(handle,-16,unchecked((int)0x80000000));
             SetWindowLong(handle,-20,style);
-            SetWindowPos(handle,new IntPtr(Topmost?-1:-2),(int)Bounds.X,(int)Bounds.Y,
-                (int)Bounds.Width,(int)Bounds.Height,0x0010|0x0020|0x0040);
+            IntPtr previousDpi=SetThreadDpiAwarenessContext(new IntPtr(-4));
+            try { SetWindowPos(handle,new IntPtr(Topmost?-1:-2),(int)Bounds.X,(int)Bounds.Y,
+                (int)Bounds.Width,(int)Bounds.Height,0x0010|0x0020|0x0040); }
+            finally {if(previousDpi!=IntPtr.Zero)SetThreadDpiAwarenessContext(previousDpi);}
             priorTop=Topmost;priorClick=ClickThrough;
         }
         void OnDisable()

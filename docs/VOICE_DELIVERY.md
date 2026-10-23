@@ -40,3 +40,7 @@ startup, first audio, generation RTF, peak VRAM and cancellation. Keep Kokoro as
 Sources: https://github.com/hexgrad/kokoro,
 https://github.com/k2-fsa/sherpa-onnx,
 https://github.com/resemble-ai/chatterbox.
+
+Native overlay research also checked UniWindowController (MIT) and Unity 2022.3
+PlayerSettings source for the DWM/flip-model requirements; no third-party overlay
+binary or Unity license is bundled.
