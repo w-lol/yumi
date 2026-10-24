@@ -65,7 +65,7 @@ namespace Yumi.Desktop
             motion.MinimumHeadroom=320*Mathf.Clamp(value.scale,.25f,3);
             rig.MaximumHeadYaw=Mathf.Clamp(value.head_yaw,20,85);rig.MaximumHeadPitch=Mathf.Clamp(value.head_pitch,10,45);
             if(!value.active&&!motion.Dragging) {motion.Stay();follow=false;Finish(false,"Backend paused; movement stopped");}
-            else if(value.active&&(value.stationary!=lastStationary||!lastActive)) {motion.Stationary=value.stationary;if(value.stationary){motion.Stay();follow=false;Finish(false,"Stationary mode enabled");}}
+            else if(value.active&&(value.stationary!=lastStationary||!lastActive)) {motion.Stationary=value.stationary;if(value.stationary){motion.Stay();follow=false;Finish(false,"Stationary mode enabled");}else motion.ResumeRoaming();}
             lastStationary=value.stationary;lastActive=value.active;
         }
         void Disconnect()

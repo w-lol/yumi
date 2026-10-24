@@ -115,8 +115,9 @@ VRC.Core.Logger.LogWarning("VideoPlayer using DIRECT audio output fixed.");
     $Config=Join-Path $TestRoot 'config/settings.json'
     New-Item -ItemType Directory -Force -Path (Split-Path $Config -Parent) | Out-Null
     [IO.File]::WriteAllText($Config,'{"schema":1,"persona":"My own persona","screen_exclusions":["private.exe"],"unity_stationary":true,"screen_enabled":false}')
-    & (Join-Path $PSScriptRoot 'Repair-AvatarInstallation.ps1') -Root $TestRoot -SourceRoot $SourceRoot -EnableAutonomy
+    & (Join-Path $PSScriptRoot 'Repair-AvatarInstallation.ps1') -Root $TestRoot -SourceRoot $SourceRoot -EnableAutonomy -EnableWeb
     $Configuration=Get-Content -LiteralPath $Config -Raw | ConvertFrom-Json
+    if (-not $Configuration.web_enabled) { throw 'Requested read-only web option was not enabled.' }
     if (-not $Configuration.unity_autonomous -or $Configuration.unity_stationary -or -not $Configuration.screen_enabled -or $Configuration.monitor_index -ne 0 -or -not $Configuration.unity_drag_enabled) { throw 'Requested desktop behavior settings were not enabled.' }
     if ($Configuration.persona -cne 'My own persona' -or $Configuration.screen_exclusions[0] -cne 'private.exe') { throw 'User persona/capture exclusions were overwritten.' }
     # A bad source checksum must fail before replacing any installed files.

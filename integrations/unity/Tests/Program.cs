@@ -166,6 +166,12 @@ static class Program
         Simulate(roam,.5);double start=roam.X;
         for(int i=0;i<200;i++)roam.Tick(.1,true,false,1);
         Check(roam.Distance>10&&Math.Abs(roam.X-start)>10,"Empty desktop autonomy should stroll without a foreground window or commands");
+        roam.Stay();double held=roam.X;for(int i=0;i<100;i++)roam.Tick(.1,true,false,1);Check(roam.X==held,"Stay did not hold");
+        roam.ResumeRoaming();bool sawSit=false,sawLie=false;
+        for(int i=0;i<1200;i++){roam.Tick(.1,true,false,1);sawSit|=roam.State==CharacterMotion.Sitting;sawLie|=roam.State==CharacterMotion.Lying;}
+        Check(sawSit&&sawLie,"Resumed autonomy must include both sitting and lying");
+        roam.Lie();Check(roam.State==CharacterMotion.Lying,"Wide support should allow lying");roam.WalkToCursor(roam.X+100);
+        Check(roam.State==CharacterMotion.StandingUp&&roam.SettlingPose,"Resting avatar must stand gradually before walking");
         var drag=new DesktopMotion();drag.SetGeometry(windows);Simulate(drag,.5);drag.BeginDrag();drag.DragTo(400,300);
         for(int i=0;i<20;i++)drag.Tick(.1,true,false,1);
         Check(drag.X==400&&drag.Y==300&&drag.Dragging,"Physics/autonomy must not fight dragging");
