@@ -3,6 +3,7 @@
 param(
     [string]$Root='C:\Users\jason\3D Objects\yumi',
     [switch]$Build,
+    [switch]$EnableAutonomy,
     [string]$SourceRoot=''
 )
 $ErrorActionPreference='Stop'
@@ -11,14 +12,16 @@ $Project=Join-Path $Root 'avatar-unity'
 if (-not (Test-Path -LiteralPath (Join-Path $Project 'ProjectSettings/ProjectVersion.txt'))) { $Project=Join-Path $Project 'Fenriru' }
 if ((Get-Content -LiteralPath (Join-Path $Project 'ProjectSettings/ProjectVersion.txt') -Raw) -notmatch 'm_EditorVersion: 2022\.3\.22f1(?:\s|$)') { throw 'Expected the duplicated Unity 2022.3.22f1 project.' }
 if (Get-Command Get-CimInstance -ErrorAction SilentlyContinue) {
-    $Open=@(Get-CimInstance Win32_Process -Filter "Name='Unity.exe' OR Name='YumiAvatar.exe'" | Where-Object {
+    $Open=@(Get-CimInstance Win32_Process -Filter "Name='Unity.exe' OR Name='YumiAvatar.exe' OR Name='python.exe' OR Name='pythonw.exe' OR Name='Yumi.exe'" | Where-Object {
         ($_.CommandLine -and $_.CommandLine.IndexOf($Project,[StringComparison]::OrdinalIgnoreCase) -ge 0) -or
-        ($_.ExecutablePath -and $_.ExecutablePath.IndexOf((Join-Path $Root 'Builds/YumiAvatar'),[StringComparison]::OrdinalIgnoreCase) -eq 0)
+        ($_.ExecutablePath -and $_.ExecutablePath.IndexOf((Join-Path $Root 'Builds/YumiAvatar'),[StringComparison]::OrdinalIgnoreCase) -eq 0) -or
+        ($_.CommandLine -and $_.CommandLine.IndexOf($Root,[StringComparison]::OrdinalIgnoreCase) -ge 0 -and
+            ($_.CommandLine.Replace('"','') -match '(?i)-m\s+yumi\b|[\\/]yumi[\\/]__main__\.py|[\\/]Yumi\.exe\b'))
     })
-    if ($Open.Count) { throw 'Close the duplicated Unity Editor and the Yumi avatar player before repairing.' }
+    if ($Open.Count) { throw 'Quit Yumi from its tray menu and close the duplicated Unity Editor/avatar player before repairing.' }
 }
 # Every file is pinned to one revision and verified before installation starts.
-$Revision='5a72e07133d67b0aaf6fc1a79644d7d445b0eb88'
+$Revision='c9963c51c8b02b9decac85ad691854b4adb3efab'
 $Manifest=@'
 [
   {
@@ -35,7 +38,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/DesktopEditor/YumiDesktopBuild.cs",
-    "sha256": "dc9cd26b3b1e0ad58678ca6c53705a7569af26c9585d0c0c07f2163bdebb2912"
+    "sha256": "776f1d2e3fc63f057f6a9048fbb4bea593a8d543d2b72d734b9b22cb963aa56f"
   },
   {
     "path": "integrations/unity/Editor/Yumi.Desktop.Inspection.Editor.asmdef",
@@ -47,7 +50,7 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/EditorTests/OriginalAvatarBuildTests.cs",
-    "sha256": "84d0f72a25865ab1714c611d37b6947e6d2e00aec9c47216f9f1d349aad0da0b"
+    "sha256": "0963d8f5282e85b8cc348a438fa341ca96928ae5de0da14ea75f36700393984f"
   },
   {
     "path": "integrations/unity/EditorTests/Yumi.Desktop.Editor.Tests.asmdef",
@@ -55,11 +58,11 @@ $Manifest=@'
   },
   {
     "path": "integrations/unity/Runtime/DesktopGeometry.cs",
-    "sha256": "363c9ac8b297ed33bce74e63e2c6eecc0fc8edcc70171ca39b4606a74e6ea6c0"
+    "sha256": "e187b180e5b9a1b4ecd46957f86665910912804a7bebf34adf7e3c3b4a2fe692"
   },
   {
     "path": "integrations/unity/Runtime/DesktopMotion.cs",
-    "sha256": "32001ff3ec7c53b9159f6b4f3eaa21ff84b1222f8b408ddab7f92aa14411c73c"
+    "sha256": "bc141f58747f08d3dff1154a71a6e4e7c6784a540230a18428cb00a15d874a60"
   },
   {
     "path": "integrations/unity/Runtime/OverlayWindowPolicy.cs",
@@ -70,32 +73,36 @@ $Manifest=@'
     "sha256": "2f8efa77b4708f40fb816afeae0f980993180bb8f49b39fa5f1ae66975d2ef16"
   },
   {
+    "path": "integrations/unity/Runtime/TwoBoneReach.cs",
+    "sha256": "7501bb8cdc866b1b4743e8e4a642daaa13d851f9f2cfd76758c12ae887226f1c"
+  },
+  {
     "path": "integrations/unity/Runtime/Yumi.Desktop.Runtime.asmdef",
     "sha256": "b5ce51ffa872e3ac774abbea70137f01b7050aef481af3fc543cf4b4579a8581"
   },
   {
     "path": "integrations/unity/Runtime/YumiAvatarRig.cs",
-    "sha256": "b740c95cec0d87fc92e08eb01651c08b37029a5a35354d7338a24be80f709343"
+    "sha256": "44b1d193db08c7ccf9d6060ee89ed85202cf074f6d98e4c98d6552d63515b822"
   },
   {
     "path": "integrations/unity/Runtime/YumiBackendClient.cs",
-    "sha256": "a30d5799b890a3b237251471c791580302ed8d689aae4bc35b3f66e72262b5fc"
+    "sha256": "2e61e3fcc1c9354a4ab72c017e57bc2034e981e01dac2da7f8b0130d412a07b7"
   },
   {
     "path": "integrations/unity/Runtime/YumiDesktopAvatar.cs",
-    "sha256": "310e2aee731f3c8cf3f5a806872e7688620f220f8ecf6c0e394956c08d9db509"
+    "sha256": "fade71c71c66ab71fbc68323ee8aadffe0f8c952047f05e2b3ef9dc615718be7"
   },
   {
     "path": "integrations/unity/Runtime/YumiWindowsOverlay.cs",
-    "sha256": "03dad8ad947ab6e348ec24ae134953356511079eb92b27c04388cc39bbc6f3f1"
+    "sha256": "2a64746fc10c4beeffbd3b4f0021b6c7b81ad77581ec5c5fc85103b33f6db1c4"
   },
   {
     "path": "integrations/unity/Tests/GeometryTests.csproj",
-    "sha256": "ab0dbc8233c313c19e3c3075663ee6527bde2ab25cdf8b09a166395b240e6761"
+    "sha256": "01e09e1cc1dbebc2f36b41cb845e62d5d249c68876f84990674901a4abef8df0"
   },
   {
     "path": "integrations/unity/Tests/Program.cs",
-    "sha256": "c2e2b289a4181a7b1d67f80f55192c4b45fecb13a4e1b284405e6b015393e8c8"
+    "sha256": "173cf0c397d7b5ee0f9b4acc3ea0f2eb4fc4ce580338192ce5e4fec55bb9262d"
   },
   {
     "path": "scripts/Build-UnityAvatar.ps1",
@@ -127,15 +134,23 @@ $Manifest=@'
   },
   {
     "path": "yumi/controller.py",
-    "sha256": "692f0be18fabc17c3106dd1e358a34767977219cfb9981b0b165412fde9d8bd9"
+    "sha256": "fb785ab1659a212ac36439d20bac6cbaa777a4f179d6bcdf064b2409673762b9"
   },
   {
     "path": "yumi/settings.py",
-    "sha256": "dbc4889adb2be1f3fede770154318fd9e9020c4cbd23201ba26f07d5086e7200"
+    "sha256": "1386568594c10c2f91c59020488b6ddda841a43e7ffabe6f9ccbc8387ff8458a"
   },
   {
     "path": "yumi/unity_bridge.py",
-    "sha256": "a58e7b00c540581827a0807381b9d9ae010d2b505fcfff227c35fd49972aee29"
+    "sha256": "f23fbf2df4c0ac4142161403c419ac4e46c12bd7a07ab0abcd3507a31dd8c854"
+  },
+  {
+    "path": "yumi/perception.py",
+    "sha256": "d4b2ad0c852725efb138033978bda1d2b9f5fb8d11d52ce9113d5e2179626a30"
+  },
+  {
+    "path": "yumi/ui.py",
+    "sha256": "14a728d1292be67345504c0c6b4798bb6c5c4d0599ac02c2087dd3c95c08ad25"
   }
 ]
 '@ | ConvertFrom-Json
@@ -168,6 +183,23 @@ try {
             $Installed=Join-Path $Project ('Assets/YumiDesktop/'+$Pair[1]+'/'+$File.Name)
             if (-not (Test-Path -LiteralPath $Installed) -or (Get-FileHash -LiteralPath $Installed).Hash -ne (Get-FileHash -LiteralPath $File.FullName).Hash) { throw "Installed Unity tool mismatch: $Installed" }
         }
+    }
+    if ($EnableAutonomy) {
+        $SettingsPath=Join-Path $Root 'config/settings.json'
+        if (Test-Path -LiteralPath $SettingsPath) {
+            $Configuration=Get-Content -LiteralPath $SettingsPath -Raw | ConvertFrom-Json
+            $SavedSettings=Join-Path $Backup 'config/settings.json'
+            New-Item -ItemType Directory -Force -Path (Split-Path $SavedSettings -Parent) | Out-Null
+            Copy-Item -LiteralPath $SettingsPath -Destination $SavedSettings
+        } else { $Configuration=[PSCustomObject]@{schema=1} }
+        foreach ($Setting in @(@('unity_bridge_enabled',$true),@('unity_autonomous',$true),@('unity_stationary',$false),@('unity_drag_enabled',$true),@('unity_adaptive_jumps',$true),@('screen_enabled',$true),@('monitor_index',0))) {
+            $Configuration | Add-Member -MemberType NoteProperty -Name $Setting[0] -Value $Setting[1] -Force
+        }
+        New-Item -ItemType Directory -Force -Path (Split-Path $SettingsPath -Parent) | Out-Null
+        $SettingsTemporary=$SettingsPath+'.avatar-update'
+        [IO.File]::WriteAllText($SettingsTemporary,($Configuration | ConvertTo-Json -Depth 30),(New-Object Text.UTF8Encoding($false)))
+        Move-Item -LiteralPath $SettingsTemporary -Destination $SettingsPath -Force
+        Write-Host 'Enabled autonomous desktop activity, adaptive jumps, dragging and all-monitor screen sampling. Existing persona and capture exclusions preserved.'
     }
     Write-Host "Complete avatar toolset synchronized to $Revision. Backups: $Backup"
 } finally {
