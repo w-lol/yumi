@@ -84,7 +84,7 @@ class UnityBridge:
             not secrets.compare_digest(socket.request.headers.get('Authorization',''),'Bearer '+self.token)):
             await socket.close(1008,'Unauthorized');return
         if self.connected:await socket.close(1008,'An avatar is already connected');return
-        self.connected=True;self.status={};self.scene={}
+        self.connected=True;self.error="";self.status={};self.scene={}
         receive=asyncio.create_task(self._receive(socket))
         try:
             while not self.closed.is_set() and not receive.done():
@@ -96,24 +96,32 @@ class UnityBridge:
                     queued=list(self.actions);self.actions.clear()
                 for action in queued:await socket.send(json.dumps(action))
                 await asyncio.sleep(.05)
+            if receive.done() and not receive.cancelled():receive.result()
         except Exception as exc:
-            if type(exc).__name__ not in ('ConnectionClosedOK','ConnectionClosedError'):
-                self.error=type(exc).__name__
+            if not self.closed.is_set():
+                close=getattr(exc,'rcvd',None)
+                self.error='Avatar bridge: '+type(exc).__name__+((' (close code '+str(close.code)+')') if close else '')
+                self.event('error',{'component':'Unity bridge','error_type':type(exc).__name__,'reason':self.error})
         finally:
             receive.cancel()
             try:await receive
             except (asyncio.CancelledError,Exception):pass
-            self.connected=False;self.scene={}
+            self.connected=False;self.scene={};self.status['ready']=False
             with self.lock:self.actions.clear()
+
+    async def _reject(self,socket,reason):
+        self.error='Avatar bridge rejected message: '+reason
+        self.event('error',{'component':'Unity bridge','error_type':'ProtocolError','reason':self.error})
+        await socket.close(1008,reason)
 
     async def _receive(self,socket):
         async for raw in socket:
             try:data=json.loads(raw)
-            except (ValueError,TypeError):await socket.close(1008,'Invalid JSON');return
+            except (ValueError,TypeError):await self._reject(socket,'Invalid JSON');return
             if not isinstance(data,dict) or data.get('protocol')!=1 or data.get('type') not in ('hello','status','action_result','scene'):
-                await socket.close(1008,'Unsupported protocol message');return
+                await self._reject(socket,'Unsupported protocol message');return
             payload=data.get('payload',{})
-            if not isinstance(payload,dict):await socket.close(1008,'Invalid payload');return
+            if not isinstance(payload,dict):await self._reject(socket,'Invalid payload');return
             if data['type']=='scene':
                 windows=[]
                 for item in (payload.get('windows',[]) if isinstance(payload.get('windows',[]),list) else [])[:32]:

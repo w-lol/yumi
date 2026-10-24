@@ -88,3 +88,16 @@ intentional resizing, rejection of repeated foot-animation jitter and bounded co
 transitions. Source parsing/scope checks pass across 38 Editor/player variants. The
 PowerShell fixture checks that the stability preset preserves unrelated settings.
 Windows Unity visual confirmation remains necessary.
+
+## Bridge reconnect diagnostics
+
+A Windows user reported alternating ready/connected and listening states. Reproducing
+Unity-shaped periodic scene/status reports against the current backend keeps the
+connection ready and successfully dispatches commands. This does not establish the
+cause on that PC; stale running backend code rejecting newer scene frames is one
+possibility. The backend now surfaces receive-task failures, protocol rejections and
+close codes, journals bounded error metadata, and marks readiness false on disconnect.
+Previously receive exceptions were swallowed. Refresh the matching source toolset and
+fully quit/restart Yumi to load it. This backend correction needs no Unity rebuild.
+The full suite passed 49 tests before the final protocol-rejection diagnostic change;
+all seven bridge tests also passed after that change. Windows acceptance remains open.

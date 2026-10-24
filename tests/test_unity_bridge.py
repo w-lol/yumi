@@ -56,6 +56,37 @@ class UnityBridgeTests(unittest.TestCase):
             with self.assertRaises(ConnectionClosed):
                 while True:socket.recv(timeout=2)
 
+    def test_unity_scene_reports_keep_connection_ready_and_commands_work(self):
+        headers={'Authorization':'Bearer '+self.bridge.token}
+        with connect(self.url,additional_headers=headers) as socket:
+            socket.recv(timeout=2)
+            socket.send(json.dumps({'protocol':1,'type':'status','payload':{'ready':True,'renderer':'Unity','message':'Motion=Idle; monitors=3; windows=8','windows':None,'monitors':None}}))
+            for i in range(3):
+                socket.send(json.dumps({'protocol':1,'type':'scene','payload':{'ready':False,'success':False,'windows':[{'id':'ps1','title':'PowerShell','app':'powershell'}], 'monitors':[{'id':'display1','label':'Display 1'}],'current_window':None,'pointer_window':''}}))
+                deadline=time.monotonic()+2
+                while not self.bridge.scene.get('windows') and time.monotonic()<deadline:time.sleep(.01)
+                self.assertEqual(self.bridge.scene['windows'][0]['id'],'ps1')
+                self.assertTrue(self.bridge.connected)
+                self.assertIs(self.bridge.status['ready'],True)
+                self.assertEqual(json.loads(socket.recv(timeout=2))['type'],'state')
+            identifier=self.bridge.action({'type':'wave'})
+            while True:
+                frame=json.loads(socket.recv(timeout=2))
+                if frame['type']=='action':break
+            self.assertEqual(frame['id'],identifier)
+
+    def test_snapshot_failure_is_visible_and_invalidates_readiness(self):
+        with connect(self.url,additional_headers={'Authorization':'Bearer '+self.bridge.token}) as socket:
+            socket.recv(timeout=2)
+            def broken():raise RuntimeError('fixture snapshot failure')
+            self.bridge.snapshot=broken
+            with self.assertRaises(ConnectionClosed):
+                while True:socket.recv(timeout=2)
+        deadline=time.monotonic()+2
+        while self.bridge.connected and time.monotonic()<deadline:time.sleep(.01)
+        self.assertIn('RuntimeError',self.bridge.error)
+        self.assertIs(self.bridge.status.get('ready'),False)
+
     def test_high_level_intents_cannot_supply_os_commands_or_coordinates(self):
         self.assertEqual(action_intent('Yumi, go over to Discord.')['target'],'Discord')
         self.assertEqual(action_intent('Go sit on Chrome')['type'],'sit')
