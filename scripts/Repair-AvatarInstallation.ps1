@@ -24,7 +24,7 @@ if (Get-Command Get-CimInstance -ErrorAction SilentlyContinue) {
     if ($Open.Count) { throw 'Quit Yumi from its tray menu and close the duplicated Unity Editor/avatar player before repairing.' }
 }
 # Every file is pinned to one revision and verified before installation starts.
-$Revision='5e809894aa45541f2813677f15c5b8c7f4784b03'
+$Revision='fc1a7c38d21156b27490712091d28c32d73166a1'
 $Manifest=@'
 [
   {
@@ -37,7 +37,7 @@ $Manifest=@'
   },
   {
     "path": "docs/COMPANION-UPDATE.md",
-    "sha256": "40edd70c30a649aaa8cc0b0581f30ab158c59985adb3e83ea8d3fec2af2e4fa8"
+    "sha256": "4a71b30c1e4bbfa198c29be22631259d62488a598e9bffc8d762e27f9598f233"
   },
   {
     "path": "integrations/unity/DesktopEditor/PantsMeshRepair.cs",
@@ -265,7 +265,7 @@ $Manifest=@'
   },
   {
     "path": "yumi/unity_bridge.py",
-    "sha256": "d6a7bc4984d9f2af5154e6a4c36695307b967f8be955f3bdb832a915c8067e18"
+    "sha256": "ef63b33f9c4556dd29e375a290a6ed6f400dd8a0534eb8711a78c90411d3d1be"
   },
   {
     "path": "yumi/unity_player.py",
