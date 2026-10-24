@@ -113,8 +113,15 @@ namespace Yumi.Desktop.Editor.Tests
             var rig=scene.GetRootGameObjects().SelectMany(g=>g.GetComponentsInChildren<YumiAvatarRig>(true)).Single();
             Assert.IsTrue(rig.Ready);Assert.Greater(rig.face.mesh.sharedMesh.blendShapeCount,0);
             Assert.IsNotNull(rig.animator.runtimeAnimatorController);
+            foreach(string required in new[]{"Walking","Running","SittingEdge","SidestepLeft","SidestepRight"})
+            {
+                var clip=rig.clips.Single(c=>c.state==required).clip;
+                Assert.IsNotNull(clip,required);Assert.IsTrue(clip.humanMotion,required+" is not humanoid");
+            }
+
             StringAssert.Contains(YumiDesktopBuild.Source,File.ReadAllText("Assets/YumiDesktopGenerated/standalone-adaptation.txt"));
             var controller=rig.animator.runtimeAnimatorController as AnimatorController;Assert.IsNotNull(controller);
+            Assert.AreEqual("YumiMotion",controller.layers.Last().name,"Original FX must not override locomotion");
             var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(YumiDesktopBuild.Source);
             var descriptor=prefab.GetComponents<Component>().Single(c=>c!=null&&c.GetType().Name=="VRCAvatarDescriptor");
             var parameterAsset=YumiDesktopBuild.ResolveExpressionParameters(new SerializedObject(descriptor));

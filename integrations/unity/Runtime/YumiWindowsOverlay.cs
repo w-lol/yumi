@@ -19,8 +19,9 @@ namespace Yumi.Desktop
         int previousStyle,previousExtended;
         public DesktopRect Bounds { get; private set; }
         public bool Topmost=true,ClickThrough=true;
+        public bool TemporaryInteractive;
         public bool Available { get { return handle!=IntPtr.Zero; } }
-        bool priorTop,priorClick;
+        bool priorTop,priorClick,priorInteractive;
         int settleFrames;
         Camera overlayCamera;
         bool loggedTransparency;
@@ -39,11 +40,11 @@ namespace Yumi.Desktop
             Apply();
 #endif
         }
-        void Update() { if(Available&&(settleFrames-->0||priorTop!=Topmost||priorClick!=ClickThrough))Apply(); }
+        void Update() { if(Available&&(settleFrames-->0||priorTop!=Topmost||priorClick!=ClickThrough||priorInteractive!=TemporaryInteractive))Apply(); }
         void Apply()
         {
             // TOOLWINDOW | NOACTIVATE. Never SetForegroundWindow/SetFocus/SendInput.
-            int style=OverlayWindowPolicy.ExtendedStyle(previousExtended,ClickThrough);
+            int style=OverlayWindowPolicy.ExtendedStyle(previousExtended,ClickThrough&&!TemporaryInteractive);
             SetWindowLong(handle,-16,unchecked((int)0x80000000));
             SetWindowLong(handle,-20,style);
             if(overlayCamera==null)
@@ -68,7 +69,7 @@ namespace Yumi.Desktop
             try { SetWindowPos(handle,new IntPtr(Topmost?-1:-2),(int)Bounds.X,(int)Bounds.Y,
                 (int)Bounds.Width,(int)Bounds.Height,0x0010|0x0020|0x0040); }
             finally {if(previousDpi!=IntPtr.Zero)SetThreadDpiAwarenessContext(previousDpi);}
-            priorTop=Topmost;priorClick=ClickThrough;
+            priorTop=Topmost;priorClick=ClickThrough;priorInteractive=TemporaryInteractive;
         }
         void OnDisable()
         {

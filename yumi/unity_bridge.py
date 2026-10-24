@@ -27,6 +27,8 @@ def action_intent(text):
            'come over here':'walk_to_position','jump over there':'jump_to_platform',
            'run across the screen':'run_to_position','sit down':'sit'}
     if text.casefold() in exact:return {'type':exact[text.casefold()],'target':'cursor'}
+    if re.fullmatch(r'sit (?:on|at) (?:this|that|the) window(?: under my mouse)?',text,re.I):return {'type':'sit','target':'cursor_window'}
+    if re.fullmatch(r'jump (?:to|onto) (?:this|that|the) window(?: under my mouse)?',text,re.I):return {'type':'jump_to_platform','target':'cursor'}
     monitor=re.fullmatch(r'(?:walk|run|go|move)(?: over)? (?:to|across|onto) (?:the )?(?:(other|next|left|right) (?:monitor|screen)|(?:different )?(?:monitors|screens))',text,re.I)
     if monitor:return {'type':'other_monitor','target':(monitor[1] or 'next').lower()}
     match=re.fullmatch(r'(?:go (?:over )?to|move to|jump to|go sit on|sit on) (.{1,100})',text,re.I)

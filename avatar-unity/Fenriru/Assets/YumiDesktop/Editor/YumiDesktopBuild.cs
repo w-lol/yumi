@@ -197,20 +197,53 @@ namespace Yumi.Desktop.Editor
             AnimatorStateMachine machine=new AnimatorStateMachine {name="YumiMotion"};AssetDatabase.AddObjectToAsset(machine,controller);
             var bindings=new List<MotionClip>();
             string pose="Assets/GoGo/GoLoco/Animations/Clips/Poses/Clips/";
-            foreach(string[] entry in new[]{new[]{"Idle",pose+"go_stand.anim"},new[]{"Talking",pose+"go_stand.anim"},
-                new[]{"Sitting",pose+"go_sit_crossed_leg.anim"},new[]{"Waving",pose+"go_stand.anim"},
+            string locomotion="Assets/Import/walkrun/Animation/Locomotion/";
+            string proxy="Assets/Imported/Tail&Ears/Assets/AnimationClip/";
+            foreach(string[] entry in new[]{
+                new[]{"Idle","Assets/Import/Cute Idle Swing.anim",pose+"go_stand.anim"},
+                new[]{"Talking","Assets/Import/Cute Idle Swing.anim",pose+"go_stand.anim"},
+                new[]{"Walking",locomotion+"Walk.anim",proxy+"proxy_walk_forward.anim"},
+                new[]{"Running",locomotion+"rig_a_loco_jog_Loop.anim",proxy+"proxy_run_forward.anim"},
+                new[]{"SidestepRight",proxy+"proxy_run_strafe_right.anim"},
+                new[]{"SidestepLeft",proxy+"proxy_run_strafe_right.anim"},
+                new[]{"Sitting",pose+"go_short_sitting_idle.anim",pose+"go_short_sitting.anim"},
+                new[]{"SittingEdge",pose+"go_chair_sit_float.anim"},
+                new[]{"Waving","Assets/Import/v3/v3/EMOTE/Level 1/Hi & Bye/human_hello_friendly.anim","Assets/Import/CodeName ¦ K/AnimationClip/proxy_stand_wave.anim"},
                 new[]{"Jumping","Assets/GoGo/GoLoco/Animations/Clips/Jump&Fall/go_jump_in_place.anim"}})
             {
-                AnimationClip clip=AssetDatabase.LoadAssetAtPath<AnimationClip>(entry[1]);
-                if(clip==null||!clip.humanMotion) {notes.Add("Unavailable humanoid motion: "+entry[0]);continue;}
-                AnimatorState state=machine.AddState(entry[0]);state.motion=clip;state.writeDefaultValues=true;
+                AnimationClip clip=null;string selected="";
+                foreach(string candidate in entry.Skip(1))
+                {
+                    AnimationClip loaded=AssetDatabase.LoadAssetAtPath<AnimationClip>(candidate);
+                    if(loaded!=null&&loaded.humanMotion) {clip=loaded;selected=candidate;break;}
+                }
+                if(clip==null)throw new InvalidOperationException("Original humanoid animation unavailable for "+entry[0]+": "+String.Join(", ",entry.Skip(1)));
+                // Generated copies control looping without editing original clips.
+                string clipPath=Output+"/Yumi_"+entry[0]+".anim";
+                AnimationClip copied=UnityEngine.Object.Instantiate(clip);copied.name="Yumi "+entry[0];
+                if(copied.events.Length>0) {notes.Add("Removed runtime event callbacks from generated motion copy: "+selected);copied.events=new AnimationEvent[0];}
+                var clipSettings=AnimationUtility.GetAnimationClipSettings(copied);
+                clipSettings.loopTime=entry[0]!="Jumping";AnimationUtility.SetAnimationClipSettings(copied,clipSettings);
+                AnimationClip existing=AssetDatabase.LoadAssetAtPath<AnimationClip>(clipPath);
+                if(existing!=null){EditorUtility.CopySerialized(copied,existing);UnityEngine.Object.DestroyImmediate(copied);copied=existing;}
+                else AssetDatabase.CreateAsset(copied,clipPath);
+                AnimatorState state=machine.AddState(entry[0]);state.motion=copied;state.writeDefaultValues=false;
+                state.mirror=entry[0]=="SidestepLeft";
+                if(entry[0].StartsWith("Sidestep"))state.speed=.5f;
                 if(entry[0]=="Idle")machine.defaultState=state;
-                bindings.Add(new MotionClip {state=entry[0],clip=clip});
+                bindings.Add(new MotionClip {state=entry[0],clip=copied});
+                notes.Add("Original humanoid motion "+entry[0]+": "+selected);
             }
             if(machine.defaultState==null)throw new InvalidOperationException("Original stand pose not imported as humanoid clip");
-            var body=new AnimatorControllerLayer {name="YumiMotion",defaultWeight=1,stateMachine=machine};
-            var prior=controller.layers;foreach(var layer in prior)if(layer.syncedLayerIndex>=0)layer.syncedLayerIndex++;
-            controller.layers=new[]{body}.Concat(prior).ToArray();rig.clips=bindings.ToArray();
+            var mask=new AvatarMask {name="Yumi body locomotion"};
+            for(int part=0;part<(int)AvatarMaskBodyPart.LastBodyPart;part++)mask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)part,true);
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.Head,false);
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.LeftFingers,false);
+            mask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.RightFingers,false);
+            AssetDatabase.AddObjectToAsset(mask,controller);
+            var body=new AnimatorControllerLayer {name="YumiMotion",defaultWeight=1,stateMachine=machine,avatarMask=mask};
+            // Last layer owns body motion; original FX keeps face/outfit/finger bindings.
+            controller.layers=controller.layers.Concat(new[]{body}).ToArray();rig.clips=bindings.ToArray();
             notes.Add("Original FX copied with parameters/layers. VRChat parameter/layer drivers removed; contacts, PhysBones and menus need standalone replacements.");
             return controller;
         }

@@ -19,6 +19,8 @@ namespace Yumi.Desktop
         public bool active, speaking, topmost, clickthrough, stationary, autonomous, visible=true;
         public int frame_rate=30;
         public float animation_speed=1;
+        public bool adaptive_jumps=true,drag_enabled=true;
+        public float jump_limit=1200,head_yaw=70,head_pitch=35;
         public long audio_epoch, mouth_time_ms;
         public float audio_level, scale, frequency, movement_speed, jump_height;
         public MouthState mouth;

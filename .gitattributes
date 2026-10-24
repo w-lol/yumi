@@ -70,3 +70,11 @@
 /avatar-unity/Fenriru/Assets/Import/v3/v3/RUN/Level[[:space:]]3/Geddan.anim filter=lfs diff=lfs merge=lfs -text
 /avatar-unity/Fenriru/Assets/Imported/PJ's/お散歩パジャマセット/TEX/Normal[[:space:]]GL.png filter=lfs diff=lfs merge=lfs -text
 /avatar-unity/Fenriru/Assets/Imported/Tail&Ears/Assets/Mesh/Body.asset filter=lfs diff=lfs merge=lfs -text
+
+# Pinned toolset SHA256 checksums must match Windows and Linux checkouts.
+scripts/*.ps1 text eol=lf
+integrations/unity/**/*.cs text eol=lf
+integrations/unity/**/*.asmdef text eol=lf
+integrations/unity/**/*.csproj text eol=lf
+yumi/*.py text eol=lf
+tests/*.py text eol=lf

@@ -20,9 +20,12 @@ namespace Yumi.Desktop
         public string Motion="Idle";
         public Vector3 Gaze;
         public float MotionSpeed=1;
+        public float TravelWorldSpeed;
         public bool ReachForCursor;
         public Vector3 ReachTarget;
         float reachBlend;
+        public float MaximumHeadYaw=70,MaximumHeadPitch=35;
+        float gazeYaw,gazePitch;
         readonly PlaybackTimeline timeline=new PlaybackTimeline();
         readonly Dictionary<Transform,Quaternion> restore=new Dictionary<Transform,Quaternion>();
         readonly Dictionary<string,int> shapes=new Dictionary<string,int>();
@@ -63,7 +66,12 @@ namespace Yumi.Desktop
             if(!Ready)return;
             string selected=Motion;
             if(selected!=currentClip&&HasClip(selected)) {animator.CrossFadeInFixedTime("YumiMotion."+selected,.18f);currentClip=selected;}
-            animator.speed=Mathf.Clamp(MotionSpeed,.3f,2);
+            float strideRate=1;
+            if(Motion=="Walking"||Motion=="Running"||Motion.StartsWith("Sidestep"))
+                foreach(var entry in clips)
+                    if(entry.state==Motion&&entry.clip!=null&&entry.clip.averageSpeed.magnitude>.05f)
+                    {strideRate=Mathf.Clamp(TravelWorldSpeed/Mathf.Max(.01f,entry.clip.averageSpeed.magnitude*transform.lossyScale.x),.45f,2);break;}
+            animator.speed=Mathf.Clamp(MotionSpeed*strideRate,.3f,2.5f);
         }
         bool HasClip(string state) {foreach(var c in clips)if(c.state==state&&c.clip!=null)return true;return false;}
         void LateUpdate()
@@ -83,9 +91,12 @@ namespace Yumi.Desktop
             if(now>lookTimer) {lookTimer=now+1.5f+(float)random.NextDouble()*3; targetYaw=(float)(random.NextDouble()-.5)*10;targetPitch=(float)(random.NextDouble()-.5)*5;}
             float gazeMix=1-Mathf.Exp(-dt*3);yaw=Mathf.Lerp(yaw,targetYaw,gazeMix);pitch=Mathf.Lerp(pitch,targetPitch,gazeMix);
             Vector3 gaze=Gaze;
-            Add(HumanBodyBones.Head,Quaternion.Euler(Mathf.Clamp(gaze.y+pitch,-12,12),Mathf.Clamp(gaze.x+yaw,-20,20),style=="curious"?4:0));
-            Add(HumanBodyBones.LeftEye,Quaternion.Euler(Mathf.Clamp(pitch,-8,8),Mathf.Clamp(yaw,-10,10),0));
-            Add(HumanBodyBones.RightEye,Quaternion.Euler(Mathf.Clamp(pitch,-8,8),Mathf.Clamp(yaw,-10,10),0));
+            gazeYaw=Mathf.LerpAngle(gazeYaw,Mathf.Clamp(gaze.x+yaw,-MaximumHeadYaw,MaximumHeadYaw),1-Mathf.Exp(-dt*7));
+            gazePitch=Mathf.LerpAngle(gazePitch,Mathf.Clamp(gaze.y+pitch,-MaximumHeadPitch,MaximumHeadPitch),1-Mathf.Exp(-dt*7));
+            Add(HumanBodyBones.Neck,Quaternion.Euler(gazePitch*.22f,gazeYaw*.22f,0));
+            Add(HumanBodyBones.Head,Quaternion.Euler(gazePitch*.78f,gazeYaw*.78f,style=="curious"?6:0));
+            Add(HumanBodyBones.LeftEye,Quaternion.Euler(Mathf.Clamp(gazePitch*.35f,-12,12),Mathf.Clamp(gazeYaw*.35f,-18,18),0));
+            Add(HumanBodyBones.RightEye,Quaternion.Euler(Mathf.Clamp(gazePitch*.35f,-12,12),Mathf.Clamp(gazeYaw*.35f,-18,18),0));
             phase+=dt*Mathf.Clamp(MotionSpeed,.3f,2);
             Add(HumanBodyBones.Chest,Quaternion.Euler(Mathf.Sin(phase*1.5f)*.6f,0,0));
             if(!HasClip(Motion)&&(Motion=="Walking"||Motion=="Running"))
@@ -98,8 +109,13 @@ namespace Yumi.Desktop
                 Add(HumanBodyBones.LeftUpperArm,Quaternion.Euler(-stride*10,0,0));
                 Add(HumanBodyBones.RightUpperArm,Quaternion.Euler(stride*10,0,0));
             }
-            if(Motion=="Waving")
+            if(Motion=="Waving"&&!HasClip("Waving"))
             {Add(HumanBodyBones.RightUpperArm,Quaternion.Euler(0,0,65));Add(HumanBodyBones.RightLowerArm,Quaternion.Euler(0,0,40+Mathf.Sin(phase*9)*15));}
+            if(Motion=="SittingEdge")
+            {
+                Add(HumanBodyBones.LeftLowerLeg,Quaternion.Euler(Mathf.Sin(phase*2.2f)*4,0,0));
+                Add(HumanBodyBones.RightLowerLeg,Quaternion.Euler(Mathf.Sin(phase*2.2f+.8f)*4,0,0));
+            }
             if(Motion=="Sidestepping")
             {
                 float step=Mathf.Sin(phase*7);
@@ -114,15 +130,26 @@ namespace Yumi.Desktop
                 bool right=animator.transform.InverseTransformPoint(ReachTarget).x>=0;
                 Transform arm=animator.GetBoneTransform(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm);
                 Transform elbow=animator.GetBoneTransform(right?HumanBodyBones.RightLowerArm:HumanBodyBones.LeftLowerArm);
-                if(arm!=null&&elbow!=null&&arm.parent!=null)
+                Transform hand=animator.GetBoneTransform(right?HumanBodyBones.RightHand:HumanBodyBones.LeftHand);
+                if(arm!=null&&elbow!=null&&hand!=null&&arm.parent!=null)
                 {
                     Vector3 current=elbow.position-arm.position,reachDirection=ReachTarget-arm.position;
-                    if(current.sqrMagnitude>.0001f&&reachDirection.sqrMagnitude>.0001f)
+                    double distance,along,bend;
+                    if(reachDirection.sqrMagnitude>.0001f&&TwoBoneReach.Solve(current.magnitude,(hand.position-elbow.position).magnitude,reachDirection.magnitude,out distance,out along,out bend))
                     {
-                        Quaternion desired=Quaternion.FromToRotation(current,reachDirection)*arm.rotation;
+                        Vector3 direction=reachDirection.normalized;
+                        Vector3 pole=animator.transform.TransformDirection(new Vector3(right?1:-1,-.6f,.4f));
+                        pole=Vector3.ProjectOnPlane(pole,direction).normalized;
+                        if(pole.sqrMagnitude<.001f)pole=Vector3.Cross(direction,Vector3.up).normalized;
+                        Vector3 elbowTarget=arm.position+direction*(float)along+pole*(float)bend;
+                        Vector3 handTarget=arm.position+direction*(float)distance;
+                        Quaternion desired=Quaternion.FromToRotation(current,elbowTarget-arm.position)*arm.rotation;
                         Quaternion local=Quaternion.Inverse(arm.parent.rotation)*desired;
                         Quaternion offset=Quaternion.Inverse(arm.localRotation)*local;
-                        Add(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm,Quaternion.Slerp(Quaternion.identity,offset,reachBlend*.8f));
+                        Add(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm,Quaternion.Slerp(Quaternion.identity,offset,reachBlend));
+                        Quaternion elbowDesired=Quaternion.FromToRotation(hand.position-elbow.position,handTarget-elbow.position)*elbow.rotation;
+                        Quaternion elbowLocal=Quaternion.Inverse(elbow.parent.rotation)*elbowDesired;
+                        Add(right?HumanBodyBones.RightLowerArm:HumanBodyBones.LeftLowerArm,Quaternion.Slerp(Quaternion.identity,Quaternion.Inverse(elbow.localRotation)*elbowLocal,reachBlend));
                     }
                 }
             }

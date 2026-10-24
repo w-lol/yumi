@@ -46,6 +46,22 @@ with tempfile.TemporaryDirectory(prefix='Yumi desktop spaces ü ',dir=root/'tmp'
         assert 'mango' in board.core.last_answer.lower(),board.core.last_answer
         assert 'mango' in board.chat.toPlainText().lower()
         results['typed_chat_and_memory_in_ui']='passed'
+        # Exercise the real conversation path with an injected fresh synthetic
+        # frame. Actual Windows screen capture is validated separately.
+        import base64
+        import cv2
+        import numpy as np
+        image=np.full((256,256,3),255,dtype=np.uint8)
+        image[32:224,32:224]=(255,0,0)  # BGR blue square.
+        ok,jpeg=cv2.imencode('.jpg',image);assert ok
+        original_snapshot=board.core.perception.screen_snapshot
+        board.core.perception.screen_snapshot=lambda:{'image':base64.b64encode(jpeg).decode('ascii'),'timestamp':time.time(),'monitor':0}
+        board.core.last_answer=''
+        board.core.submit('What color is the big square on my screen? Reply with just its color.')
+        until(lambda:bool(board.core.last_answer),90)
+        assert 'blue' in board.core.last_answer.lower(),board.core.last_answer
+        board.core.perception.screen_snapshot=original_snapshot
+        results['fresh_synthetic_screen_frame_in_real_model_conversation']='passed'
         previous=board.core.model.process.pid
         board.core.model.process.terminate()
         until(lambda:board.core.model.ready and board.core.model.process and board.core.model.process.pid!=previous and not board.core.loading,60)

@@ -46,6 +46,7 @@ namespace Yumi.Desktop
         [DllImport("user32.dll")] static extern bool IsIconic(IntPtr hwnd);
         [DllImport("user32.dll")] static extern bool GetWindowRect(IntPtr hwnd,out RECT rect);
         [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern int GetWindowText(IntPtr hwnd,StringBuilder title,int maximum);
+        [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern int GetClassName(IntPtr hwnd,StringBuilder name,int maximum);
         [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr hwnd,out uint process);
         [DllImport("user32.dll",EntryPoint="GetWindowLongW")] static extern int GetWindowLong(IntPtr hwnd,int index);
         [DllImport("user32.dll")] static extern IntPtr GetForegroundWindow();
@@ -94,7 +95,13 @@ namespace Yumi.Desktop
                 List<DesktopMonitor> monitors=new List<DesktopMonitor>();
                 EnumMonitor monitorCallback=(h,dc,r,data)=>{
                     MONITORINFOEX info=new MONITORINFOEX { Size=Marshal.SizeOf(typeof(MONITORINFOEX)) };
-                    if(GetMonitorInfo(h,ref info))monitors.Add(new DesktopMonitor {Id=info.Device,Bounds=Convert(info.Monitor),Work=Convert(info.Work)});
+                    if(GetMonitorInfo(h,ref info))
+                    {
+                        DesktopRect bounds=Convert(info.Monitor),work=Convert(info.Work);
+                        if(work.Width<48||work.Height<48)work=bounds;
+                        if(!monitors.Any(m=>m.Bounds.X==bounds.X&&m.Bounds.Y==bounds.Y&&m.Bounds.Width==bounds.Width&&m.Bounds.Height==bounds.Height))
+                            monitors.Add(new DesktopMonitor {Id=info.Device,Bounds=bounds,Work=work});
+                    }
                     return true;
                 };
                 EnumDisplayMonitors(IntPtr.Zero,IntPtr.Zero,monitorCallback,IntPtr.Zero);
@@ -103,9 +110,12 @@ namespace Yumi.Desktop
                 EnumWindow windowCallback=(h,data)=>{
                     if(windows.Count>=128 || !IsWindowVisible(h)||IsIconic(h))return true;
                     uint pid;GetWindowThreadProcessId(h,out pid);
-                    if(pid==excludedProcess || (GetWindowLong(h,-20)&0x80)!=0)return true;
+                    if(pid==excludedProcess || (GetWindowLong(h,-20)&(0x80|0x20))!=0)return true;
+                    StringBuilder windowClass=new StringBuilder(257);GetClassName(h,windowClass,257);
+                    string kind=windowClass.ToString();
+                    if(kind=="Progman"||kind=="WorkerW"||kind=="Shell_TrayWnd"||kind=="Shell_SecondaryTrayWnd"||kind=="#32768"||kind=="tooltips_class32")return true;
                     uint cloaked;if(DwmGetWindowCloaked(h,14,out cloaked,4)==0&&cloaked!=0)return true;
-                    StringBuilder title=new StringBuilder(513);GetWindowText(h,title,513);if(title.Length==0)return true;
+                    StringBuilder title=new StringBuilder(513);GetWindowText(h,title,513);
                     RECT native;
                     if(DwmGetWindowAttribute(h,9,out native,Marshal.SizeOf(typeof(RECT)))!=0&&!GetWindowRect(h,out native))return true;
                     DesktopRect r=Convert(native);
@@ -117,7 +127,7 @@ namespace Yumi.Desktop
                         try { using(Process p=Process.GetProcessById((int)pid))applications[pid]=p.ProcessName; }
                         catch { applications[pid]=""; }
                     }
-                    windows.Add(new DesktopWindow {Id=key+":"+identities[key],Title=title.ToString(),Application=applications[pid],Bounds=r,Foreground=h==foreground});
+                    windows.Add(new DesktopWindow {Id=key+":"+identities[key],Title=title.Length>0?title.ToString():kind,Application=applications[pid],Bounds=r,Foreground=h==foreground});
                     return true;
                 };
                 EnumWindows(windowCallback,IntPtr.Zero);

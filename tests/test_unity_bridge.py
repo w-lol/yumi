@@ -63,6 +63,8 @@ class UnityBridgeTests(unittest.TestCase):
         self.assertEqual(action_intent('stop following my mouse')['type'],'stop_movement')
         self.assertEqual(action_intent('walk across the monitors'),{'type':'other_monitor','target':'next'})
         self.assertEqual(action_intent('go to the right monitor'),{'type':'other_monitor','target':'right'})
+        self.assertEqual(action_intent('sit on this window'),{'type':'sit','target':'cursor_window'})
+        self.assertEqual(action_intent('jump to that window'),{'type':'jump_to_platform','target':'cursor'})
         self.assertIsNone(action_intent('Open Discord'))
         with self.assertRaises(ValueError):validate_action({'type':'move_to_window','x':100})
         with self.assertRaises(ValueError):validate_action({'type':'shell','target':'cmd.exe'})

@@ -110,6 +110,15 @@ VRC.Core.Logger.LogWarning("VideoPlayer using DIRECT audio output fixed.");
     if ([IO.File]::ReadAllText($InstalledBuilder) -notmatch 'public const string Source=') { throw 'Mixed-version builder was not repaired.' }
     if (-not (Test-Path (Join-Path $Nested 'Assets/YumiDesktop/Runtime/OverlayWindowPolicy.cs'))) { throw 'Missing overlay helper was not repaired.' }
     if (-not @(Get-ChildItem (Join-Path $TestRoot 'backups') -Recurse -Filter YumiDesktopBuild.cs | Where-Object { [IO.File]::ReadAllText($_.FullName) -ceq 'old builder without public Source' }).Count) { throw 'Old builder backup missing.' }
+    # Requested autonomy/capture settings must preserve the user's persona,
+    # screen exclusions and stored data.
+    $Config=Join-Path $TestRoot 'config/settings.json'
+    New-Item -ItemType Directory -Force -Path (Split-Path $Config -Parent) | Out-Null
+    [IO.File]::WriteAllText($Config,'{"schema":1,"persona":"My own persona","screen_exclusions":["private.exe"],"unity_stationary":true,"screen_enabled":false}')
+    & (Join-Path $PSScriptRoot 'Repair-AvatarInstallation.ps1') -Root $TestRoot -SourceRoot $SourceRoot -EnableAutonomy
+    $Configuration=Get-Content -LiteralPath $Config -Raw | ConvertFrom-Json
+    if (-not $Configuration.unity_autonomous -or $Configuration.unity_stationary -or -not $Configuration.screen_enabled -or $Configuration.monitor_index -ne 0 -or -not $Configuration.unity_drag_enabled) { throw 'Requested desktop behavior settings were not enabled.' }
+    if ($Configuration.persona -cne 'My own persona' -or $Configuration.screen_exclusions[0] -cne 'private.exe') { throw 'User persona/capture exclusions were overwritten.' }
     # A bad source checksum must fail before replacing any installed files.
     $BadSource=Join-Path $TestRoot 'bad-source'
     New-Item -ItemType Directory -Force -Path $BadSource | Out-Null

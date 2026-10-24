@@ -20,6 +20,8 @@ static class Program
     {
         TestSourceSyntax();
         TestOverlayTransparency();
+        TestArmReach();
+        TestDesktopBehavior();
         TestPantsRepair();
         TestPlayback();
         TestMotion();
@@ -120,6 +122,56 @@ static class Program
         Check(!match("pants/Body",guid,hash,clothing,3,3,true,true,false,true),"Shared face mesh must never be pruned");
         Check(!match("pants/Body",guid,hash,clothing,3,3,true,true,true,false),"Broken clothing shader must not be hidden");
         Console.WriteLine("Pants repair policy: exact fingerprint accepted; changed mesh, face, material, layout and shader rejected.");
+    }
+    static void TestArmReach()
+    {
+        foreach(double target in new[]{0,.1,.5,1.2,20})
+        {
+            double distance,along,bend;
+            Check(TwoBoneReach.Solve(.6,.5,target,out distance,out along,out bend),"Valid arm reach failed");
+            Check(bend>0&&distance<1.1,"Elbow must bend without stretching");
+            Check(Math.Abs(along*along+bend*bend-.36)<.000001,"Upper arm length changed");
+            Check(Math.Abs((distance-along)*(distance-along)+bend*bend-.25)<.000001,"Forearm length changed");
+        }
+        double d,a,b;Check(!TwoBoneReach.Solve(0,.5,1,out d,out a,out b),"Degenerate arm accepted");
+        Console.WriteLine("Two-bone reach: bounded target, bent elbow and both segment lengths passed.");
+    }
+    static void TestDesktopBehavior()
+    {
+        var monitors=new[]{new DesktopMonitor {Id="a",Bounds=new DesktopRect(0,0,1920,1080),Work=new DesktopRect(0,0,1920,1040)},
+            new DesktopMonitor {Id="b",Bounds=new DesktopRect(1920,-700,1920,1080),Work=new DesktopRect(1920,-700,1920,1040)}};
+        var empty=new DesktopSnapshot {Monitors=monitors,Surfaces=DesktopGeometry.BuildSurfaces(monitors,new DesktopWindow[0]),Revision=1};
+        var transfer=new DesktopMotion();transfer.SetGeometry(empty);Simulate(transfer,.5);int before=transfer.Recoveries;
+        Check(transfer.RequestSurface("floor:b"),"Unequal monitor bottoms must be reachable without application windows");
+        Simulate(transfer,25);Check(transfer.SupportId=="floor:b"&&transfer.Recoveries==before,"Unequal monitor transfer failed or teleported via recovery");
+        var window=new DesktopWindow {Id="editor",Application="Editor",Title="Editor",Bounds=new DesktopRect(200,500,800,400)};
+        var windows=new DesktopSnapshot {Monitors=new[]{monitors[0]},Windows=new[]{window},Surfaces=DesktopGeometry.BuildSurfaces(new[]{monitors[0]},new[]{window}),Revision=1};
+        var jump=new DesktopMotion();jump.SetGeometry(windows);Simulate(jump,.5);jump.AdaptiveJumps=false;
+        Check(!jump.RequestWindow("Editor"),"Base jump should reject a window above its configured height");
+        jump.AdaptiveJumps=true;Check(jump.RequestWindow("Editor",true),"Adaptive jump should reach a normal window top");
+        Simulate(jump,15);Check(jump.State==CharacterMotion.Sitting&&jump.SupportId.StartsWith("editor:"),"Window perch failed");
+        var pointed=new DesktopMotion();pointed.SetGeometry(windows);Simulate(pointed,.5);
+        Check(pointed.RequestWindowAt(400,600,true),"Pointer command must choose the real window rather than search for an app named cursor");
+        Simulate(pointed,15);Check(pointed.State==CharacterMotion.Sitting,"Pointer-selected window perch failed");
+        var first=new DesktopWindow {Id="first",Title="First",Bounds=new DesktopRect(600,500,400,300)};
+        var second=new DesktopWindow {Id="second",Title="Second",Bounds=new DesktopRect(1400,500,350,300)};
+        var separated=new DesktopSnapshot {Monitors=new[]{monitors[0]},Windows=new[]{first,second},Surfaces=DesktopGeometry.BuildSurfaces(new[]{monitors[0]},new[]{first,second})};
+        var hops=new DesktopMotion {MaximumJumpHeight=1200};hops.SetGeometry(separated);Simulate(hops,.5);
+        Check(hops.RequestWindow("First"),"First window should be reachable");Simulate(hops,15);
+        Check(hops.SupportId.StartsWith("first:"),"Failed to land on first window");
+        Check(hops.RequestWindow("Second",true),"Window-to-window route must consider stepping off a central window onto the floor");Simulate(hops,25);
+        Check(hops.SupportId.StartsWith("second:")&&hops.State==CharacterMotion.Sitting,"Window-to-window route failed");
+        var roam=new DesktopMotion();roam.SetGeometry(new DesktopSnapshot {Monitors=new[]{monitors[0]},Surfaces=DesktopGeometry.BuildSurfaces(new[]{monitors[0]},new DesktopWindow[0])});
+        Simulate(roam,.5);double start=roam.X;
+        for(int i=0;i<200;i++)roam.Tick(.1,true,false,1);
+        Check(roam.Distance>10&&Math.Abs(roam.X-start)>10,"Empty desktop autonomy should stroll without a foreground window or commands");
+        var drag=new DesktopMotion();drag.SetGeometry(windows);Simulate(drag,.5);drag.BeginDrag();drag.DragTo(400,300);
+        for(int i=0;i<20;i++)drag.Tick(.1,true,false,1);
+        Check(drag.X==400&&drag.Y==300&&drag.Dragging,"Physics/autonomy must not fight dragging");
+        drag.EndDrag();Simulate(drag,2);Check(drag.SupportId.StartsWith("editor:"),"Released avatar must settle onto the actual window below it");
+        drag.BeginDrag();drag.DragTo(400,1200);drag.EndDrag();Simulate(drag,.5);
+        Check(drag.SupportId=="floor:a"&&drag.Y==1040,"Dragging below the work area should settle at the monitor bottom");
+        Console.WriteLine("Desktop behavior: unequal monitor transfer, adaptive window perch, command-free roaming, dragging and release settling passed.");
     }
 
     static void TestPlayback()

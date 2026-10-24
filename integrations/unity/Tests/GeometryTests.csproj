@@ -12,6 +12,7 @@
     <Compile Include="../Runtime/DesktopMotion.cs" Link="DesktopMotion.cs" />
     <Compile Include="../Runtime/PlaybackTimeline.cs" Link="PlaybackTimeline.cs" />
     <Compile Include="../Runtime/OverlayWindowPolicy.cs" Link="OverlayWindowPolicy.cs" />
+    <Compile Include="../Runtime/TwoBoneReach.cs" Link="TwoBoneReach.cs" />
     <Compile Include="../DesktopEditor/PantsRepairPolicy.cs" Link="PantsRepairPolicy.cs" />
   </ItemGroup>
 </Project>

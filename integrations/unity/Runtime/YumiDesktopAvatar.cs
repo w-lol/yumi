@@ -21,12 +21,18 @@ namespace Yumi.Desktop
         float deadline,lastReport;
         bool lastStationary=true,lastActive,follow;
         float travelYaw=180;
+        float seatBlend;
+        bool pointerWasDown,dragging;
+        Vector2 dragOffset;
+        Renderer[] avatarRenderers;
+        [System.Runtime.InteropServices.DllImport("user32.dll")] static extern short GetAsyncKeyState(int key);
         const float Unit=.005f;
         void Start()
         {
             Application.runInBackground=true;QualitySettings.vSyncCount=0;
             Application.targetFrameRate=frameRate;
             if(backend==null||rig==null||view==null||placement==null) {Debug.LogError("Incomplete Yumi desktop scene");enabled=false;return;}
+            avatarRenderers=rig.GetComponentsInChildren<Renderer>(true);
             backend.StateReceived+=Receive;backend.ActionReceived+=Action;
             backend.Disconnected+=Disconnect;backend.ConnectedToBackend+=Ready;
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
@@ -37,7 +43,8 @@ namespace Yumi.Desktop
 #endif
             motion.Stationary=true;Ready();
         }
-        void Ready() {backend.ReportReady(rig.Ready&&geometry!=null,"Rig/executor loaded; Windows appearance requires acceptance");}
+        bool ExecutorReady {get {return rig.Ready&&geometry!=null&&geometry.Current.Monitors.Length>0&&overlay.Available;}}
+        void Ready() {backend.ReportReady(ExecutorReady,"Rig="+rig.Ready+"; overlay="+overlay.Available+"; monitors="+(geometry==null?0:geometry.Current.Monitors.Length));}
         void Receive(AvatarState value)
         {
             state=value;rig.State(value);
@@ -47,12 +54,15 @@ namespace Yumi.Desktop
             rig.MotionSpeed=Mathf.Clamp(value.animation_speed,.3f,2);
             motion.Speed=Math.Max(40,Math.Min(500,value.movement_speed));
             motion.JumpHeight=Math.Max(30,Math.Min(400,value.jump_height));
-            if(!value.active) {motion.Stay();follow=false;Finish(false,"Backend paused; movement stopped");}
-            else if(value.stationary!=lastStationary||!lastActive) {motion.Stationary=value.stationary;if(value.stationary){motion.Stay();follow=false;Finish(false,"Stationary mode enabled");}}
+            motion.AdaptiveJumps=value.adaptive_jumps;motion.MaximumJumpHeight=Math.Max(motion.JumpHeight,Math.Min(1200,value.jump_limit));
+            motion.MinimumHeadroom=320*Mathf.Clamp(value.scale,.25f,3);
+            rig.MaximumHeadYaw=Mathf.Clamp(value.head_yaw,20,85);rig.MaximumHeadPitch=Mathf.Clamp(value.head_pitch,10,45);
+            if(!value.active&&!motion.Dragging) {motion.Stay();follow=false;Finish(false,"Backend paused; movement stopped");}
+            else if(value.active&&(value.stationary!=lastStationary||!lastActive)) {motion.Stationary=value.stationary;if(value.stationary){motion.Stay();follow=false;Finish(false,"Stationary mode enabled");}}
             lastStationary=value.stationary;lastActive=value.active;
         }
         void Disconnect()
-        {state=null;follow=false;motion.Stay();rig.ResetSpeech();pending="";rig.Motion="Idle";}
+        {state=null;lastActive=false;follow=false;if(!motion.Dragging)motion.Stay();rig.ResetSpeech();pending="";rig.Motion="Idle";}
         void Refresh()
         {
             if(geometry==null)return;
@@ -78,6 +88,7 @@ namespace Yumi.Desktop
             try
             {
                 if(geometry.RefreshIfNeeded(Time.unscaledTime)||!overlay.Available)Refresh();
+                if(HandleDragging())return;
                 bool active=state!=null&&state.active;
                 if(follow&&active)
                 {
@@ -93,9 +104,41 @@ namespace Yumi.Desktop
                     else if(pendingType!="wave"&&(motion.State==CharacterMotion.Idle||motion.State==CharacterMotion.Sitting)&&!motion.Navigating)Finish(true,"Movement completed");
                 }
                 if(Time.unscaledTime-lastReport>2&&backend.Connected)
-                {lastReport=Time.unscaledTime;backend.ReportReady(rig.Ready,"Motion="+motion.State+"; support="+motion.SupportId+"; "+motion.Message);}
+                {lastReport=Time.unscaledTime;backend.ReportReady(ExecutorReady,"Motion="+motion.State+"; monitors="+geometry.Current.Monitors.Length+"; windows="+geometry.Current.Windows.Length+"; overlay="+overlay.Available+"; support="+motion.SupportId+"; "+motion.Message);}
             }
             catch(Exception e) {motion.Stay();follow=false;Finish(false,"Desktop executor error");Debug.LogException(e);backend.ReportReady(false,e.Message);enabled=false;}
+        }
+        bool HandleDragging()
+        {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            DesktopGeometry.POINT pointer;
+            if(!DesktopGeometry.GetCursorPos(out pointer))return false;
+            bool down=(GetAsyncKeyState(1)&0x8000)!=0,alt=(GetAsyncKeyState(0x12)&0x8000)!=0;
+            bool allowed=state==null||state.drag_enabled;
+            bool hover=false;
+            if(allowed&&avatarRenderers!=null)
+                foreach(Renderer renderer in avatarRenderers)
+                {
+                    if(renderer==null||renderer is ParticleSystemRenderer||!renderer.enabled||!renderer.gameObject.activeInHierarchy)continue;
+                    Bounds bounds=renderer.bounds;Vector3 lo=view.WorldToScreenPoint(bounds.min),hi=view.WorldToScreenPoint(bounds.max);
+                    double x=pointer.X-desktop.X,y=desktop.Height-pointer.Y+desktop.Y;
+                    if(x>=Math.Min(lo.x,hi.x)&&x<=Math.Max(lo.x,hi.x)&&y>=Math.Min(lo.y,hi.y)&&y<=Math.Max(lo.y,hi.y)) {hover=true;break;}
+                }
+            overlay.TemporaryInteractive=dragging||(allowed&&hover&&alt);
+            if(!dragging&&allowed&&hover&&down&&!pointerWasDown&&(alt||!overlay.ClickThrough))
+            {
+                follow=false;Finish(false,"User picked up the avatar");motion.BeginDrag();dragging=true;
+                dragOffset=new Vector2((float)(motion.X-pointer.X),(float)(motion.Y-pointer.Y));
+            }
+            if(dragging)
+            {
+                motion.DragTo(pointer.X+dragOffset.x,pointer.Y+dragOffset.y);
+                if(!down||!allowed) {motion.EndDrag();dragging=false;overlay.TemporaryInteractive=false;}
+            }
+            pointerWasDown=down;return dragging;
+#else
+            return false;
+#endif
         }
         void LateUpdate()
         {
@@ -104,42 +147,60 @@ namespace Yumi.Desktop
             float scale=state==null?1:Mathf.Clamp(state.scale,.25f,3);
             placement.localScale=Vector3.one*(320*Unit*scale/Mathf.Max(.1f,originalHeight));
             rig.Motion=motion.State.ToString();
+            rig.TravelWorldSpeed=(float)Math.Abs(motion.VelocityX)*Unit;
             bool travelling=motion.State==CharacterMotion.Walking||motion.State==CharacterMotion.Running||motion.State==CharacterMotion.JumpStart||motion.State==CharacterMotion.JumpAirborne;
-            if(travelling&&motion.Sidestepping)rig.Motion="Sidestepping";
+            if(travelling&&motion.Sidestepping)rig.Motion=motion.VelocityX>0?"SidestepLeft":"SidestepRight";
             if(travelling&&Math.Abs(motion.VelocityX)>1)travelYaw=motion.VelocityX>0?90:270;
             float desiredYaw=travelling&&!motion.Sidestepping?travelYaw:180;
             rig.transform.localRotation=Quaternion.RotateTowards(rig.transform.localRotation,Quaternion.Euler(0,desiredYaw,0),360*Time.unscaledDeltaTime);
             if(motion.State==CharacterMotion.JumpAirborne)rig.Motion="Jumping";
             if(motion.State==CharacterMotion.JumpStart)rig.Motion="Jumping";
             if(state!=null&&state.speaking&&motion.State==CharacterMotion.Idle)rig.Motion="Talking";
+            if(motion.State==CharacterMotion.Dragging)rig.Motion="Idle";
+            var support=motion.Desktop.Surfaces.FirstOrDefault(s=>s.Id==motion.SupportId);
+            bool perched=motion.State==CharacterMotion.Sitting&&support!=null&&!String.IsNullOrEmpty(support.WindowId);
+            seatBlend=Mathf.MoveTowards(seatBlend,perched?1:0,Time.unscaledDeltaTime*4);
+            if(perched)rig.Motion="SittingEdge";
+            if(seatBlend>0)
+            {
+                Transform hips=rig.animator.GetBoneTransform(HumanBodyBones.Hips);
+                if(hips!=null)placement.position-=Vector3.up*(hips.position.y-placement.position.y)*seatBlend;
+            }
             DesktopGeometry.POINT cursor;
             // The avatar root faces the camera at 180 degrees: positive local yaw
             // turns toward desktop left. Vertical pitch already follows correctly.
             rig.ReachForCursor=false;
             if(DesktopGeometry.GetCursorPos(out cursor))
             {
-                rig.Gaze=travelling&&!motion.Sidestepping?Vector3.zero:new Vector3(Mathf.Clamp((float)(motion.X-cursor.X)/60,-12,12),Mathf.Clamp((float)(cursor.Y-motion.Y+220)/80,-8,8),0);
-                rig.ReachForCursor=state!=null&&state.active&&!motion.Navigating&&motion.State==CharacterMotion.Idle&&Math.Abs(cursor.X-motion.X)<90*scale&&cursor.Y>motion.Y-300*scale&&cursor.Y<motion.Y-80*scale;
+                Transform head=rig.animator.GetBoneTransform(HumanBodyBones.Head);
+                Vector3 headPixel=view.WorldToScreenPoint(head==null?rig.transform.position:head.position);
+                double headX=desktop.X+headPixel.x,headY=desktop.Y+desktop.Height-headPixel.y;
+                rig.Gaze=travelling&&!motion.Sidestepping?Vector3.zero:new Vector3(Mathf.Atan2((float)(headX-cursor.X),120*scale)*Mathf.Rad2Deg,Mathf.Atan2((float)(cursor.Y-headY),150*scale)*Mathf.Rad2Deg,0);
+                rig.ReachForCursor=state!=null&&state.active&&!motion.Navigating&&(motion.State==CharacterMotion.Idle||motion.State==CharacterMotion.Sitting)&&Math.Abs(cursor.X-motion.X)<90*scale&&cursor.Y>motion.Y-300*scale&&cursor.Y<motion.Y-80*scale;
                 float depth=view.WorldToScreenPoint(rig.transform.position).z;
                 rig.ReachTarget=view.ScreenToWorldPoint(new Vector3((float)(cursor.X-desktop.X),(float)(desktop.Height-cursor.Y+desktop.Y),depth));
             }
         }
         void Action(string id,AvatarAction action)
         {
+            if(dragging) {backend.CompleteAction(id,false,"Release the avatar before issuing movement commands");return;}
             if(action.type!="set_expression") {Finish(false,"Superseded by user command");follow=false;}
             if(state==null||!state.active) {backend.CompleteAction(id,false,"Start Yumi before moving the avatar");return;}
             bool accepted=false;string message="Action is unavailable for this rig";
             switch(action.type)
             {
-                case "stop_movement":case "stay":motion.Stay();backend.CompleteAction(id,true,"Movement stopped");return;
+                case "stop_movement":case "stay":motion.Stay();backend.CompleteAction(id,true,motion.SupportId==""?"Route stopped; finishing a safe landing":"Movement stopped");return;
                 case "reset_avatar":motion.Recover();backend.CompleteAction(id,true,motion.Message);return;
                 case "set_expression":bool supported=rig.PreviewExpression(action.expression);backend.CompleteAction(id,supported,supported?"Expression preview started (5 seconds)":"Unsupported expression");return;
                 case "stand":motion.Stop();backend.CompleteAction(id,true,"Standing");return;
                 case "wave":motion.Wave();accepted=motion.State==CharacterMotion.Waving;break;
                 case "sit":
+                    if(action.target=="cursor_window") {DesktopGeometry.POINT seat;if(DesktopGeometry.GetCursorPos(out seat))accepted=motion.RequestWindowAt(seat.X,seat.Y,true);break;}
                     if((String.IsNullOrEmpty(action.target)||action.target=="cursor")) {motion.Sit();backend.CompleteAction(id,motion.State==CharacterMotion.Sitting,"Sit requested on current support");return;}
                     accepted=motion.RequestWindow(action.target,true);break;
-                case "move_to_window":case "jump_to_platform":accepted=motion.RequestWindow(action.target);break;
+                case "move_to_window":case "jump_to_platform":
+                    if(action.target=="cursor") {DesktopGeometry.POINT targetPoint;if(DesktopGeometry.GetCursorPos(out targetPoint))accepted=motion.RequestWindowAt(targetPoint.X,targetPoint.Y);}
+                    else accepted=motion.RequestWindow(action.target);break;
                 case "follow_cursor":follow=true;motion.Stationary=false;backend.CompleteAction(id,true,"Following cursor along current supporting edge; stop to cancel");return;
                 case "other_monitor":
                     var current=motion.Desktop.Surfaces.FirstOrDefault(s=>s.Id==motion.SupportId);
@@ -154,7 +215,8 @@ namespace Yumi.Desktop
                         int index=Array.FindIndex(ordered,s=>current!=null&&s.MonitorId==current.MonitorId);
                         destination=ordered.Length>1?ordered[(index+1)%ordered.Length]:null;
                     }
-                    accepted=destination!=null&&motion.RequestSurface(destination.Id);break;
+                    if(destination==null) {backend.CompleteAction(id,false,"No other monitor in that direction. Detected monitors: "+motion.Desktop.Monitors.Length);return;}
+                    accepted=motion.RequestSurface(destination.Id);break;
                 case "walk_to_position":case "run_to_position":
                     DesktopGeometry.POINT point;if(DesktopGeometry.GetCursorPos(out point))accepted=motion.WalkToCursor(point.X,action.type=="run_to_position");break;
                 default:backend.CompleteAction(id,false,message);return;

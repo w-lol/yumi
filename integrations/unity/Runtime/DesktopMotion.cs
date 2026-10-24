@@ -5,11 +5,15 @@ using System.Linq;
 
 namespace Yumi.Desktop
 {
-    public enum CharacterMotion { Idle,Listening,Thinking,Talking,Walking,Running,JumpStart,JumpAirborne,Landing,Sitting,Turning,Waving,Excited,Surprised,Recovering }
+    public enum CharacterMotion { Idle,Listening,Thinking,Talking,Walking,Running,JumpStart,JumpAirborne,Landing,Sitting,Turning,Waving,Excited,Surprised,Recovering,Dragging }
     public sealed class DesktopMotion
     {
         public double X,Y,VelocityX,VelocityY,Distance;
         public double Speed=150,JumpHeight=170,Gravity=950,FootMargin=18;
+        public bool AdaptiveJumps=true;
+        public bool Dragging {get;private set;}
+        public double MaximumJumpHeight=640;
+        public double MinimumHeadroom=240;
         public string SupportId="",TargetWindow="",Message="",Behavior="RESTING";
         public CharacterMotion State=CharacterMotion.Idle;
         bool stationary;
@@ -34,8 +38,10 @@ namespace Yumi.Desktop
         double? goal;
         Edge pending,crossing;
         bool run,sitAfter;
-        double clock,manualUntil,timer,nextAutonomy=30;
-        sealed class Edge { public string From,To;public double LaunchX,EndX,Duration,VX,VY;public bool Walk; }
+        double clock,manualUntil,timer,nextAutonomy=8;
+        int autonomousChoice;
+        bool autonomousArrived;
+        sealed class Edge { public string From,To;public double LaunchX,EndX,Duration,VX,VY,StartY,Progress;public bool Walk; }
         public DesktopMotion() { Desktop=new DesktopSnapshot(); }
         static bool Contains(DesktopSurface s,double x,double margin) { return x>=s.Left+margin-1e-6&&x<=s.Right-margin+1e-6; }
         static double Clamp(double x,double a,double b) { return Math.Max(a,Math.Min(b,x)); }
@@ -57,7 +63,9 @@ namespace Yumi.Desktop
                 else {SupportId="";VelocityY=0;State=CharacterMotion.Recovering;route.Clear();goal=null;pending=null;crossing=null;Message="Supporting window changed; falling to a valid surface.";}
             }
             if(snapshot.Surfaces.Length>0&&previous.Surfaces.Length==0)Recover();
-            if(TargetWindow!=""&&SupportId!=""&&Surface(SupportId).WindowId!=TargetWindow&&snapshot.Revision!=previous.Revision)
+            DesktopWindow oldTarget=previous.Windows.FirstOrDefault(w=>w.Id==TargetWindow),newTarget=snapshot.Windows.FirstOrDefault(w=>w.Id==TargetWindow);
+            bool targetChanged=oldTarget==null||newTarget==null||oldTarget.Bounds.X!=newTarget.Bounds.X||oldTarget.Bounds.Y!=newTarget.Bounds.Y||oldTarget.Bounds.Width!=newTarget.Bounds.Width||oldTarget.Bounds.Height!=newTarget.Bounds.Height;
+            if(TargetWindow!=""&&SupportId!=""&&Surface(SupportId).WindowId!=TargetWindow&&targetChanged)
             {
                 string target=TargetWindow;
                 if(!RequestWindowId(target,sitAfter)) {Stop();Message="Destination changed or is no longer reachable.";}
@@ -72,10 +80,21 @@ namespace Yumi.Desktop
         }
         public void Stop()
         {
-            AutonomousActive=false;route.Clear();goal=null;pending=null;crossing=null;VelocityX=0;TargetWindow="";FollowCursor=false;sitAfter=false;Sidestepping=false;
+            Dragging=false;AutonomousActive=false;route.Clear();goal=null;pending=null;crossing=null;if(SupportId!="")VelocityX=0;TargetWindow="";FollowCursor=false;sitAfter=false;Sidestepping=false;
             if(SupportId!="")State=CharacterMotion.Idle;
         }
         public void Stay() { Stop();Stationary=true;manualUntil=Double.PositiveInfinity; }
+        public void BeginDrag() {Stop();Dragging=true;SupportId="";VelocityX=VelocityY=0;State=CharacterMotion.Dragging;manualUntil=clock+45;}
+        public void DragTo(double x,double y) {if(Dragging){X=x;Y=y;VelocityX=VelocityY=0;}}
+        public void EndDrag()
+        {
+            if(!Dragging)return;
+            Dragging=false;manualUntil=clock+45;State=CharacterMotion.Recovering;
+            var floor=Desktop.Surfaces.Where(s=>s.Id.StartsWith("floor:")&&Contains(s,X,0)).OrderBy(s=>Math.Abs(s.Y-Y)).FirstOrDefault();
+            if(floor!=null&&Y>floor.Y)Y=floor.Y;
+            DesktopSurface close=Desktop.Surfaces.Where(s=>Contains(s,X,s.Id.StartsWith("floor:")?0:FootMargin)&&Math.Abs(s.Y-Y)<=36).OrderBy(s=>Math.Abs(s.Y-Y)).FirstOrDefault();
+            if(close!=null) {Y=close.Y;SupportId=close.Id;State=CharacterMotion.Landing;timer=.18;sitAfter=!String.IsNullOrEmpty(close.WindowId);}
+        }
         public bool RequestWindow(string query,bool sit=false)
         {
             Stop();Stationary=false;manualUntil=clock+30;
@@ -88,9 +107,18 @@ namespace Yumi.Desktop
         }
         bool RequestWindowId(string id,bool sit)
         {
+            bool found=false;
             foreach(DesktopSurface target in Desktop.Surfaces.Where(p=>p.WindowId==id).OrderBy(p=>Math.Abs((p.Left+p.Right)/2-X)+Math.Abs(p.Y-Y)))
-                if(Navigate(target)) {TargetWindow=id;sitAfter=sit;return true;}
-            Message="Window surface is occluded or unreachable at the configured jump strength.";return false;
+            {found=true;if(Navigate(target)) {TargetWindow=id;sitAfter=sit;return true;}}
+            if(!found)Message="This window has no exposed top edge to stand on.";
+            return false;
+        }
+        public bool RequestWindowAt(double x,double y,bool sit=false)
+        {
+            Stop();Stationary=false;manualUntil=clock+30;
+            var window=Desktop.Windows.FirstOrDefault(w=>w.Bounds.Contains(x,y));
+            if(window==null){Message="No visible application window under the pointer.";return false;}
+            return RequestWindowId(window.Id,sit);
         }
         public bool RequestSurface(string id)
         {
@@ -116,7 +144,31 @@ namespace Yumi.Desktop
 
         Edge Flight(DesktopSurface a,DesktopSurface b,double start,double end)
         {
-            double launch=Math.Sqrt(2*Gravity*JumpHeight),disc=launch*launch+2*Gravity*(b.Y-a.Y);
+            double height=JumpHeight;
+            if(AdaptiveJumps)height=Math.Max(height,Math.Min(MaximumJumpHeight,a.Y-b.Y+28));
+            // Monitor floors can differ by an entire screen height. These are
+            // real ballistic transfers with layout-dependent launch height.
+            if(a.Id.StartsWith("floor:")&&b.Id.StartsWith("floor:"))height=Math.Max(height,a.Y-b.Y+28);
+            if(AdaptiveJumps)
+            {
+                double needed=Math.Abs(end-start)/Math.Max(1,Speed*1.7);
+                if(needed>.08)
+                {
+                    double upward=Math.Max(0,.5*Gravity*needed-(b.Y-a.Y)/needed);
+                    height=Math.Max(height,Math.Min(Math.Max(MaximumJumpHeight,height),upward*upward/(2*Gravity)+4));
+                }
+            }
+            if(!String.IsNullOrEmpty(a.WindowId)||!String.IsNullOrEmpty(b.WindowId))
+            {
+                var screens=Desktop.Monitors.Where(m=>m.Id==a.MonitorId||m.Id==b.MonitorId).ToArray();
+                if(screens.Length>0)
+                {
+                    double visibleRise=a.Y-screens.Min(m=>m.Bounds.Y)-MinimumHeadroom;
+                    if(visibleRise<=0)return null;
+                    height=Math.Min(height,visibleRise);
+                }
+            }
+            double launch=Math.Sqrt(2*Gravity*height),disc=launch*launch+2*Gravity*(b.Y-a.Y);
             if(disc<-1e-6)return null;
             disc=Math.Max(0,disc);
             double duration=(launch+Math.Sqrt(disc))/Gravity;
@@ -133,7 +185,7 @@ namespace Yumi.Desktop
         }
         Edge BestEdge(DesktopSurface a,DesktopSurface b)
         {
-            if(a.Id.StartsWith("floor:")&&b.Id.StartsWith("floor:")&&Math.Abs(a.Y-b.Y)<1&&
+            if(a.Id.StartsWith("floor:")&&b.Id.StartsWith("floor:")&&Math.Abs(a.Y-b.Y)<=48&&
                 Math.Max(a.Left,b.Left)<=Math.Min(a.Right,b.Right)+1)
             {
                 double launch=Clamp((b.Left+b.Right)/2,a.Left+FootMargin,a.Right-FootMargin);
@@ -143,7 +195,8 @@ namespace Yumi.Desktop
             Edge best=null;
             double[] starts={Clamp((b.Left+b.Right)/2,a.Left+FootMargin,a.Right-FootMargin),a.Left+FootMargin,a.Right-FootMargin};
             foreach(double start in starts)
-                foreach(double end in new[]{Clamp(start,b.Left+FootMargin,b.Right-FootMargin),b.Left+FootMargin,b.Right-FootMargin})
+                foreach(double end in new[]{Clamp(start,b.Left+FootMargin,b.Right-FootMargin),b.Left+FootMargin,b.Right-FootMargin,
+                    Clamp(a.Left-FootMargin*2,b.Left+FootMargin,b.Right-FootMargin),Clamp(a.Right+FootMargin*2,b.Left+FootMargin,b.Right-FootMargin)})
                 {
                     Edge e=Flight(a,b,start,end);
                     if(e!=null&&(best==null||e.Duration+Math.Abs(e.EndX-e.LaunchX)/Speed<best.Duration+Math.Abs(best.EndX-best.LaunchX)/Speed))best=e;
@@ -154,18 +207,23 @@ namespace Yumi.Desktop
         {
             DesktopSurface source=Surface(SupportId);
             if(source==null) {Message="Land before choosing a route.";return false;}
+            DesktopMonitor monitor=Desktop.Monitors.FirstOrDefault(m=>m.Id==target.MonitorId);
+            if(!String.IsNullOrEmpty(target.WindowId)&&monitor!=null&&target.Y-monitor.Bounds.Y<MinimumHeadroom)
+            {Message="This window edge leaves too little room above the avatar to stay visible.";return false;}
             if(source.Id==target.Id)
             {
                 route.Clear();pending=null;goal=(target.Left+target.Right)/2;SelectGait(Math.Abs(goal.Value-X));Stationary=false;manualUntil=clock+30;return true;
             }
             Dictionary<string,double> costs=new Dictionary<string,double>{{source.Id,0}};
             Dictionary<string,Edge> parents=new Dictionary<string,Edge>();HashSet<string> done=new HashSet<string>();
+            var navigation=Desktop.Surfaces.OrderBy(s=>Math.Abs((s.Left+s.Right)/2-X)+Math.Abs(s.Y-Y)+Math.Abs(s.Y-target.Y)).Take(48)
+                .Concat(Desktop.Surfaces.Where(s=>s.Id.StartsWith("floor:")||s.Id==source.Id||s.Id==target.Id)).GroupBy(s=>s.Id).Select(g=>g.First()).ToArray();
             while(true)
             {
                 string key=costs.Where(p=>!done.Contains(p.Key)).OrderBy(p=>p.Value).Select(p=>p.Key).FirstOrDefault();
                 if(key==null)break;if(key==target.Id)break;done.Add(key);
                 DesktopSurface a=Surface(key);
-                foreach(DesktopSurface b in Desktop.Surfaces)
+                foreach(DesktopSurface b in navigation)
                 {
                     if(b.Id==a.Id||done.Contains(b.Id))continue;
                     Edge edge=BestEdge(a,b);if(edge==null)continue;
@@ -182,15 +240,30 @@ namespace Yumi.Desktop
 
         public void Tick(double delta,bool autonomous=false,bool busy=false,double frequency=.3)
         {
+            if(Dragging)return;
             if(AutonomousActive&&(!autonomous||busy||Stationary))Stop();
             delta=Math.Max(0,Math.Min(.1,delta));int steps=Math.Max(1,(int)Math.Ceiling(delta*120));
             for(int i=0;i<steps;i++)Step(delta/steps);
             clock+=delta;
-            if(autonomous&&!busy&&!Stationary&&clock>Math.Max(nextAutonomy,manualUntil)&&SupportId!="")
+            double interval=8+28*(1-Math.Max(0,Math.Min(1,frequency)));
+            if(AutonomousActive&&!Navigating&&!autonomousArrived) {autonomousArrived=true;AutonomousActive=false;nextAutonomy=clock+interval;}
+            if(autonomous&&!busy&&!Stationary&&!Navigating&&clock>Math.Max(nextAutonomy,manualUntil)&&SupportId!="")
             {
-                nextAutonomy=clock+Math.Max(30,90/Math.Max(.1,frequency));Behavior="OBSERVING";
-                DesktopWindow active=Desktop.Windows.FirstOrDefault(w=>w.Foreground);
-                if(active!=null&&RequestWindowId(active.Id,false)) {Behavior="EXPLORING";AutonomousActive=true;}
+                nextAutonomy=clock+interval;Behavior="OBSERVING";AutonomousActive=false;
+                var candidates=Desktop.Surfaces.Where(s=>s.Id!=SupportId&&s.Right-s.Left>FootMargin*2).ToArray();
+                for(int attempt=0;attempt<Math.Min(6,candidates.Length);attempt++)
+                {
+                    var destination=candidates[(autonomousChoice+attempt)%candidates.Length];
+                    if(!Navigate(destination))continue;
+                    autonomousChoice=(autonomousChoice+attempt+1)%Math.Max(1,candidates.Length);
+                    TargetWindow=destination.WindowId??"";sitAfter=!String.IsNullOrEmpty(destination.WindowId)&&autonomousChoice%2==0;
+                    manualUntil=clock;AutonomousActive=true;autonomousArrived=false;Behavior=sitAfter?"PERCHING":"EXPLORING";break;
+                }
+                if(!AutonomousActive)
+                {
+                    var floor=Surface(SupportId);
+                    if(floor!=null) {WalkToCursor(floor.Left+(floor.Right-floor.Left)*(autonomousChoice++%2==0?.22:.78));manualUntil=clock;AutonomousActive=true;autonomousArrived=false;Behavior="STROLLING";}
+                }
             }
         }
         void Step(double dt)
@@ -200,11 +273,13 @@ namespace Yumi.Desktop
             {
                 DesktopSurface destination=Surface(crossing.To);
                 if(destination==null) {Stop();SupportId="";State=CharacterMotion.Recovering;return;}
-                double difference=crossing.EndX-X;
-                double dx=Math.Sign(difference)*Math.Min(Math.Abs(difference),Speed*(run?1.6:1)*dt);
-                X+=dx;Distance+=Math.Abs(dx);VelocityX=dt>0?dx/dt:0;State=run?CharacterMotion.Running:CharacterMotion.Walking;
+                double dxTotal=crossing.EndX-crossing.LaunchX,dyTotal=destination.Y-crossing.StartY;
+                double duration=Math.Max(.05,Math.Sqrt(dxTotal*dxTotal+dyTotal*dyTotal)/(Speed*(run?1.6:1)));
+                crossing.Progress=Math.Min(1,crossing.Progress+dt/duration);
+                double oldX=X;X=crossing.LaunchX+dxTotal*crossing.Progress;Y=crossing.StartY+dyTotal*crossing.Progress;
+                Distance+=Math.Abs(X-oldX);VelocityX=dt>0?(X-oldX)/dt:0;State=run?CharacterMotion.Running:CharacterMotion.Walking;
                 if(Contains(destination,X,0))SupportId=destination.Id;
-                if(Math.Abs(crossing.EndX-X)<.001) {SupportId=destination.Id;Y=destination.Y;crossing=null;VelocityX=0;State=CharacterMotion.Idle;if(route.Count==0)goal=(destination.Left+destination.Right)/2;}
+                if(crossing.Progress>=1) {SupportId=destination.Id;Y=destination.Y;crossing=null;VelocityX=0;State=CharacterMotion.Idle;if(route.Count==0)goal=(destination.Left+destination.Right)/2;}
                 return;
             }
             if(SupportId!="")
@@ -220,7 +295,7 @@ namespace Yumi.Desktop
                     Edge current=from==null||to==null?null:(pending.Walk?BestEdge(from,to):Flight(from,to,X,pending.EndX));
                     pending=null;
                     if(current==null) {Stop();Message="Route changed before launch.";return;}
-                    if(current.Walk) {crossing=current;return;}
+                    if(current.Walk) {current.LaunchX=X;current.StartY=Y;crossing=current;return;}
                     VelocityX=current.VX;VelocityY=current.VY;SupportId="";State=CharacterMotion.JumpAirborne;return;
                 }
                 if(route.Count>0)goal=route.Peek().LaunchX;
@@ -247,7 +322,7 @@ namespace Yumi.Desktop
                 double disc=VelocityY*VelocityY+2*Gravity*(p.Y-Y);if(disc<-1e-6)continue;
                 disc=Math.Max(0,disc);
                 double t=(-VelocityY+Math.Sqrt(disc))/Gravity;
-                if(t>=-1e-8&&t<=dt+1e-8&&t<hit&&VelocityY+Gravity*t>=-1e-6&&Contains(p,X+VelocityX*t,FootMargin)) {landing=p;hit=Clamp(t,0,dt);}
+                if(t>=-1e-8&&t<=dt+1e-8&&t<hit&&VelocityY+Gravity*t>=-1e-6&&Contains(p,X+VelocityX*t,p.Id.StartsWith("floor:")?0:FootMargin)) {landing=p;hit=Clamp(t,0,dt);}
             }
             if(landing!=null)
             {
