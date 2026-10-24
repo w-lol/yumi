@@ -17,10 +17,10 @@ namespace Yumi.Desktop
     {
         public HairLink[] links=new HairLink[0];
         public Animator animator;
-        public bool SimulationEnabled=true;
+        public bool SimulationEnabled=false;
         public float Damping=.06f,Spring=60,Gravity=.6f;
         float accumulator;
-        bool initialized;
+        bool initialized,applied;
         Transform head,neck,hips;
         float headRadius;
         void Start()
@@ -37,11 +37,13 @@ namespace Yumi.Desktop
         void Update()
         {
             // Remove last frame's simulation before Animator updates the original pose.
-            foreach(var link in links)if(link.bone!=null)link.bone.localRotation=link.animated;
+            if(applied)foreach(var link in links)if(link.bone!=null)link.bone.localRotation=link.animated;
+            applied=false;
         }
         void LateUpdate()
         {
             if(!SimulationEnabled){ResetParticles();return;}
+            applied=true;
             foreach(var link in links)if(link.bone!=null)link.animated=link.bone.localRotation;
             accumulator=Mathf.Min(.08f,accumulator+Time.unscaledDeltaTime);
             const float step=1f/90;
@@ -87,6 +89,6 @@ namespace Yumi.Desktop
             accumulator=0;
             foreach(var link in links)if(link.bone!=null){link.current=link.previous=link.bone.TransformPoint(link.localTip);link.anchor=link.bone.position;}
         }
-        void OnDisable(){if(initialized)foreach(var link in links)if(link.bone!=null)link.bone.localRotation=link.animated;}
+        void OnDisable(){if(initialized&&applied)foreach(var link in links)if(link.bone!=null)link.bone.localRotation=link.animated;}
     }
 }

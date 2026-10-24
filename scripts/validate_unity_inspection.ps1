@@ -120,6 +120,10 @@ VRC.Core.Logger.LogWarning("VideoPlayer using DIRECT audio output fixed.");
     if (-not $Configuration.web_enabled) { throw 'Requested read-only web option was not enabled.' }
     if (-not $Configuration.unity_autonomous -or $Configuration.unity_stationary -or -not $Configuration.screen_enabled -or $Configuration.monitor_index -ne 0 -or -not $Configuration.unity_drag_enabled) { throw 'Requested desktop behavior settings were not enabled.' }
     if ($Configuration.persona -cne 'My own persona' -or $Configuration.screen_exclusions[0] -cne 'private.exe') { throw 'User persona/capture exclusions were overwritten.' }
+    & (Join-Path $PSScriptRoot 'Repair-AvatarInstallation.ps1') -Root $TestRoot -SourceRoot $SourceRoot -StabilizeAvatar
+    $Stable=Get-Content -LiteralPath $Config -Raw | ConvertFrom-Json
+    if ($Stable.unity_autonomous -or -not $Stable.unity_stationary -or $Stable.unity_hair_physics -or $Stable.unity_idle_gestures -or $Stable.unity_cursor_reach -or $Stable.unity_typing_attention) { throw 'Stability preset did not stop experimental/unsolicited behavior.' }
+    if ($Stable.persona -cne 'My own persona' -or $Stable.screen_exclusions[0] -cne 'private.exe' -or -not $Stable.web_enabled) { throw 'Stability preset modified unrelated settings.' }
     # A bad source checksum must fail before replacing any installed files.
     $BadSource=Join-Path $TestRoot 'bad-source'
     New-Item -ItemType Directory -Force -Path $BadSource | Out-Null

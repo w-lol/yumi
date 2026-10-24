@@ -108,7 +108,7 @@ class Controller:
                 'adaptive_jumps':self.settings['unity_adaptive_jumps'],'jump_limit':self.settings['unity_jump_limit'],
                 'head_yaw':self.settings['unity_head_yaw'],'head_pitch':self.settings['unity_head_pitch'],
                 'drag_enabled':self.settings['unity_drag_enabled'],
-                'typing_attention':self.settings['unity_typing_attention'],'hair_physics':self.settings['unity_hair_physics'],'hair_damping':self.settings['unity_hair_damping'],'hair_spring':self.settings['unity_hair_spring']}
+                'idle_gestures':self.settings['unity_idle_gestures'],'cursor_reach':self.settings['unity_cursor_reach'],'typing_attention':self.settings['unity_typing_attention'],'hair_physics':self.settings['unity_hair_physics'],'hair_damping':self.settings['unity_hair_damping'],'hair_spring':self.settings['unity_hair_spring']}
 
     def set_state(self, state):
         self.state = state

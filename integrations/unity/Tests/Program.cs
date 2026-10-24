@@ -21,6 +21,21 @@ static class Program
         TestSourceSyntax();
         TestOverlayTransparency();
         TestArmReach();
+        var size=new AvatarSize();size.Request(.6);for(int i=0;i<120;i++)size.Step(1.0/60);
+        Check(Math.Abs(size.Current-.6)<1e-9,"Requested avatar size did not settle");
+        foreach(double invalid in new[]{0.0,-1,Double.NaN,Double.PositiveInfinity})size.Request(invalid);
+        for(int i=0;i<300;i++)Check(Math.Abs(size.Step(1.0/60)-.6)<1e-9,"Missing packets or invalid scale caused size pulsing");
+        size.Request(1.2);double previous=size.Current;
+        for(int i=0;i<120;i++){double next=size.Step(1.0/60);Check(next>=previous&&next<=1.2,"Intentional resize oscillated");previous=next;}
+        Console.WriteLine("Avatar size: stable between packets, invalid samples rejected, intentional resizing monotonic.");
+        var anchor=new PoseAnchor();double planted=anchor.Sample("Standing",.12,true,1.0/60);
+        for(int i=0;i<300;i++)Check(Math.Abs(anchor.Sample("Standing",.12+Math.Sin(i)*.2,true,1.0/60)-planted)<1e-9,"Foot animation must not pump the avatar root");
+        Check(anchor.Sample("Perched",.7,false,.1)==planted,"Pose transition changed contact before settling");
+        double last=planted;
+        for(int i=0;i<120;i++){double next=anchor.Sample("Perched",.7,true,1.0/60);Check(Math.Abs(next-last)<=.7/60+1e-9,"Contact transition snapped");last=next;}
+        Check(Math.Abs(last-.7)<1e-9,"Settled pose contact did not converge");
+        Check(anchor.Sample("Perched",Double.NaN,true,.1)==last,"Invalid anchor sample was accepted");
+        Console.WriteLine("Pose anchor: animated foot jitter rejected; settled contact transitions bounded.");
         var latch=new ReachLatch();latch.Tick(true,true,.8f,.7f,.1f);latch.Tick(true,false,.5f,.8f,.1f);Check(latch.Right&&!latch.Both,"Reaching hand swapped across centerline");latch.Tick(true,false,.5f,.96f,.1f);Check(latch.Right&&latch.Both,"Second hand did not assist");latch.Tick(false,false,0,0,1.1f);Check(!latch.HasHand,"Reach latch never released");
         TestDesktopBehavior();
         TestPantsRepair();

@@ -19,11 +19,12 @@ namespace Yumi.Desktop
         public bool active, speaking, topmost, clickthrough, stationary, autonomous, visible=true;
         public int frame_rate=30;
         public float animation_speed=1;
-        public bool adaptive_jumps=true,drag_enabled=true,hair_physics=true,typing_attention=true;
+        public bool adaptive_jumps=true,drag_enabled=true,hair_physics=false,typing_attention=true,idle_gestures=false,cursor_reach=false;
         public float hair_damping=.06f,hair_spring=60;
         public float jump_limit=1200,head_yaw=70,head_pitch=35;
         public long audio_epoch, mouth_time_ms;
-        public float audio_level, scale, frequency, movement_speed, jump_height;
+        public float scale=1;
+        public float audio_level, frequency, movement_speed, jump_height;
         public MouthState mouth;
         public AffectState affect;
     }

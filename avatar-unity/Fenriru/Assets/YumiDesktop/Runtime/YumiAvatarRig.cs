@@ -23,6 +23,7 @@ namespace Yumi.Desktop
         public float TravelWorldSpeed;
         public float SoleDepth=.035f;
         public bool ReachForCursor;
+        public bool IdleGestures;
         public Vector3 ReachTarget;
         float reachBlend;
         readonly ReachLatch reachChoice=new ReachLatch();
@@ -69,7 +70,7 @@ namespace Yumi.Desktop
             foreach(var item in restore)if(item.Key!=null)item.Key.localRotation=item.Value;
             restore.Clear();
             if(!Ready)return;
-            string selected=Motion;
+            string selected=Motion=="Talking"?"Idle":Motion;
             if(selected!=currentClip&&HasClip(selected))
             {
                 bool resting=selected=="Sitting"||selected=="SittingEdge"||selected=="Lying"||currentClip=="Sitting"||currentClip=="SittingEdge"||currentClip=="Lying";
@@ -90,7 +91,7 @@ namespace Yumi.Desktop
             if(now>nextArmGesture){armGestureUntil=now+3;nextArmGesture=now+12+(float)random.NextDouble()*12;}
             if(idleArmLayer>=0)
             {
-                float targetWeight=(Motion=="Idle"||Motion=="Talking")&&!ReachForCursor&&now<armGestureUntil?.55f:0;
+                float targetWeight=IdleGestures&&(Motion=="Idle"||Motion=="Talking")&&!ReachForCursor&&now<armGestureUntil?.55f:0;
                 armLayerWeight=Mathf.MoveTowards(armLayerWeight,targetWeight,dt*1.5f);animator.SetLayerWeight(idleArmLayer,armLayerWeight);
             }
             PlaybackFrame frame=timeline.Sample(Now);

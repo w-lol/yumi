@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace Yumi.Desktop
 {
+    [DefaultExecutionOrder(100)]
     public sealed class YumiDesktopAvatar : MonoBehaviour
     {
         public YumiBackendClient backend;
@@ -22,11 +23,11 @@ namespace Yumi.Desktop
         float deadline,lastReport;
         bool lastStationary=true,lastActive,follow;
         float travelYaw=180;
-        float seatBlend;
-        float appearance=1,displayScale=1,lookUntil;
+        readonly PoseAnchor contactAnchor=new PoseAnchor();
+        readonly AvatarSize size=new AvatarSize();
+        readonly System.Collections.Generic.Dictionary<Transform,Vector3> authoredScales=new System.Collections.Generic.Dictionary<Transform,Vector3>();
+        float lookUntil,lastScaleWarning=-10;
         Vector2 lookPoint;
-        float groundOffset;
-        bool groundCalibrated;
         bool pointerWasDown,dragging;
         Vector2 dragOffset;
         Renderer[] avatarRenderers;
@@ -37,6 +38,9 @@ namespace Yumi.Desktop
             Application.runInBackground=true;QualitySettings.vSyncCount=0;
             Application.targetFrameRate=frameRate;
             if(backend==null||rig==null||view==null||placement==null) {Debug.LogError("Incomplete Yumi desktop scene");enabled=false;return;}
+            authoredScales[rig.transform]=rig.transform.localScale;
+            Transform skeleton=rig.animator.GetBoneTransform(HumanBodyBones.Hips);
+            for(int i=0;skeleton!=null&&skeleton!=placement&&i<32;i++,skeleton=skeleton.parent)authoredScales[skeleton]=skeleton.localScale;
             avatarRenderers=rig.GetComponentsInChildren<Renderer>(true);
             backend.StateReceived+=Receive;backend.ActionReceived+=Action;
             backend.Disconnected+=Disconnect;backend.ConnectedToBackend+=Ready;
@@ -52,7 +56,7 @@ namespace Yumi.Desktop
         void Ready() {backend.ReportReady(ExecutorReady,"Rig="+rig.Ready+"; overlay="+overlay.Available+"; monitors="+(geometry==null?0:geometry.Current.Monitors.Length));}
         void Receive(AvatarState value)
         {
-            state=value;rig.State(value);
+            state=value;size.Request(value.scale);rig.State(value);rig.IdleGestures=value.idle_gestures;
             var hair=rig.GetComponent<YumiHairDynamics>();
             if(hair!=null){hair.SimulationEnabled=value.hair_physics;hair.Damping=Mathf.Clamp(value.hair_damping,.01f,.3f);hair.Spring=Mathf.Clamp(value.hair_spring,5,200);}
             overlay.Topmost=value.topmost;overlay.ClickThrough=value.clickthrough;
@@ -157,9 +161,13 @@ namespace Yumi.Desktop
         {
             if(desktop.Height<=0)return;
             placement.position=new Vector3((float)(motion.X-desktop.X-desktop.Width/2)*Unit,(float)(desktop.Y+desktop.Height/2-motion.Y)*Unit,0);
-            float surfaceY=placement.position.y;
-            displayScale=Mathf.MoveTowards(displayScale,(state==null?1:state.scale)*appearance,Time.unscaledDeltaTime*.5f);
-            float scale=Mathf.Clamp(displayScale,.25f,3);
+            foreach(var entry in authoredScales)
+                if(entry.Key!=null&&Vector3.SqrMagnitude(entry.Key.localScale-entry.Value)>.00000001f)
+                {
+                    if(Time.unscaledTime-lastScaleWarning>5){Debug.LogWarning("Blocked animated model/skeleton scale change on "+entry.Key.name+"; settings own avatar size");lastScaleWarning=Time.unscaledTime;}
+                    entry.Key.localScale=entry.Value;
+                }
+            float scale=(float)size.Step(Time.unscaledDeltaTime);
             placement.localScale=Vector3.one*(320*Unit*scale/Mathf.Max(.1f,originalHeight));
             Transform leftFoot=rig.animator.GetBoneTransform(HumanBodyBones.LeftFoot),rightFoot=rig.animator.GetBoneTransform(HumanBodyBones.RightFoot);
             Transform leftToe=rig.animator.GetBoneTransform(HumanBodyBones.LeftToes),rightToe=rig.animator.GetBoneTransform(HumanBodyBones.RightToes);
@@ -168,11 +176,18 @@ namespace Yumi.Desktop
                 float bottom=Mathf.Min(leftFoot.position.y,rightFoot.position.y);
                 if(leftToe!=null)bottom=Mathf.Min(bottom,leftToe.position.y);
                 if(rightToe!=null)bottom=Mathf.Min(bottom,rightToe.position.y);
-                if(motion.State==CharacterMotion.Lying){Transform hips=rig.animator.GetBoneTransform(HumanBodyBones.Hips);if(hips!=null)bottom=Mathf.Min(bottom,hips.position.y-.08f*rig.transform.lossyScale.y);}
-                float contact=bottom-rig.SoleDepth*rig.transform.lossyScale.y-placement.position.y;
-                bool grounded=motion.SupportId!=""&&motion.State!=CharacterMotion.JumpStart;
-                if(!groundCalibrated||grounded){groundOffset=contact;groundCalibrated=true;}
-                placement.position-=Vector3.up*groundOffset;
+                if(motion.State==CharacterMotion.Lying){Transform lyingHips=rig.animator.GetBoneTransform(HumanBodyBones.Hips);if(lyingHips!=null)bottom=Mathf.Min(bottom,lyingHips.position.y-.08f*rig.transform.lossyScale.y);}
+                var support=motion.Desktop.Surfaces.FirstOrDefault(s=>s.Id==motion.SupportId);
+                bool perched=motion.State==CharacterMotion.Sitting&&support!=null&&!String.IsNullOrEmpty(support.WindowId);
+                Transform hips=rig.animator.GetBoneTransform(HumanBodyBones.Hips);
+                if(perched&&hips!=null)bottom=hips.position.y;
+                float localContact=(bottom-placement.position.y)/Mathf.Max(.001f,placement.lossyScale.y);
+                if(!perched)localContact-=rig.SoleDepth*rig.transform.lossyScale.y/Mathf.Max(.001f,placement.lossyScale.y);
+                string pose=perched?"Perched":motion.State==CharacterMotion.Lying?"Lying":motion.State==CharacterMotion.Sitting?"Sitting":"Standing";
+                int bodyLayer=rig.animator.GetLayerIndex("YumiMotion");
+                bool settled=motion.SupportId!=""&&!motion.SettlingPose&&(bodyLayer<0||!rig.animator.IsInTransition(bodyLayer));
+                float offset=(float)contactAnchor.Sample(pose,localContact,settled,Time.unscaledDeltaTime);
+                placement.position-=Vector3.up*offset*placement.lossyScale.y;
             }
             rig.Motion=motion.State.ToString();
             rig.TravelWorldSpeed=(float)Math.Abs(motion.VelocityX)*Unit;
@@ -186,15 +201,8 @@ namespace Yumi.Desktop
             if(motion.State==CharacterMotion.JumpStart)rig.Motion="Jumping";
             if(state!=null&&state.speaking&&motion.State==CharacterMotion.Idle)rig.Motion="Talking";
             if(motion.State==CharacterMotion.Dragging)rig.Motion="Idle";
-            var support=motion.Desktop.Surfaces.FirstOrDefault(s=>s.Id==motion.SupportId);
-            bool perched=motion.State==CharacterMotion.Sitting&&support!=null&&!String.IsNullOrEmpty(support.WindowId);
-            seatBlend=Mathf.MoveTowards(seatBlend,perched?1:0,Time.unscaledDeltaTime*.8f);
-            if(perched)rig.Motion="SittingEdge";
-            if(seatBlend>0)
-            {
-                Transform hips=rig.animator.GetBoneTransform(HumanBodyBones.Hips);
-                if(hips!=null)placement.position-=Vector3.up*(hips.position.y-surfaceY)*seatBlend;
-            }
+            var currentSupport=motion.Desktop.Surfaces.FirstOrDefault(s=>s.Id==motion.SupportId);
+            if(motion.State==CharacterMotion.Sitting&&currentSupport!=null&&!String.IsNullOrEmpty(currentSupport.WindowId))rig.Motion="SittingEdge";
             DesktopGeometry.POINT cursor;
             // The avatar root faces the camera at 180 degrees: positive local yaw
             // turns toward desktop left. Vertical pitch already follows correctly.
@@ -208,7 +216,7 @@ namespace Yumi.Desktop
                 Vector3 headPixel=view.WorldToScreenPoint(head==null?rig.transform.position:head.position);
                 double headX=desktop.X+headPixel.x,headY=desktop.Y+desktop.Height-headPixel.y;
                 rig.Gaze=travelling&&!motion.Sidestepping?Vector3.zero:new Vector3(Mathf.Atan2((float)(headX-cursor.X),120*scale)*Mathf.Rad2Deg,Mathf.Atan2((float)(cursor.Y-headY),150*scale)*Mathf.Rad2Deg,0);
-                rig.ReachForCursor=!watchingCaret&&Time.unscaledTime>=lookUntil&&state!=null&&state.active&&!motion.Navigating&&(motion.State==CharacterMotion.Idle||motion.State==CharacterMotion.Sitting)&&Math.Abs(cursor.X-motion.X)<90*scale&&cursor.Y>motion.Y-300*scale&&cursor.Y<motion.Y-80*scale;
+                rig.ReachForCursor=state!=null&&state.cursor_reach&&!watchingCaret&&Time.unscaledTime>=lookUntil&&state!=null&&state.active&&!motion.Navigating&&(motion.State==CharacterMotion.Idle||motion.State==CharacterMotion.Sitting)&&Math.Abs(cursor.X-motion.X)<90*scale&&cursor.Y>motion.Y-300*scale&&cursor.Y<motion.Y-80*scale;
                 float depth=view.WorldToScreenPoint(rig.transform.position).z;
                 rig.ReachTarget=view.ScreenToWorldPoint(new Vector3((float)(cursor.X-desktop.X),(float)(desktop.Height-cursor.Y+desktop.Y),depth));
             }
@@ -222,12 +230,12 @@ namespace Yumi.Desktop
             switch(action.type)
             {
                 case "stop_movement":case "stay":motion.Stay();backend.CompleteAction(id,true,motion.SupportId==""?"Route stopped; finishing a safe landing":"Movement stopped");return;
-                case "reset_avatar":motion.Recover();backend.CompleteAction(id,true,motion.Message);return;
+                case "reset_avatar":size.ResetProximity();motion.Recover();backend.CompleteAction(id,true,motion.Message);return;
                 case "set_expression":bool supported=rig.PreviewExpression(action.expression);backend.CompleteAction(id,supported,supported?"Expression preview started (5 seconds)":"Unsupported expression");return;
                 case "stand":motion.Stand();accepted=true;break;
                 case "lie_down":motion.Lie();accepted=motion.State==CharacterMotion.Lying||motion.State==CharacterMotion.Sitting;break;
                 case "resume_roaming":motion.ResumeRoaming();backend.CompleteAction(id,true,"Autonomous movement resumed");return;
-                case "come_closer":case "step_back":appearance=Mathf.Clamp(appearance*(action.type=="come_closer"?1.2f:1/1.2f),.5f,1.8f);backend.CompleteAction(id,true,"Appearance scale target adjusted");return;
+                case "come_closer":case "step_back":size.Nearer(action.type=="come_closer");backend.CompleteAction(id,true,"Appearance scale target adjusted");return;
                 case "look_at":
                     var window=motion.Desktop.Windows.FirstOrDefault(w=>w.Id==action.target);
                     if(window==null){backend.CompleteAction(id,false,"Target window is not visible");return;}

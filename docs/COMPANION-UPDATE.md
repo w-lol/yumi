@@ -59,3 +59,32 @@ PhysBones. Edge navigation uses existing walk/jump routing; a dedicated climbing
 animation/controller is not implemented. Live public search could not be verified
 because this environment's network policy does not allow the search service.
 Original avatar assets/controllers are preserved; only Yumi add-on files changed.
+
+## Stability correction after user visual feedback
+
+The user reported whole-body size pulsing and poor hair motion. This patch retains the
+last requested size across bridge disconnects, rejects missing/invalid size values,
+and restores authored model/skeleton ancestor scales after animation evaluation.
+Intentional resizing is controlled by the separate placement parent. Blocked animation
+scale changes produce a throttled player-log warning. These address concrete resize
+paths; the exact visual cause on the user's PC has not been reproduced here.
+
+Ground contact now samples once per settled pose and blends between contact anchors,
+rather than chasing moving foot bones every frame. Talking uses the same body idle
+state, avoiding repeated crossfades as speech starts/stops. Unsolicited arm sway and
+cursor reaching are separate opt-in controls. Disabled hair simulation now leaves
+animated bones alone after restoring any last simulated offset; it defaults off.
+The experimental solver is not presented as repaired or visually validated physics.
+
+Run the pinned updater with `-StabilizeAvatar -Build` to back up settings and disable
+hair physics, autonomous actions, automatic reaching, arm sway and caret attention.
+Manual movement commands, speech and memory remain available. Re-enable behavior
+individually only after checking the quiet baseline. Do not pass `-EnableAutonomy`
+for this stability install. No model download or conversation upgrade is required.
+
+Validation: the existing 47 Python tests passed. Pure C# tests additionally verify no
+size oscillation between valid updates, rejection of invalid scale samples, monotonic
+intentional resizing, rejection of repeated foot-animation jitter and bounded contact
+transitions. Source parsing/scope checks pass across 38 Editor/player variants. The
+PowerShell fixture checks that the stability preset preserves unrelated settings.
+Windows Unity visual confirmation remains necessary.
