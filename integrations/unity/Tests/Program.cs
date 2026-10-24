@@ -21,6 +21,7 @@ static class Program
         TestSourceSyntax();
         TestOverlayTransparency();
         TestArmReach();
+        var latch=new ReachLatch();latch.Tick(true,true,.8f,.7f,.1f);latch.Tick(true,false,.5f,.8f,.1f);Check(latch.Right&&!latch.Both,"Reaching hand swapped across centerline");latch.Tick(true,false,.5f,.96f,.1f);Check(latch.Right&&latch.Both,"Second hand did not assist");latch.Tick(false,false,0,0,1.1f);Check(!latch.HasHand,"Reach latch never released");
         TestDesktopBehavior();
         TestPantsRepair();
         TestPlayback();

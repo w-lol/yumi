@@ -21,9 +21,13 @@ namespace Yumi.Desktop
         public Vector3 Gaze;
         public float MotionSpeed=1;
         public float TravelWorldSpeed;
+        public float SoleDepth=.035f;
         public bool ReachForCursor;
         public Vector3 ReachTarget;
         float reachBlend;
+        readonly ReachLatch reachChoice=new ReachLatch();
+        int idleArmLayer=-1;
+        float nextArmGesture,armGestureUntil,armLayerWeight;
         public float MaximumHeadYaw=70,MaximumHeadPitch=35;
         float gazeYaw,gazePitch;
         readonly PlaybackTimeline timeline=new PlaybackTimeline();
@@ -41,6 +45,7 @@ namespace Yumi.Desktop
                 if(!String.IsNullOrEmpty(name))shapes[name]=face.mesh.sharedMesh.GetBlendShapeIndex(name);
             Diagnostic="Playback mouth estimates; original rig; unverified Windows appearance";
             nextBlink=Time.unscaledTime+2+(float)random.NextDouble()*4;
+            idleArmLayer=animator.GetLayerIndex("YumiIdleArms");nextArmGesture=Time.unscaledTime+8;
             animator.applyRootMotion=false;animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
         }
         public void State(AvatarState state)
@@ -65,7 +70,11 @@ namespace Yumi.Desktop
             restore.Clear();
             if(!Ready)return;
             string selected=Motion;
-            if(selected!=currentClip&&HasClip(selected)) {animator.CrossFadeInFixedTime("YumiMotion."+selected,.18f);currentClip=selected;}
+            if(selected!=currentClip&&HasClip(selected))
+            {
+                bool resting=selected=="Sitting"||selected=="SittingEdge"||selected=="Lying"||currentClip=="Sitting"||currentClip=="SittingEdge"||currentClip=="Lying";
+                animator.CrossFadeInFixedTime("YumiMotion."+selected,selected=="Lying"||currentClip=="Lying"?1.35f:resting?1.1f:selected=="Jumping"?.18f:.35f);currentClip=selected;
+            }
             float strideRate=1;
             if(Motion=="Walking"||Motion=="Running"||Motion.StartsWith("Sidestep"))
                 foreach(var entry in clips)
@@ -78,6 +87,12 @@ namespace Yumi.Desktop
         {
             if(!Ready)return;
             float now=Time.unscaledTime,dt=Time.unscaledDeltaTime;
+            if(now>nextArmGesture){armGestureUntil=now+3;nextArmGesture=now+12+(float)random.NextDouble()*12;}
+            if(idleArmLayer>=0)
+            {
+                float targetWeight=(Motion=="Idle"||Motion=="Talking")&&!ReachForCursor&&now<armGestureUntil?.55f:0;
+                armLayerWeight=Mathf.MoveTowards(armLayerWeight,targetWeight,dt*1.5f);animator.SetLayerWeight(idleArmLayer,armLayerWeight);
+            }
             PlaybackFrame frame=timeline.Sample(Now);
             float mix=1-Mathf.Exp(-dt*25);
             Smooth(face.aa,frame.Aa*100,mix);Smooth(face.ih,frame.Ih*100,mix);Smooth(face.ou,frame.Ou*100,mix);
@@ -125,15 +140,31 @@ namespace Yumi.Desktop
                 Add(HumanBodyBones.RightLowerLeg,Quaternion.Euler(Mathf.Max(0,step)*12,0,0));
             }
             reachBlend=Mathf.MoveTowards(reachBlend,ReachForCursor?1:0,dt*3);
+            float leftRatio=ReachRatio(false),rightRatio=ReachRatio(true);
+            reachChoice.Tick(ReachForCursor,rightRatio<leftRatio,leftRatio,rightRatio,dt);
             if(reachBlend>0)
             {
-                bool right=animator.transform.InverseTransformPoint(ReachTarget).x>=0;
+                ReachArm(reachChoice.Right,reachBlend);
+                if(reachChoice.Both)ReachArm(!reachChoice.Right,reachBlend);
+            }
+        }
+        float ReachRatio(bool right)
+        {
+            Transform arm=animator.GetBoneTransform(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm),elbow=animator.GetBoneTransform(right?HumanBodyBones.RightLowerArm:HumanBodyBones.LeftLowerArm),hand=animator.GetBoneTransform(right?HumanBodyBones.RightHand:HumanBodyBones.LeftHand);
+            return arm==null||elbow==null||hand==null?100:Vector3.Distance(ReachTarget,arm.position)/Mathf.Max(.001f,Vector3.Distance(arm.position,elbow.position)+Vector3.Distance(elbow.position,hand.position));
+        }
+        void ReachArm(bool right,float weight)
+        {
                 Transform arm=animator.GetBoneTransform(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm);
                 Transform elbow=animator.GetBoneTransform(right?HumanBodyBones.RightLowerArm:HumanBodyBones.LeftLowerArm);
                 Transform hand=animator.GetBoneTransform(right?HumanBodyBones.RightHand:HumanBodyBones.LeftHand);
                 if(arm!=null&&elbow!=null&&hand!=null&&arm.parent!=null)
                 {
-                    Vector3 current=elbow.position-arm.position,reachDirection=ReachTarget-arm.position;
+                    Transform finger=animator.GetBoneTransform(right?HumanBodyBones.RightMiddleDistal:HumanBodyBones.LeftMiddleDistal);
+                    float palmLength=finger==null?Vector3.Distance(hand.position,elbow.position)*.3f:Vector3.Distance(finger.position,hand.position);
+                    Vector3 aim=(ReachTarget-arm.position).normalized;
+                    Vector3 wristTarget=ReachTarget-aim*palmLength*.85f;
+                    Vector3 current=elbow.position-arm.position,reachDirection=wristTarget-arm.position;
                     double distance,along,bend;
                     if(reachDirection.sqrMagnitude>.0001f&&TwoBoneReach.Solve(current.magnitude,(hand.position-elbow.position).magnitude,reachDirection.magnitude,out distance,out along,out bend))
                     {
@@ -146,13 +177,19 @@ namespace Yumi.Desktop
                         Quaternion desired=Quaternion.FromToRotation(current,elbowTarget-arm.position)*arm.rotation;
                         Quaternion local=Quaternion.Inverse(arm.parent.rotation)*desired;
                         Quaternion offset=Quaternion.Inverse(arm.localRotation)*local;
-                        Add(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm,Quaternion.Slerp(Quaternion.identity,offset,reachBlend));
+                        Add(right?HumanBodyBones.RightUpperArm:HumanBodyBones.LeftUpperArm,Quaternion.Slerp(Quaternion.identity,offset,weight));
                         Quaternion elbowDesired=Quaternion.FromToRotation(hand.position-elbow.position,handTarget-elbow.position)*elbow.rotation;
                         Quaternion elbowLocal=Quaternion.Inverse(elbow.parent.rotation)*elbowDesired;
-                        Add(right?HumanBodyBones.RightLowerArm:HumanBodyBones.LeftLowerArm,Quaternion.Slerp(Quaternion.identity,Quaternion.Inverse(elbow.localRotation)*elbowLocal,reachBlend));
+                        Add(right?HumanBodyBones.RightLowerArm:HumanBodyBones.LeftLowerArm,Quaternion.Slerp(Quaternion.identity,Quaternion.Inverse(elbow.localRotation)*elbowLocal,weight));
+                        Transform proximal=animator.GetBoneTransform(right?HumanBodyBones.RightMiddleProximal:HumanBodyBones.LeftMiddleProximal);
+                        if(proximal!=null&&hand.parent!=null)
+                        {
+                            Quaternion palm=Quaternion.FromToRotation(proximal.position-hand.position,ReachTarget-hand.position)*hand.rotation;
+                            Quaternion localPalm=Quaternion.Inverse(hand.parent.rotation)*palm;
+                            Add(right?HumanBodyBones.RightHand:HumanBodyBones.LeftHand,Quaternion.Slerp(Quaternion.identity,Quaternion.Inverse(hand.localRotation)*localPalm,weight));
+                        }
                     }
                 }
-            }
         }
         void Add(HumanBodyBones bone,Quaternion offset)
         {Transform t=animator.GetBoneTransform(bone);if(t==null)return;if(!restore.ContainsKey(t))restore[t]=t.localRotation;t.localRotation=t.localRotation*offset;}

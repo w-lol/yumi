@@ -51,7 +51,7 @@ def classify(text, ongoing=False, talkativeness=.7):
     if re.match(r'^(?:please )?(?:stop|go|jump|sit|stand|wave|run|look|move|stay)\b', value):
         return Delivery('direct_command', 'neutral', 120)
     follow_up=bool(re.search(r"\b(let.s (?:talk|chat)|ask me|your turn)\b",value))
-    return Delivery('ongoing' if ongoing else 'small_talk', 'neutral', max(160, int(220 + talkativeness * 300)), follow_up)
+    return Delivery('ongoing' if ongoing else 'small_talk', 'neutral', max(160, int(100 + talkativeness * 160)), follow_up)
 
 
 def outside_parentheses(text):
@@ -87,6 +87,7 @@ def speech_text(text):
     text = re.sub(r'<(think|analysis|reasoning|tool_call)\b[^>]*>[\s\S]*?(?:</\1\s*>|$)', ' ', text, flags=re.I)
     text = re.sub(r'\[[^\]]*\]\(([^)]+)\)', lambda m: re.sub(r'\]\(.*', '', m.group(0))[1:], text)
     text = outside_parentheses(text)
+    text = re.sub(r'\[\d{1,2}(?:,\s*\d{1,2})*\]', ' ', text)
     text = re.sub(r'https?://\S+', ' ', text)
     text = re.sub(r'\*[^*\n]{1,100}\*', lambda m: ' ' if re.search(r'\b(sighs?|laughs?|smiles?|thinks?|whispers?|pauses?|chuckles?|waves?|nods?)\b', m[0], re.I) else m[0].strip('*'), text)
     text = re.sub(r'\[(?:laughs?|sighs?|pause|thinking|emotion|action)[^\]]*\]', ' ', text, flags=re.I)

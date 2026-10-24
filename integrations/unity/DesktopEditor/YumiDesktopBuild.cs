@@ -75,6 +75,7 @@ namespace Yumi.Desktop.Editor
                 AnimatorController controller=CreateController(fx,rig);
                 ApplyExpressionDefaults(controller,settings);
                 animator.runtimeAnimatorController=controller;animator.applyRootMotion=false;
+                ConfigureHair(clone,animator);
                 // SDK runtime behaviours do not work standalone. Remove them only from this
                 // generated clone, and record each missing feature rather than imply it works.
                 foreach(Component component in clone.GetComponentsInChildren<Component>(true))
@@ -145,7 +146,11 @@ namespace Yumi.Desktop.Editor
                 GameObject host=new GameObject("Yumi desktop runtime");
                 var backend=host.AddComponent<YumiBackendClient>();var overlay=host.AddComponent<YumiWindowsOverlay>();
                 var avatar=host.AddComponent<YumiDesktopAvatar>();avatar.backend=backend;avatar.overlay=overlay;avatar.rig=rig;
-                avatar.view=camera;avatar.placement=placement.transform;avatar.originalHeight=bounds.size.y;
+                avatar.view=camera;avatar.placement=placement.transform;
+                Transform headBone=animator.GetBoneTransform(HumanBodyBones.Head),footBone=animator.GetBoneTransform(HumanBodyBones.LeftFoot);
+                avatar.originalHeight=headBone!=null&&footBone!=null?Mathf.Max(.4f,headBone.position.y-footBone.position.y+.16f*clone.transform.lossyScale.y):bounds.size.y;
+                rig.SoleDepth=.035f;
+                notes.Add("Standing contact uses animated feet/toes, not renderer bounds; anatomical height="+avatar.originalHeight);
                 EditorSceneManager.SaveScene(scene,Output+"/YumiDesktop.unity");
                 File.WriteAllLines(Output+"/standalone-adaptation.txt",notes);
                 AssetDatabase.SaveAssets();
@@ -187,6 +192,36 @@ namespace Yumi.Desktop.Editor
                 }
             throw new InvalidOperationException("Selected prefab has no FX animation layer.");
         }
+        static void ConfigureHair(GameObject clone,Animator animator)
+        {
+            var roots=new List<Transform>();var ignored=new HashSet<Transform>();
+            foreach(Component component in clone.GetComponentsInChildren<Component>(true))
+            {
+                if(component==null||component.GetType().Name!="VRCPhysBone")continue;
+                var data=new SerializedObject(component);var field=data.FindProperty("rootTransform");
+                Transform root=field==null?null:field.objectReferenceValue as Transform;
+                if(root==null)root=component.transform;
+                if(!System.Text.RegularExpressions.Regex.IsMatch(root.name,"hair|bang",System.Text.RegularExpressions.RegexOptions.IgnoreCase))continue;
+                roots.Add(root);
+                var exclude=data.FindProperty("ignoreTransforms");
+                if(exclude!=null&&exclude.isArray)for(int i=0;i<exclude.arraySize;i++) {var t=exclude.GetArrayElementAtIndex(i).objectReferenceValue as Transform;if(t!=null)ignored.Add(t);}
+            }
+            var links=new List<HairLink>();var seen=new HashSet<Transform>();
+            foreach(Transform root in roots)
+            {
+                var pending=new Stack<Transform>();pending.Push(root);
+                while(pending.Count>0)
+                {
+                    Transform bone=pending.Pop();if(ignored.Contains(bone)||!seen.Add(bone))continue;
+                    var children=new List<Transform>();
+                    foreach(Transform child in bone) {if(ignored.Contains(child))continue;pending.Push(child);if(child.localPosition.sqrMagnitude>.000001f)children.Add(child);}
+                    if(children.Count==1)links.Add(new HairLink {bone=bone,localTip=children[0].localPosition});
+                }
+            }
+            if(links.Count==0){notes.Add("No supported original hair spring links found; hair dynamics unavailable.");return;}
+            var dynamics=clone.AddComponent<YumiHairDynamics>();dynamics.animator=animator;dynamics.links=links.ToArray();
+            notes.Add("Standalone hair dynamics: "+roots.Count+" original PhysBone hair roots; "+links.Count+" links; head/body collision approximation. SDK PhysBone behavior is not reproduced exactly.");
+        }
         static AnimatorController CreateController(string fx,YumiAvatarRig rig)
         {
             string path=Output+"/YumiStandalone.controller";
@@ -200,8 +235,10 @@ namespace Yumi.Desktop.Editor
             string locomotion="Assets/Import/walkrun/Animation/Locomotion/";
             string proxy="Assets/Imported/Tail&Ears/Assets/AnimationClip/";
             foreach(string[] entry in new[]{
-                new[]{"Idle","Assets/Import/Cute Idle Swing.anim",pose+"go_stand.anim"},
-                new[]{"Talking","Assets/Import/Cute Idle Swing.anim",pose+"go_stand.anim"},
+                new[]{"Idle",proxy+"proxy_stand_still.anim",pose+"go_stand.anim"},
+                new[]{"Talking",proxy+"proxy_stand_still.anim",pose+"go_stand.anim"},
+                new[]{"IdleArms","Assets/Import/Cute Idle Swing.anim"},
+                new[]{"Lying",pose+"go_laydown_chill.anim",pose+"go_laydown_relax(ByGireison).anim"},
                 new[]{"Walking",locomotion+"Walk.anim",proxy+"proxy_walk_forward.anim"},
                 new[]{"Running",locomotion+"rig_a_loco_jog_Loop.anim",proxy+"proxy_run_forward.anim"},
                 new[]{"SidestepRight",proxy+"proxy_run_strafe_right.anim"},
@@ -243,7 +280,14 @@ namespace Yumi.Desktop.Editor
             AssetDatabase.AddObjectToAsset(mask,controller);
             var body=new AnimatorControllerLayer {name="YumiMotion",defaultWeight=1,stateMachine=machine,avatarMask=mask};
             // Last layer owns body motion; original FX keeps face/outfit/finger bindings.
-            controller.layers=controller.layers.Concat(new[]{body}).ToArray();rig.clips=bindings.ToArray();
+            var armsMask=new AvatarMask {name="Yumi occasional arms"};
+            for(int part=0;part<(int)AvatarMaskBodyPart.LastBodyPart;part++)armsMask.SetHumanoidBodyPartActive((AvatarMaskBodyPart)part,false);
+            armsMask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.LeftArm,true);armsMask.SetHumanoidBodyPartActive(AvatarMaskBodyPart.RightArm,true);
+            AssetDatabase.AddObjectToAsset(armsMask,controller);
+            var armsMachine=new AnimatorStateMachine {name="YumiIdleArms"};AssetDatabase.AddObjectToAsset(armsMachine,controller);
+            var armsState=armsMachine.AddState("Gentle arm sway");armsState.motion=bindings.First(c=>c.state=="IdleArms").clip;armsState.writeDefaultValues=false;armsMachine.defaultState=armsState;
+            var armsLayer=new AnimatorControllerLayer {name="YumiIdleArms",defaultWeight=0,stateMachine=armsMachine,avatarMask=armsMask};
+            controller.layers=controller.layers.Concat(new[]{body,armsLayer}).ToArray();rig.clips=bindings.ToArray();
             notes.Add("Original FX copied with parameters/layers. VRChat parameter/layer drivers removed; contacts, PhysBones and menus need standalone replacements.");
             return controller;
         }

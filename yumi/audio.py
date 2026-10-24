@@ -11,8 +11,9 @@ from .delivery import speech_text, STYLES
 
 
 class Utterances:
-    def __init__(self, threshold=0.015, rate=16000):
+    def __init__(self, threshold=0.015, rate=16000, pause=.55):
         self.threshold, self.rate = threshold, rate
+        self.pause=pause
         self.frames = []
         self.pre = deque(maxlen=5)
         self.silence = 0
@@ -43,7 +44,7 @@ class Utterances:
         else:
             self.pre.append(frame.copy())
         count = sum(len(x) for x in self.frames)
-        if self.frames and (self.silence >= self.rate * 0.55 or count >= self.rate * 12):
+        if self.frames and (self.silence >= self.rate * self.pause or count >= self.rate * 12):
             result = np.concatenate(self.frames) if self.voiced >= self.rate * 0.20 else None
             self.clear()
             return rms, result, speaking
@@ -217,15 +218,16 @@ class Audio:
                 vad.clear()
                 last_epoch = epoch
             vad.threshold = self.settings['vad_threshold']
+            vad.pause=max(.35,min(1.2,self.settings['speech_pause']))
             rms, utterance, voiced = vad.feed(frame)
             self.input_level = rms
-            if voiced and self.speaking and self.settings['audio_mode'] == 'headphones':
+            if voiced and vad.voiced >= vad.rate*.12 and self.speaking and self.settings['audio_mode'] == 'headphones':
                 if time.monotonic() - self.last_interrupt > 1:
                     self.last_interrupt = time.monotonic()
                     self.event('barge_in', {})
             if utterance is None or self.stt is None:
                 continue
-            self.last_end_of_speech = time.monotonic() - 0.55
+            self.last_end_of_speech = time.monotonic() - vad.pause
             start = time.perf_counter()
             self.event('recognizing', {})
             try:

@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace Yumi.Desktop
 {
-    public enum CharacterMotion { Idle,Listening,Thinking,Talking,Walking,Running,JumpStart,JumpAirborne,Landing,Sitting,Turning,Waving,Excited,Surprised,Recovering,Dragging }
+    public enum CharacterMotion { Idle,Listening,Thinking,Talking,Walking,Running,JumpStart,JumpAirborne,Landing,Sitting,Turning,Waving,Excited,Surprised,Recovering,Dragging,Lying,StandingUp,Climbing }
     public sealed class DesktopMotion
     {
         public double X,Y,VelocityX,VelocityY,Distance;
@@ -15,6 +15,8 @@ namespace Yumi.Desktop
         public double MaximumJumpHeight=640;
         public double MinimumHeadroom=240;
         public string SupportId="",TargetWindow="",Message="",Behavior="RESTING";
+        public string LastWindowId="";
+        public bool SettlingPose {get {return timer>0&&(State==CharacterMotion.Sitting||State==CharacterMotion.Lying||State==CharacterMotion.StandingUp);}}
         public CharacterMotion State=CharacterMotion.Idle;
         bool stationary;
         public bool Stationary
@@ -38,8 +40,10 @@ namespace Yumi.Desktop
         double? goal;
         Edge pending,crossing;
         bool run,sitAfter;
+        bool standBeforeMove;
         double clock,manualUntil,timer,nextAutonomy=8;
         int autonomousChoice;
+        int restChoice;
         bool autonomousArrived;
         sealed class Edge { public string From,To;public double LaunchX,EndX,Duration,VX,VY,StartY,Progress;public bool Walk; }
         public DesktopMotion() { Desktop=new DesktopSnapshot(); }
@@ -80,9 +84,11 @@ namespace Yumi.Desktop
         }
         public void Stop()
         {
+            standBeforeMove=State==CharacterMotion.Sitting||State==CharacterMotion.Lying||State==CharacterMotion.StandingUp;
             Dragging=false;AutonomousActive=false;route.Clear();goal=null;pending=null;crossing=null;if(SupportId!="")VelocityX=0;TargetWindow="";FollowCursor=false;sitAfter=false;Sidestepping=false;
             if(SupportId!="")State=CharacterMotion.Idle;
         }
+        public void ResumeRoaming() {Stationary=false;manualUntil=clock;nextAutonomy=clock;}
         public void Stay() { Stop();Stationary=true;manualUntil=Double.PositiveInfinity; }
         public void BeginDrag() {Stop();Dragging=true;SupportId="";VelocityX=VelocityY=0;State=CharacterMotion.Dragging;manualUntil=clock+45;}
         public void DragTo(double x,double y) {if(Dragging){X=x;Y=y;VelocityX=VelocityY=0;}}
@@ -100,16 +106,23 @@ namespace Yumi.Desktop
             Stop();Stationary=false;manualUntil=clock+30;
             if(String.IsNullOrWhiteSpace(query))return false;
             string q=query.Trim().ToLowerInvariant();if(q.EndsWith(".exe"))q=q.Substring(0,q.Length-4);
+            DesktopWindow identified=Desktop.Windows.FirstOrDefault(w=>w.Id==query);
+            if(identified!=null)return RequestWindowId(identified.Id,sit);
+            bool other=q.StartsWith("other ")||q.StartsWith("the other ")||q.StartsWith("another ");
+            q=System.Text.RegularExpressions.Regex.Replace(q,"^(?:the )?(?:other|another) ","");
+            q=System.Text.RegularExpressions.Regex.Replace(q,"^(?:the )|(?: window)$","").Trim();
             DesktopWindow[] exact=Desktop.Windows.Where(w=>String.Equals(w.Application,q,StringComparison.OrdinalIgnoreCase)||String.Equals(w.Title,q,StringComparison.OrdinalIgnoreCase)).ToArray();
             DesktopWindow[] matches=exact.Length>0?exact:Desktop.Windows.Where(w=>(w.Application+" "+w.Title).ToLowerInvariant().Contains(q)).ToArray();
-            if(matches.Length!=1) {Message=matches.Length==0?"No matching visible application window.":"Several windows match; specify a window title.";return false;}
+            if(matches.Length==0&&q=="powershell")matches=Desktop.Windows.Where(w=>new[]{"pwsh","windowsterminal"}.Contains((w.Application??"").ToLowerInvariant())).ToArray();
+            if(other)matches=matches.Where(w=>w.Id!=LastWindowId).ToArray();
+            if(matches.Length==0) {Message="No matching visible application window.";return false;}
             return RequestWindowId(matches[0].Id,sit);
         }
         bool RequestWindowId(string id,bool sit)
         {
             bool found=false;
             foreach(DesktopSurface target in Desktop.Surfaces.Where(p=>p.WindowId==id).OrderBy(p=>Math.Abs((p.Left+p.Right)/2-X)+Math.Abs(p.Y-Y)))
-            {found=true;if(Navigate(target)) {TargetWindow=id;sitAfter=sit;return true;}}
+            {found=true;if(Navigate(target)) {LastWindowId=id;TargetWindow=id;sitAfter=sit;return true;}}
             if(!found)Message="This window has no exposed top edge to stand on.";
             return false;
         }
@@ -131,15 +144,23 @@ namespace Yumi.Desktop
         {
             DesktopSurface source=Surface(SupportId);if(source==null)return false;
             Stop();Stationary=false;manualUntil=clock+30;run=running;
-            goal=Clamp(x,source.Left+FootMargin,source.Right-FootMargin);SelectGait(Math.Abs(goal.Value-X),running);return true;
+            goal=Clamp(x,source.Left+FootMargin,source.Right-FootMargin);SelectGait(Math.Abs(goal.Value-X),running);PrepareMovement();return true;
         }
         void SelectGait(double distance,bool forceRun=false)
         {run=forceRun||distance>=600;Sidestepping=!run&&distance<=90;}
         public void Sit()
         {
             if(SupportId=="")return;
-            Stop();State=CharacterMotion.Sitting;manualUntil=clock+30;
+            Stop();State=CharacterMotion.Sitting;timer=1.1;manualUntil=clock+30;
         }
+        public void Lie()
+        {
+            var support=Surface(SupportId);if(support==null)return;
+            if(support.Right-support.Left<MinimumHeadroom){Sit();return;}
+            Stop();State=CharacterMotion.Lying;timer=1.35;manualUntil=clock+30;
+        }
+        public void Stand() {bool resting=State==CharacterMotion.Sitting||State==CharacterMotion.Lying;Stop();if(resting){State=CharacterMotion.StandingUp;timer=1.35;}manualUntil=clock+30;}
+        void PrepareMovement() {if(standBeforeMove||State==CharacterMotion.Sitting||State==CharacterMotion.Lying){State=CharacterMotion.StandingUp;timer=1.35;standBeforeMove=false;}}
         public void Wave() { if(SupportId!=""){Stop();State=CharacterMotion.Waving;timer=2;manualUntil=clock+30;} }
 
         Edge Flight(DesktopSurface a,DesktopSurface b,double start,double end)
@@ -212,7 +233,7 @@ namespace Yumi.Desktop
             {Message="This window edge leaves too little room above the avatar to stay visible.";return false;}
             if(source.Id==target.Id)
             {
-                route.Clear();pending=null;goal=(target.Left+target.Right)/2;SelectGait(Math.Abs(goal.Value-X));Stationary=false;manualUntil=clock+30;return true;
+                route.Clear();pending=null;goal=(target.Left+target.Right)/2;SelectGait(Math.Abs(goal.Value-X));Stationary=false;manualUntil=clock+30;PrepareMovement();return true;
             }
             Dictionary<string,double> costs=new Dictionary<string,double>{{source.Id,0}};
             Dictionary<string,Edge> parents=new Dictionary<string,Edge>();HashSet<string> done=new HashSet<string>();
@@ -235,7 +256,7 @@ namespace Yumi.Desktop
             List<Edge> reversed=new List<Edge>();string cursor=target.Id;
             while(cursor!=source.Id) {Edge e=parents[cursor];reversed.Add(e);cursor=e.From;}
             reversed.Reverse();route.Clear();foreach(Edge e in reversed)route.Enqueue(e);
-            pending=null;goal=null;Stationary=false;manualUntil=clock+30;SelectGait(Math.Abs((target.Left+target.Right)/2-X)+Math.Abs(target.Y-Y));Message="Reachable route planned.";return true;
+            pending=null;goal=null;Stationary=false;manualUntil=clock+30;SelectGait(Math.Abs((target.Left+target.Right)/2-X)+Math.Abs(target.Y-Y));PrepareMovement();Message="Reachable route planned.";return true;
         }
 
         public void Tick(double delta,bool autonomous=false,bool busy=false,double frequency=.3)
@@ -250,6 +271,9 @@ namespace Yumi.Desktop
             if(autonomous&&!busy&&!Stationary&&!Navigating&&clock>Math.Max(nextAutonomy,manualUntil)&&SupportId!="")
             {
                 nextAutonomy=clock+interval;Behavior="OBSERVING";AutonomousActive=false;
+                int rest=restChoice++%4;
+                if(rest==1) {Sit();manualUntil=clock;nextAutonomy=clock+interval;Behavior="RESTING";return;}
+                if(rest==2) {Lie();manualUntil=clock;nextAutonomy=clock+interval*1.5;Behavior="RESTING";return;}
                 var candidates=Desktop.Surfaces.Where(s=>s.Id!=SupportId&&s.Right-s.Left>FootMargin*2).ToArray();
                 for(int attempt=0;attempt<Math.Min(6,candidates.Length);attempt++)
                 {
@@ -284,10 +308,10 @@ namespace Yumi.Desktop
             }
             if(SupportId!="")
             {
-                if((State==CharacterMotion.Landing||State==CharacterMotion.Recovering||State==CharacterMotion.Waving)&&timer>0)return;
-                if(State==CharacterMotion.Landing||State==CharacterMotion.Recovering||State==CharacterMotion.Waving)State=CharacterMotion.Idle;
+                if((State==CharacterMotion.Landing||State==CharacterMotion.Recovering||State==CharacterMotion.Waving||State==CharacterMotion.StandingUp)&&timer>0)return;
+                if(State==CharacterMotion.Landing||State==CharacterMotion.Recovering||State==CharacterMotion.Waving||State==CharacterMotion.StandingUp)State=CharacterMotion.Idle;
                 if(sitAfter&&route.Count==0&&pending==null&&!goal.HasValue)
-                {State=CharacterMotion.Sitting;sitAfter=false;}
+                {State=CharacterMotion.Sitting;timer=1.1;sitAfter=false;}
                 if(pending!=null)
                 {
                     if(timer>0)return;
@@ -311,7 +335,7 @@ namespace Yumi.Desktop
                     {
                         goal=null;VelocityX=0;
                         if(route.Count>0) {pending=route.Dequeue();State=pending.Walk?CharacterMotion.Walking:CharacterMotion.JumpStart;timer=pending.Walk?0:.15;}
-                        else {State=sitAfter?CharacterMotion.Sitting:CharacterMotion.Idle;sitAfter=false;}
+                        else {State=sitAfter?CharacterMotion.Sitting:CharacterMotion.Idle;if(sitAfter)timer=1.1;sitAfter=false;}
                     }
                 }
                 return;

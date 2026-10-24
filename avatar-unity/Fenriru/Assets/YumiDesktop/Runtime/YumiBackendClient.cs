@@ -19,7 +19,8 @@ namespace Yumi.Desktop
         public bool active, speaking, topmost, clickthrough, stationary, autonomous, visible=true;
         public int frame_rate=30;
         public float animation_speed=1;
-        public bool adaptive_jumps=true,drag_enabled=true;
+        public bool adaptive_jumps=true,drag_enabled=true,hair_physics=true,typing_attention=true;
+        public float hair_damping=.06f,hair_spring=60;
         public float jump_limit=1200,head_yaw=70,head_pitch=35;
         public long audio_epoch, mouth_time_ms;
         public float audio_level, scale, frequency, movement_speed, jump_height;
@@ -31,7 +32,9 @@ namespace Yumi.Desktop
     [Serializable] class StateEnvelope { public int protocol; public string type, session; public long sequence; public AvatarState payload; }
     [Serializable] class ActionEnvelope { public int protocol; public string type, id; public AvatarAction payload; }
     [Serializable] class MessageHeader { public int protocol; public string type; }
-    [Serializable] class ClientStatus { public bool ready, success; public string renderer, message, action_id; }
+    [Serializable] class SceneWindow {public string id,title,app;}
+    [Serializable] class SceneMonitor {public string id,label;}
+    [Serializable] class ClientStatus { public bool ready, success; public string renderer, message, action_id,current_window,pointer_window;public SceneWindow[] windows;public SceneMonitor[] monitors; }
     [Serializable] class ClientEnvelope { public int protocol = 1; public string type; public ClientStatus payload; }
 
     public sealed class YumiBackendClient : MonoBehaviour
@@ -105,6 +108,19 @@ namespace Yumi.Desktop
         {
             Queue(new ClientEnvelope { type="action_result",payload=new ClientStatus { ready=ready,action_id=id,success=success,message=message } });
         }
+        public void ReportScene(DesktopSnapshot scene,string currentWindow,string pointerWindow)
+        {
+            var windows=new System.Collections.Generic.List<SceneWindow>();
+            foreach(var window in scene.Windows)
+            {
+                if(windows.Count>=32)break;
+                string title=window.Title??"",app=window.Application??"";
+                windows.Add(new SceneWindow {id=window.Id,title=title.Substring(0,Math.Min(120,title.Length)),app=app.Substring(0,Math.Min(64,app.Length))});
+            }
+            var monitors=new System.Collections.Generic.List<SceneMonitor>();
+            foreach(var monitor in scene.Monitors) {if(monitors.Count>=12)break;monitors.Add(new SceneMonitor {id=monitor.Id,label=monitor.Id});}
+            Queue(new ClientEnvelope {type="scene",payload=new ClientStatus {windows=windows.ToArray(),monitors=monitors.ToArray(),current_window=currentWindow,pointer_window=pointerWindow}});
+        }
         void Queue(ClientEnvelope value)
         {
             if (outgoing.Count<32) outgoing.Enqueue(JsonUtility.ToJson(value));
@@ -116,7 +132,7 @@ namespace Yumi.Desktop
             {
                 case "move_to_window": case "jump_to_platform": case "walk_to_position": case "run_to_position":
                 case "sit": case "stand": case "wave": case "look_at": case "stop_movement": case "set_expression":
-                case "stay": case "follow_cursor": case "other_monitor": case "reset_avatar": return true;
+                case "stay": case "follow_cursor": case "other_monitor": case "reset_avatar": case "lie_down":case "come_closer":case "step_back":case "resume_roaming":return true;
                 default: return false;
             }
         }

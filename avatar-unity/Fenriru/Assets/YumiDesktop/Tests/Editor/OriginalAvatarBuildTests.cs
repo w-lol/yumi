@@ -121,7 +121,8 @@ namespace Yumi.Desktop.Editor.Tests
 
             StringAssert.Contains(YumiDesktopBuild.Source,File.ReadAllText("Assets/YumiDesktopGenerated/standalone-adaptation.txt"));
             var controller=rig.animator.runtimeAnimatorController as AnimatorController;Assert.IsNotNull(controller);
-            Assert.AreEqual("YumiMotion",controller.layers.Last().name,"Original FX must not override locomotion");
+            Assert.AreEqual("YumiMotion",controller.layers[controller.layers.Length-2].name,"Original FX must not override locomotion");
+            Assert.AreEqual("YumiIdleArms",controller.layers.Last().name);
             var prefab=AssetDatabase.LoadAssetAtPath<GameObject>(YumiDesktopBuild.Source);
             var descriptor=prefab.GetComponents<Component>().Single(c=>c!=null&&c.GetType().Name=="VRCAvatarDescriptor");
             var parameterAsset=YumiDesktopBuild.ResolveExpressionParameters(new SerializedObject(descriptor));

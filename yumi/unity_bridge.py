@@ -11,7 +11,7 @@ import uuid
 from .paths import atomic_json
 
 ACTION_TYPES={'move_to_window','jump_to_platform','walk_to_position','run_to_position',
-              'reset_avatar','sit','stand','wave','look_at','stop_movement','set_expression','stay','follow_cursor','other_monitor'}
+              'reset_avatar','sit','stand','wave','look_at','stop_movement','set_expression','stay','follow_cursor','other_monitor','lie_down','come_closer','step_back','resume_roaming'}
 
 
 def action_intent(text):
@@ -49,7 +49,7 @@ class UnityBridge:
         self.session=uuid.uuid4().hex;self.token=secrets.token_urlsafe(32)
         self.descriptor=paths.tmp/'avatar-bridge.json'
         self.thread=None;self.closed=threading.Event();self.ready=threading.Event()
-        self.connected=False;self.port=None;self.error='';self.status={}
+        self.connected=False;self.port=None;self.error='';self.status={};self.scene={}
         self.actions=deque(maxlen=32);self.lock=threading.Lock();self.sequence=0
 
     def start(self):
@@ -71,7 +71,7 @@ class UnityBridge:
 
     async def _serve(self):
         from websockets.asyncio.server import serve
-        async with serve(self._client,'127.0.0.1',0,origins=[None],max_size=16384,
+        async with serve(self._client,'127.0.0.1',0,origins=[None],max_size=65536,
                          max_queue=4,close_timeout=.5,ping_interval=10,ping_timeout=10) as server:
             self.port=server.sockets[0].getsockname()[1]
             atomic_json(self.descriptor,{'protocol':1,'session':self.session,'url':f'ws://127.0.0.1:{self.port}/avatar/v1','token':self.token})
@@ -84,7 +84,7 @@ class UnityBridge:
             not secrets.compare_digest(socket.request.headers.get('Authorization',''),'Bearer '+self.token)):
             await socket.close(1008,'Unauthorized');return
         if self.connected:await socket.close(1008,'An avatar is already connected');return
-        self.connected=True;self.status={}
+        self.connected=True;self.status={};self.scene={}
         receive=asyncio.create_task(self._receive(socket))
         try:
             while not self.closed.is_set() and not receive.done():
@@ -103,17 +103,26 @@ class UnityBridge:
             receive.cancel()
             try:await receive
             except (asyncio.CancelledError,Exception):pass
-            self.connected=False
+            self.connected=False;self.scene={}
             with self.lock:self.actions.clear()
 
     async def _receive(self,socket):
         async for raw in socket:
             try:data=json.loads(raw)
             except (ValueError,TypeError):await socket.close(1008,'Invalid JSON');return
-            if not isinstance(data,dict) or data.get('protocol')!=1 or data.get('type') not in ('hello','status','action_result'):
+            if not isinstance(data,dict) or data.get('protocol')!=1 or data.get('type') not in ('hello','status','action_result','scene'):
                 await socket.close(1008,'Unsupported protocol message');return
             payload=data.get('payload',{})
             if not isinstance(payload,dict):await socket.close(1008,'Invalid payload');return
+            if data['type']=='scene':
+                windows=[]
+                for item in (payload.get('windows',[]) if isinstance(payload.get('windows',[]),list) else [])[:32]:
+                    if isinstance(item,dict) and all(isinstance(item.get(k,''),str) for k in ('id','title','app')):
+                        windows.append({k:item.get(k,'')[:160] for k in ('id','title','app')})
+                self.scene={'windows':windows,'current_window':str(payload.get('current_window',''))[:160],
+                            'pointer_window':str(payload.get('pointer_window',''))[:160],
+                            'monitors':[{k:str(m.get(k,''))[:80] for k in ('id','label')} for m in (payload.get('monitors',[]) if isinstance(payload.get('monitors',[]),list) else [])[:12] if isinstance(m,dict)]}
+                continue
             # Inbound state is diagnostic only; it cannot operate the backend.
             self.status.update({k:(v[:2000] if isinstance(v,str) else v) for k,v in payload.items()
                                 if k in ('ready','renderer','message','action_id','success') and isinstance(v,(str,bool,int,float))})
