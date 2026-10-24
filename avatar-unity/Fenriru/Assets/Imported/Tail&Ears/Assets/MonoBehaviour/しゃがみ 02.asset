@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: しゃがみ 02(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: 内股
+    icon: {fileID: 2800000, guid: a9f621376e90816438de5b957766b368, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.111
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 内股ずらし
+    icon: {fileID: 2800000, guid: 75009e71b17a9554e8874b06969217a1, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.117
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 跪座
+    icon: {fileID: 2800000, guid: 34392a59ae8133d4293a2623c0718a49, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.114
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: S字
+    icon: {fileID: 2800000, guid: 016e27c21228dc842b54c829c21a8317, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.116
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 膝立ち(広)
+    icon: {fileID: 2800000, guid: a1b6267eabd14ab43bc55985e58c8cc2, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.112
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: スポッター
+    icon: {fileID: 2800000, guid: bf47c34c06fd7e24a8b87638eb13b514, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.115
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ヤンキー
+    icon: {fileID: 2800000, guid: c57b0ae0e46a1794d8f2c7097fecceae, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.113
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 蹲踞
+    icon: {fileID: 2800000, guid: e8e35f4b18b1b5146bc2af2146a521f6, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace
+    value: 0.118
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

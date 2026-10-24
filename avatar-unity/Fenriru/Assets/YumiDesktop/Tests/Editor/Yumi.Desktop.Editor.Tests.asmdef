@@ -1,0 +1,7 @@
+{
+  "name": "Yumi.Desktop.Editor.Tests",
+  "references": ["Yumi.Desktop.Runtime", "Yumi.Desktop.Build.Editor"],
+  "includePlatforms": ["Editor"],
+  "optionalUnityReferences": ["TestAssemblies"],
+  "autoReferenced": false
+}

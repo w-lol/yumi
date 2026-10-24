@@ -3,6 +3,10 @@
 Local Windows desktop companion. See [installation](docs/INSTALL.md),
 [architecture](docs/ARCHITECTURE.md), and [verification](docs/VERIFICATION.md).
 
+Original Unity avatar integration: [status, inspection tools and localhost protocol](docs/UNITY_INTEGRATION.md).
+The original Unity character is the target; its project must be available for inspection
+before a compatible overlay/player can be built. The existing avatar remains usable.
+
 Run: `python -m yumi --root <installation-directory>`.
 Tests: `python -m unittest discover -s tests -v`.
 
@@ -15,3 +19,5 @@ publish a prerelease by selecting `publish_release` and supplying a new release 
 The workflow packages the existing PowerShell setup bundle; runtime and model downloads
 happen during setup. CI checks Windows native imports, unit tests, PowerShell syntax,
 and archive integrity. It does not claim GPU or physical-device acceptance.
+
+Voice audition and delivery: [docs/VOICE_DELIVERY.md](docs/VOICE_DELIVERY.md).

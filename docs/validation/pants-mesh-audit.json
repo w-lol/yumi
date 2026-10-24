@@ -1,0 +1,66 @@
+{
+  "inspection": "Blender FBX mesh audit; no Unity import/render performed",
+  "blender": "4.3.2",
+  "source": "avatar-unity/Fenriru/Assets/ITEMS/Model/tda_dl_pouchy_v1_cyberpunk__by_kakaiya_ddawp25/untitled.fbx",
+  "sha256": "c19603c1ac975870b0826b5121e7d879804bc374cbd417bfe8182caaa029c05a",
+  "sections": [
+    {
+      "mesh": "Body",
+      "material": "EyeBase",
+      "polygons": 822,
+      "triangles": 822,
+      "bounds_world_meters": [
+        [
+          -0.055345602333545685,
+          -0.06273749470710754,
+          1.407458782196045
+        ],
+        [
+          0.05556320399045944,
+          -0.06198868900537491,
+          1.408339500427246
+        ]
+      ],
+      "surface_area_local": 3.84641632847349e-06
+    },
+    {
+      "mesh": "Body",
+      "material": "Blush",
+      "polygons": 41,
+      "triangles": 41,
+      "bounds_world_meters": [
+        [
+          -0.03901439905166626,
+          -0.06366308778524399,
+          1.4228036403656006
+        ],
+        [
+          0.0390079990029335,
+          -0.06343749165534973,
+          1.4237524271011353
+        ]
+      ],
+      "surface_area_local": 4.190537366000058e-07
+    },
+    {
+      "mesh": "Body",
+      "material": "Belts",
+      "polygons": 4945,
+      "triangles": 4945,
+      "bounds_world_meters": [
+        [
+          -0.18312884867191315,
+          -0.12456981092691422,
+          0.22626976668834686
+        ],
+        [
+          0.18341851234436035,
+          0.1121775433421135,
+          1.0532557964324951
+        ]
+      ],
+      "surface_area_local": 0.9780154152860803
+    }
+  ],
+  "repair_scope": "Generated copy only: omit unassigned EyeBase/Blush donor-face submeshes; retain Belts clothing geometry/material. Exact fingerprint and layout required."
+}

@@ -1,4 +1,5 @@
 # Windows x64 / CPython 3.13. Windows environment markers audited.
+websockets==17.3 --hash=sha256:66027e401c70d0cf55021b91b8a7ec2cd5810e20602f945b4fe6ae8b37ed232b
 PySide6==6.8.3 --hash=sha256:722dc0061d8ef6dbb8c0b99864f21e83a5b49ece1ecb2d0b890840d969e1e461
 PySide6_Addons==6.8.3 --hash=sha256:67548f6db11f4e1b7e4b6efd9c3fc2e8d275188a7b2feac388961128572a6955
 PySide6_Essentials==6.8.3 --hash=sha256:3c0fae5550aff69f2166f46476c36e0ef56ce73d84829eac4559770b0c034b07

@@ -1,0 +1,4 @@
+Artemis => 0
+Casual => 1
+PJs => 2
+Off => ?

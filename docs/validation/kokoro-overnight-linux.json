@@ -1,0 +1,29 @@
+{
+  "platform": "linux",
+  "backend": "kokoro",
+  "sample_rate": 24000,
+  "speakers": 54,
+  "load_seconds": 1.1431371740036411,
+  "samples": [
+    {
+      "voice": "af_heart",
+      "audio_seconds": 2.826875,
+      "synthesis_seconds": 2.2224212450018968,
+      "first_callback_seconds": 1.17100796700106
+    },
+    {
+      "voice": "af_bella",
+      "audio_seconds": 2.729375,
+      "synthesis_seconds": 1.7672153160019661,
+      "first_callback_seconds": 0.7943895749995136
+    }
+  ],
+  "status": "passed",
+  "application_queue": {
+    "canceled_epoch_silent": true,
+    "restarted_epoch_played": true,
+    "delivery_style_from_playback": true,
+    "parenthetical_not_spoken": true,
+    "physical_device_tested": false
+  }
+}

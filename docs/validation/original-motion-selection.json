@@ -1,0 +1,83 @@
+{
+  "note": "Actual existing project animation files. Humanoid import, retargeting, visual quality and final controller behavior still require Unity testing. Original clips are never modified.",
+  "clips": [
+    {
+      "path": "Assets/Import/Cute Idle Swing.anim",
+      "sha256": "e8a8e9e4370ccd4d63722adb9d735e05334a01b09e56397b43fe6fc1709e5d03",
+      "curve_attributes": 390,
+      "sample_attributes": [
+        "RootT.x",
+        "RootT.y",
+        "RootT.z",
+        "RootQ.x",
+        "RootQ.y",
+        "RootQ.z"
+      ]
+    },
+    {
+      "path": "Assets/Import/walkrun/Animation/Locomotion/Walk.anim",
+      "sha256": "63a648c908c3ccbce25c133f1bb6ac277919920cf341c2b5655a5a7276dbb85f",
+      "curve_attributes": 390,
+      "sample_attributes": [
+        "RootT.x",
+        "RootT.y",
+        "RootT.z",
+        "RootQ.x",
+        "RootQ.y",
+        "RootQ.z"
+      ]
+    },
+    {
+      "path": "Assets/Import/walkrun/Animation/Locomotion/rig_a_loco_jog_Loop.anim",
+      "sha256": "a5ed1938febfe0e9ebd6ed813504226f44b6d2846c4aa1f52da234428da81a99",
+      "curve_attributes": 393,
+      "sample_attributes": [
+        "RootT.x",
+        "RootT.y",
+        "RootT.z",
+        "RootQ.x",
+        "RootQ.y",
+        "RootQ.z"
+      ]
+    },
+    {
+      "path": "Assets/Imported/Tail&Ears/Assets/AnimationClip/proxy_run_strafe_right.anim",
+      "sha256": "fa6b4c8e83d4dcf6b84d9b0c896abda38caa99aa477a22778f44c445c0e806f4",
+      "curve_attributes": 112,
+      "sample_attributes": [
+        "Chest Front-Back",
+        "Chest Left-Right",
+        "Chest Twist Left-Right",
+        "Head Nod Down-Up",
+        "Head Tilt Left-Right",
+        "Head Turn Left-Right"
+      ]
+    },
+    {
+      "path": "Assets/GoGo/GoLoco/Animations/Clips/Poses/Clips/go_chair_sit_float.anim",
+      "sha256": "336a32fcf62a09ae03818572bcfd6bdc7b8b726cf1913c37d2c4b2c435ba2e8c",
+      "curve_attributes": 252,
+      "sample_attributes": [
+        "Chest Front-Back",
+        "Chest Left-Right",
+        "Chest Twist Left-Right",
+        "Head Nod Down-Up",
+        "Head Tilt Left-Right",
+        "Head Turn Left-Right"
+      ]
+    },
+    {
+      "path": "Assets/Import/v3/v3/EMOTE/Level 1/Hi & Bye/human_hello_friendly.anim",
+      "sha256": "a3a19c210b6e548183de4d42be067bee13ef115eb3ddd3a53dba6cd8edb47743",
+      "curve_attributes": 260,
+      "sample_attributes": [
+        "RootT.x",
+        "RootT.y",
+        "RootT.z",
+        "RootQ.x",
+        "RootQ.y",
+        "RootQ.z"
+      ]
+    }
+  ]
+}

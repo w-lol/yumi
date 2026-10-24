@@ -7,11 +7,13 @@ import time
 from collections import deque
 import numpy as np
 from .voice import configuration, speaker_id
+from .delivery import speech_text, STYLES
 
 
 class Utterances:
-    def __init__(self, threshold=0.015, rate=16000):
+    def __init__(self, threshold=0.015, rate=16000, pause=.55):
         self.threshold, self.rate = threshold, rate
+        self.pause=pause
         self.frames = []
         self.pre = deque(maxlen=5)
         self.silence = 0
@@ -42,7 +44,7 @@ class Utterances:
         else:
             self.pre.append(frame.copy())
         count = sum(len(x) for x in self.frames)
-        if self.frames and (self.silence >= self.rate * 0.55 or count >= self.rate * 12):
+        if self.frames and (self.silence >= self.rate * self.pause or count >= self.rate * 12):
             result = np.concatenate(self.frames) if self.voiced >= self.rate * 0.20 else None
             self.clear()
             return rms, result, speaking
@@ -69,6 +71,10 @@ class Audio:
         self.input_stream = self.output_stream = None
         self.output_level = 0.0
         self.input_level = 0.0
+        self.mouth = {'aa': 0.0, 'ih': 0.0, 'ou': 0.0}
+        self.mouth_time_ms = int(time.time()*1000)
+        self.speech_style = 'neutral'
+        self.playback_style = 'neutral'
         self.threads = []
         self.current = np.empty(0, np.float32)
         self.current_epoch = 0
@@ -165,7 +171,9 @@ class Audio:
         while filled < frames:
             if self.current_epoch != self.epoch or self.current_offset >= len(self.current):
                 try:
-                    epoch, self.current = self.playback.get_nowait()
+                    packet = self.playback.get_nowait()
+                    epoch, self.current = packet[:2]
+                    if len(packet) > 2: self.playback_style = packet[2]
                     self.current_epoch, self.current_offset = epoch, 0
                     if epoch != self.epoch:
                         self.current = np.empty(0, np.float32)
@@ -177,6 +185,14 @@ class Audio:
             self.current_offset += count
             filled += count
         self.output_level = float(np.sqrt(np.mean(outdata * outdata) + 1e-12))
+        energy = min(1.0, max(0.0,self.output_level-.002) * 14)
+        spectrum = np.abs(np.fft.rfft(outdata[:, 0]))
+        total = float(spectrum.sum()) + 1e-9
+        self.mouth = {'aa': energy, 'ou': energy * float(spectrum[:12].sum()) / total,
+                      'ih': energy * float(spectrum[12:70].sum()) / total}
+        try:delay=max(0,float(info.outputBufferDacTime-info.currentTime))
+        except (AttributeError,TypeError):delay=0
+        self.mouth_time_ms=int((time.time()+min(delay,1))*1000)
         self.speaking = filled > 0
         if filled:
             self.last_played = time.monotonic()
@@ -202,15 +218,16 @@ class Audio:
                 vad.clear()
                 last_epoch = epoch
             vad.threshold = self.settings['vad_threshold']
+            vad.pause=max(.35,min(1.2,self.settings['speech_pause']))
             rms, utterance, voiced = vad.feed(frame)
             self.input_level = rms
-            if voiced and self.speaking and self.settings['audio_mode'] == 'headphones':
+            if voiced and vad.voiced >= vad.rate*.12 and self.speaking and self.settings['audio_mode'] == 'headphones':
                 if time.monotonic() - self.last_interrupt > 1:
                     self.last_interrupt = time.monotonic()
                     self.event('barge_in', {})
             if utterance is None or self.stt is None:
                 continue
-            self.last_end_of_speech = time.monotonic() - 0.55
+            self.last_end_of_speech = time.monotonic() - vad.pause
             start = time.perf_counter()
             self.event('recognizing', {})
             try:
@@ -226,18 +243,37 @@ class Audio:
                 utterance.fill(0)
                 del utterance
 
-    def say(self, text):
-        if text.lstrip().startswith(('{', '[', '```')):
-            return
-        text = re.sub(r'```.*?```', '', text, flags=re.S)
+    @property
+    def delivery_style(self):
+        return self.speech_style if self.settings['speech_style']=='auto' else self.settings['speech_style']
+
+    def say(self, text, wait=False, cancel=None, audition=None):
+        text = speech_text(text)
+        if not text: return
         if not self.settings['voice'] or not self.active.is_set() or not self.tts:
             return
         if self.silenced.is_set():
             return
-        try:
-            self.speech.put_nowait((self.epoch, text[:700]))
-        except queue.Full:
-            self.event('speech_backpressure', {'reason': 'Speech queue full; remaining text stays in chat'})
+        epoch=self.epoch
+        # Capture synthesis settings with each phrase so a later UI change cannot
+        # change an already queued voice or expression halfway through an audition.
+        options = audition or {}
+        style = options.get('style', self.delivery_style)
+        if style not in STYLES: raise ValueError('Unsupported speech delivery')
+        selected = speaker_id(options.get('voice', self.settings['kokoro_voice'])) if self.tts_backend == 'kokoro' else 0
+        presets = self.settings['delivery_presets']
+        multiplier = presets.get(style, STYLES[style])
+        speed = max(.6, min(1.6, float(options.get('rate', self.settings['voice_rate'])) * float(multiplier)))
+        packet=(epoch,text,style,selected,speed)
+        while self.active.is_set() and not self.silenced.is_set() and self.settings['voice'] and epoch==self.epoch:
+            if cancel and cancel.is_set():return
+            try:
+                self.speech.put(packet,timeout=.1 if wait else 0)
+                return
+            except queue.Full:
+                if not wait:
+                    self.event('speech_backpressure', {'reason': 'Speech queue full; remaining text stays in chat'})
+                    return
 
     def new_turn(self, started_at=None):
         self.interrupt()
@@ -247,7 +283,7 @@ class Audio:
     def _synthesize(self):
         while not self.shutdown_event.is_set():
             try:
-                epoch, text = self.speech.get(timeout=0.1)
+                epoch, text, style, selected, speed = self.speech.get(timeout=0.1)
             except queue.Empty:
                 continue
             if epoch != self.epoch or self.silenced.is_set() or not self.active.is_set():
@@ -268,7 +304,7 @@ class Audio:
                 for offset in range(0, len(samples), self.rate // 4):
                     while epoch == self.epoch and self.active.is_set():
                         try:
-                            self.playback.put((epoch, samples[offset:offset+self.rate//4].copy()), timeout=0.1)
+                            self.playback.put((epoch, samples[offset:offset+self.rate//4].copy(), style), timeout=0.1)
                             break
                         except queue.Full:
                             continue
@@ -276,8 +312,7 @@ class Audio:
                         return 0
                 return 1
             try:
-                speed = self.settings['voice_rate'] * (0.95 + 0.1 * self.presentation().get('energy',0.5))
-                audio = self.tts.generate(text, sid=self.speaker_id, speed=max(0.6,min(1.6,speed)), callback=callback)
+                audio = self.tts.generate(text, sid=selected, speed=speed, callback=callback)
                 self.stats['synthesis_ms'] = (time.perf_counter() - start) * 1000
                 self.stats['synthesis_rtf'] = (time.perf_counter() - start) / max(0.001, len(audio.samples) / audio.sample_rate)
                 del audio
@@ -300,6 +335,8 @@ class Audio:
         self.speaking = False
         self.output_level = 0
         self.current = np.empty(0, np.float32)
+        self.mouth = {'aa': 0.0, 'ih': 0.0, 'ou': 0.0}
+        self.mouth_time_ms=int(time.time()*1000)
         self.current_offset = 0
         for q in (self.speech, self.playback):
             self.drain(q)

@@ -1,0 +1,187 @@
+{
+  "dependencies": {
+    "com.vrchat.avatars": {
+      "version": "3.6.1"
+    },
+    "com.vrchat.core.vpm-resolver": {
+      "version": "0.1.29"
+    },
+    "io.github.rurre.pumkinsavatartools": {
+      "version": "1.4.4"
+    },
+    "dev.hai-vr.animator-as-code.v1.vrchat": {
+      "version": "1.0.9940"
+    },
+    "dev.hai-vr.blendshape-viewer": {
+      "version": "2.1.1"
+    },
+    "dev.hai-vr.blendtree-viewer": {
+      "version": "1.0.7"
+    },
+    "dev.hai-vr.visual-expressions-editor": {
+      "version": "2.0.3"
+    },
+    "dev.hai-vr.animation-viewer": {
+      "version": "2.0.4"
+    },
+    "dev.hai-vr.cge": {
+      "version": "3.2.0"
+    },
+    "nadena.dev.modular-avatar": {
+      "version": "1.9.13"
+    },
+    "nadena.dev.misc-vrc-tools": {
+      "version": "0.0.8"
+    },
+    "com.vrcfury.vrcfury": {
+      "version": "1.994.0"
+    },
+    "dev.vrlabs.av3manager": {
+      "version": "2.0.32"
+    },
+    "vrchat.blackstartx.gesture-manager": {
+      "version": "3.9.4"
+    },
+    "lyuma.av3emulator": {
+      "version": "3.4.8"
+    },
+    "vrchat.jordo.easyquestswitch": {
+      "version": "1.4.0"
+    },
+    "jp.lilxyzw.avatar-utils": {
+      "version": "2.0.0"
+    },
+    "jp.lilxyzw.editortoolbox": {
+      "version": "1.5.1"
+    },
+    "jp.lilxyzw.liltoon": {
+      "version": "2.3.2"
+    }
+  },
+  "locked": {
+    "com.vrchat.avatars": {
+      "version": "3.6.1",
+      "dependencies": {
+        "com.vrchat.base": "3.6.1"
+      }
+    },
+    "com.vrchat.base": {
+      "version": "3.6.1",
+      "dependencies": {}
+    },
+    "com.vrchat.core.vpm-resolver": {
+      "version": "0.1.29",
+      "dependencies": {}
+    },
+    "io.github.rurre.pumkinsavatartools": {
+      "version": "1.4.4",
+      "dependencies": {}
+    },
+    "dev.hai-vr.animator-as-code.v1.vrchat": {
+      "version": "1.0.9940",
+      "dependencies": {
+        "dev.hai-vr.animator-as-code.v1": "~1.0.9940",
+        "com.vrchat.avatars": ">=3.3.0 <3.7.0-a"
+      }
+    },
+    "dev.hai-vr.animator-as-code.v1": {
+      "version": "1.0.9940",
+      "dependencies": {}
+    },
+    "dev.hai-vr.blendshape-viewer": {
+      "version": "2.1.1",
+      "dependencies": {
+        "dev.hai-vr.resilience.toolkit": "1.0.x"
+      }
+    },
+    "dev.hai-vr.resilience.toolkit": {
+      "version": "1.0.1",
+      "dependencies": {}
+    },
+    "dev.hai-vr.blendtree-viewer": {
+      "version": "1.0.7",
+      "dependencies": {}
+    },
+    "dev.hai-vr.visual-expressions-editor": {
+      "version": "2.0.3",
+      "dependencies": {
+        "dev.hai-vr.resilience.toolkit": "1.0.x"
+      }
+    },
+    "dev.hai-vr.animation-viewer": {
+      "version": "2.0.4",
+      "dependencies": {}
+    },
+    "dev.hai-vr.cge": {
+      "version": "3.2.0",
+      "dependencies": {
+        "dev.hai-vr.animation-viewer": "2.0.x",
+        "dev.hai-vr.visual-expressions-editor": "2.0.x",
+        "dev.hai-vr.animator-as-code.v1": "~1.0.9930",
+        "dev.hai-vr.animator-as-code.v1.vrchat": "1.0.x",
+        "dev.hai-vr.animator-as-code.v1.vrchat-destructive-workflow": "1.0.x",
+        "com.vrchat.avatars": ">=3.3.0 <3.7.0-a"
+      }
+    },
+    "dev.hai-vr.animator-as-code.v1.vrchat-destructive-workflow": {
+      "version": "1.0.9940",
+      "dependencies": {
+        "dev.hai-vr.animator-as-code.v1": "~1.0.9940",
+        "com.vrchat.avatars": ">=3.3.0 <3.7.0-a"
+      }
+    },
+    "nadena.dev.modular-avatar": {
+      "version": "1.9.13",
+      "dependencies": {
+        "com.vrchat.avatars": ">=3.4.0",
+        "nadena.dev.ndmf": ">=1.4.1 <2.0.0-a"
+      }
+    },
+    "nadena.dev.ndmf": {
+      "version": "1.4.1",
+      "dependencies": {}
+    },
+    "nadena.dev.misc-vrc-tools": {
+      "version": "0.0.8",
+      "dependencies": {}
+    },
+    "com.vrcfury.vrcfury": {
+      "version": "1.994.0",
+      "dependencies": {}
+    },
+    "dev.vrlabs.av3manager": {
+      "version": "2.0.32",
+      "dependencies": {
+        "com.vrchat.avatars": "3.2 - 3.6"
+      }
+    },
+    "vrchat.blackstartx.gesture-manager": {
+      "version": "3.9.4",
+      "dependencies": {
+        "com.vrchat.avatars": ">=3.5.2 < 3.9.X"
+      }
+    },
+    "lyuma.av3emulator": {
+      "version": "3.4.8",
+      "dependencies": {
+        "com.vrchat.avatars": "^3.1.0"
+      }
+    },
+    "vrchat.jordo.easyquestswitch": {
+      "version": "1.4.0",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.avatar-utils": {
+      "version": "2.0.0",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.editortoolbox": {
+      "version": "1.5.1",
+      "dependencies": {}
+    },
+    "jp.lilxyzw.liltoon": {
+      "version": "2.3.2",
+      "dependencies": {}
+    }
+  }
+}

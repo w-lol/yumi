@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import sys
 import time
+import threading
 import traceback
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -56,6 +57,38 @@ def run(root, output, prepare=False):
                                   'first_callback_seconds': chunks[0]['seconds']})
         samples.fill(0)
         del audio
+    # Exercise the application's real bounded synthesis queue without an audio device.
+    # Callback arrays stay in RAM; this tests scheduling/cancellation, not perceived sound.
+    from yumi.audio import Audio
+    from yumi.settings import Settings
+    settings=Settings(paths)
+    audio=Audio(paths,settings,lambda *_:None,lambda _:None)
+    audio.tts=tts;audio.tts_backend='kokoro';audio.rate=tts.sample_rate;audio.active.set()
+    worker=threading.Thread(target=audio._synthesize,daemon=True);worker.start()
+    out=np.zeros((512,1),dtype=np.float32)
+    def played(style,timeout=30):
+        deadline=time.monotonic()+timeout
+        while time.monotonic()<deadline:
+            audio._output(out,512,None,None)
+            if audio.speaking and audio.playback_style==style and np.max(np.abs(out))>.001:return
+            time.sleep(.005)
+        raise AssertionError('No current-epoch audio callback for '+style)
+    try:
+        audio.new_turn()
+        audio.say('Hello (smiles). Let me explain what we found.',audition={'voice':'af_heart','style':'thoughtful','rate':1.0})
+        played('thoughtful')
+        audio.interrupt();audio._output(out,512,None,None)
+        assert not np.any(out) and not audio.speaking and not any(audio.mouth.values())
+        audio.new_turn()
+        audio.say('That worked! We can keep going.',audition={'voice':'af_bella','style':'excited','rate':1.0})
+        played('excited')
+        assert 'smiles' not in audio.last_spoken_text
+        result['application_queue']={'canceled_epoch_silent':True,'restarted_epoch_played':True,
+            'delivery_style_from_playback':True,'parenthetical_not_spoken':True,'physical_device_tested':False}
+    finally:
+        audio.close();worker.join(timeout=10)
+        assert not worker.is_alive(), 'Synthesis worker failed to stop'
+        out.fill(0)
     atomic_json(output, result)
     print(json.dumps(result, indent=2))
 

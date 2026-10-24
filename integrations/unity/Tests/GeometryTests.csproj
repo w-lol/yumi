@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.dll</HintPath></Reference>
+    <Reference Include="Microsoft.CodeAnalysis.CSharp"><HintPath>$(MSBuildSDKsPath)/../Roslyn/bincore/Microsoft.CodeAnalysis.CSharp.dll</HintPath></Reference>
+    <Compile Include="../Runtime/DesktopGeometry.cs" Link="DesktopGeometry.cs" />
+    <Compile Include="../Runtime/DesktopMotion.cs" Link="DesktopMotion.cs" />
+    <Compile Include="../Runtime/PlaybackTimeline.cs" Link="PlaybackTimeline.cs" />
+    <Compile Include="../Runtime/OverlayWindowPolicy.cs" Link="OverlayWindowPolicy.cs" />
+    <Compile Include="../Runtime/AvatarSize.cs" Link="AvatarSize.cs" />
+    <Compile Include="../Runtime/PoseAnchor.cs" Link="PoseAnchor.cs" />
+    <Compile Include="../Runtime/ReachLatch.cs" Link="ReachLatch.cs" />
+    <Compile Include="../Runtime/TwoBoneReach.cs" Link="TwoBoneReach.cs" />
+    <Compile Include="../DesktopEditor/PantsRepairPolicy.cs" Link="PantsRepairPolicy.cs" />
+  </ItemGroup>
+</Project>

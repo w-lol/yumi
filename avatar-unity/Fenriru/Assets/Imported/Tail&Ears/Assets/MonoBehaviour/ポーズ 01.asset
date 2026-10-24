@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: ポーズ 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: えへっ
+    icon: {fileID: 2800000, guid: f28041789dfc2404ebc0cea062947f87, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.202
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ヒーロー
+    icon: {fileID: 2800000, guid: e5589341acb48c54f9a3d0addad6c461, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.205
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 元気
+    icon: {fileID: 2800000, guid: 8ce766394c7787249a9ea1c2097f3919, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.206
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 悩殺
+    icon: {fileID: 2800000, guid: dadcf46c06a4002479e9c14c9d361ceb, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.207
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ジャンプ
+    icon: {fileID: 2800000, guid: e6217162f8cb9cf4e98de3d7c5ba8659, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.204
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: カンフー
+    icon: {fileID: 2800000, guid: 862ed61c09ed8874a8e74d2d6393886b, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.203
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 片足立ち
+    icon: {fileID: 2800000, guid: 207c8f98b38e42a428cbcb5f9d463a98, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.208
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: I字バランス
+    icon: {fileID: 2800000, guid: 5f751e3389f6e9542a6a586c850d9a9b, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.201
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

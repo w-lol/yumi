@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: _上書き(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: 解除
+    icon: {fileID: 2800000, guid: 5d6d9b2edc244744880a85506c908ffa, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 0
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 自動で移動禁止
+    icon: {fileID: 2800000, guid: 9591ab438bee08f4cae459c7f41f002b, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite_AutoMoveLock
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: SpaceDragモード
+    icon: {fileID: 2800000, guid: 0ccb312b018ba3b4e87be882d19d87a4, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite_SpaceDragMode
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 寝る
+    icon: {fileID: 2800000, guid: be37fa9d65ef6e14aab7a733398a3be6, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 4a0b694ba74c0184394da6981af2188e, type: 2}
+    subParameters: []
+    labels: []
+  - name: 座る(床)
+    icon: {fileID: 2800000, guid: d91368a378c6f0d4c9bd49c6458d2d30, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 7edcd8d8c6f1f7f4db7c6d73bd418c64, type: 2}
+    subParameters: []
+    labels: []
+  - name: 座る(椅子)
+    icon: {fileID: 2800000, guid: 059e295a3d829de449f17e02ecca5b89, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: d83be26e35308c04a888fac18276f9ac, type: 2}
+    subParameters: []
+    labels: []
+  - name: 浮遊
+    icon: {fileID: 2800000, guid: 0b95deb64b7ba60439bd9f08c2f06141, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 467c9c66f9ea5ac4da3e1c8478f07126, type: 2}
+    subParameters: []
+    labels: []
