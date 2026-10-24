@@ -78,3 +78,7 @@ integrations/unity/**/*.asmdef text eol=lf
 integrations/unity/**/*.csproj text eol=lf
 yumi/*.py text eol=lf
 tests/*.py text eol=lf
+scripts/*.py text eol=lf
+assets/*.json text eol=lf
+assets/**/*.json text eol=lf
+docs/COMPANION-UPDATE.md text eol=lf
