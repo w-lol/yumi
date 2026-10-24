@@ -18,6 +18,7 @@ lock. `requirements-linux-tested.txt` records the separate cloud test environmen
 | Default voice | hexgrad **Kokoro-82M v1.0**, official sherpa-onnx `kokoro-multi-lang-v1_0` conversion | Apache 2.0 model and conversion. Model card and license included as `kokoro-model-card.md` and `kokoro-license.txt`. Heart (`af_heart`) is the default; 20 US English voice IDs are mapped from the official exporter. eSpeak NG data/code retain their own GPL terms; preserve upstream notices and source references. Previous Piper model cards remain for custom legacy folders. |
 | Semantic encoder | Xenova `all-MiniLM-L6-v2`, quantized ONNX | Apache 2.0; local CPU encoder, 384-dimensional vectors. |
 | Audio I/O | sounddevice 0.5.2 | MIT; Windows wheel includes PortAudio. No external audio app needed. |
+| Local Unity transport | websockets 17.3 | BSD 3-Clause; native-client-only authenticated loopback server. No external service. |
 | Screen capture | mss 10.0.0 | MIT; screenshots remain in RAM. |
 | Camera | opencv-python-headless 4.11.0.86 | Apache 2.0 plus bundled third-party notices; no extra OpenCV GUI. |
 | Storage | Python SQLite/FTS5 | SQLite public domain. |

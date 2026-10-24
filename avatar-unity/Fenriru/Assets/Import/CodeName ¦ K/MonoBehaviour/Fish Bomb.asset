@@ -1,0 +1,55 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Fish Bomb
+  m_EditorClassIdentifier:
+  controls:
+  - name: Fish Bomb
+    icon: {fileID: 2800000, guid: d3e693c5ed192974f906cd6dc2a9b6b1, type: 3}
+    type: 102
+    parameter:
+      name: Fish Bomb
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Fish Bomb Explosion
+    icon: {fileID: 2800000, guid: d3e693c5ed192974f906cd6dc2a9b6b1, type: 3}
+    type: 102
+    parameter:
+      name: Fish Bomb
+    value: 2
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Fish Nuclear Bomb
+    icon: {fileID: 2800000, guid: cdae046efdaac7247a5235a6c33e8e9b, type: 3}
+    type: 103
+    parameter:
+      name: Fish Bomb
+    value: 3
+    style: 0
+    subMenu: {fileID: 11400000, guid: 3b522d906ed69ca449ff626965ee69cd, type: 2}
+    subParameters: []
+    labels: []
+  - name: Slap the bomb tail with FISH
+    icon: {fileID: 2800000, guid: d3e693c5ed192974f906cd6dc2a9b6b1, type: 3}
+    type: 101
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

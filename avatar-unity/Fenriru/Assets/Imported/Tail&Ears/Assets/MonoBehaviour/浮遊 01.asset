@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: 浮遊 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: 投げ足
+    icon: {fileID: 2800000, guid: 76c17a7053abd6e4b81e1e1d2939d5a4, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 48
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 三角座り
+    icon: {fileID: 2800000, guid: 604c1849217846f4ca3607ec02d0b734, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 41
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 足組み
+    icon: {fileID: 2800000, guid: 9755109570f359b4bbc622f392089599, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 42
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 膝寄せ
+    icon: {fileID: 2800000, guid: 460b08beb41b8a84d9f2ed3c4fae9fc8, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 43
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: あぐら
+    icon: {fileID: 2800000, guid: b5df8543d676dab40b68dfdc81857d0d, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 44
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 観察
+    icon: {fileID: 2800000, guid: abde638313bf546479d83ce6e1cd56c9, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 45
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 視聴
+    icon: {fileID: 2800000, guid: fa57d358449222b4b89266080c40a564, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 46
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 立ち
+    icon: {fileID: 2800000, guid: ee6ad432401562741bab6a2849c93ff3, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_Overwrite
+    value: 47
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: 横向き(右) 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: まっすぐ
+    icon: {fileID: 2800000, guid: e633f06b69c4699479b07397fc6dbd21, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.301
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 寝そべり
+    icon: {fileID: 2800000, guid: 125c00805a7eb2348ace77304864a431, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.304
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 休日
+    icon: {fileID: 2800000, guid: 2836c0718bc7d414e975bf19af3de806, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.303
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 三角座り
+    icon: {fileID: 2800000, guid: 5ffcb6868df59634e8d40f61bd9aa10b, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.302
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚たたみ
+    icon: {fileID: 2800000, guid: 789c9aca24fdb9d4eb5aaf93a2b1810a, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.305
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 腰ひねり
+    icon: {fileID: 2800000, guid: c85b4db62349fe04da539a4a31bf0e1a, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.306
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 腰ひねり逆
+    icon: {fileID: 2800000, guid: f5fb8d9fba2f9624bbb706d25d1a636f, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.307
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 回復体位
+    icon: {fileID: 2800000, guid: d03ad482d01115a45b3453a863ce4052, type: 3}
+    type: 102
+    parameter:
+      name: ProneReplace
+    value: 0.308
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

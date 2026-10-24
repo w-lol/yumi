@@ -1,0 +1,230 @@
+{
+  "sdk_version": "3.6.1",
+  "method": "System.Reflection.Metadata assembly-reference audit of official base and avatars release archives; no DLL execution",
+  "assemblies": [
+    {
+      "path": "Editor/VRCSDK/Plugins/VRC.SDK3.Dynamics.Contact.Editor.dll",
+      "name": "VRC.SDK3.Dynamics.Contact.Editor",
+      "refs": [
+        "netstandard",
+        "UnityEditor.CoreModule",
+        "UnityEngine.CoreModule",
+        "VRC.Dynamics",
+        "VRC.SDK3.Dynamics.Contact",
+        "VRCSDKBase-Editor",
+        "UnityEngine.IMGUIModule"
+      ]
+    },
+    {
+      "path": "Editor/VRCSDK/Plugins/VRC.SDK3.Dynamics.PhysBone.Editor.dll",
+      "name": "VRC.SDK3.Dynamics.PhysBone.Editor",
+      "refs": [
+        "netstandard",
+        "VRC.Dynamics",
+        "UnityEditor.CoreModule",
+        "VRC.SDK3.Dynamics.PhysBone",
+        "UnityEngine.CoreModule",
+        "UnityEngine.IMGUIModule",
+        "VRCSDKBase-Editor",
+        "Unity.Mathematics"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Dependencies/librsync/Blake2Sharp.dll",
+      "name": "Blake2Sharp",
+      "refs": [
+        "mscorlib"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Dependencies/librsync/librsync.net.dll",
+      "name": "librsync.net",
+      "refs": [
+        "mscorlib",
+        "System",
+        "System.Core",
+        "Blake2Sharp"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Dependencies/Managed/Collections.Pooled.dll",
+      "name": "Collections.Pooled",
+      "refs": [
+        "netstandard"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Dependencies/Managed/System.Collections.Immutable.dll",
+      "name": "System.Collections.Immutable",
+      "refs": [
+        "netstandard",
+        "System.Memory",
+        "System.Runtime.CompilerServices.Unsafe"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Dependencies/Managed/System.Runtime.CompilerServices.Unsafe.dll",
+      "name": "System.Runtime.CompilerServices.Unsafe",
+      "refs": [
+        "netstandard"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/Harmony/0Harmony.dll",
+      "name": "0Harmony",
+      "refs": [
+        "mscorlib",
+        "System.Core",
+        "System"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/SDKBase-Legacy.dll",
+      "name": "SDKBase-Legacy",
+      "refs": [
+        "netstandard",
+        "UnityEngine.CoreModule",
+        "VRCCore-Editor"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRC.Dynamics.dll",
+      "name": "VRC.Dynamics",
+      "refs": [
+        "netstandard",
+        "Unity.Collections",
+        "UnityEngine.CoreModule",
+        "Unity.Burst",
+        "VRCSDKBase",
+        "Unity.Mathematics",
+        "UnityEngine.AnimationModule"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRC.SDK3.Dynamics.Contact.dll",
+      "name": "VRC.SDK3.Dynamics.Contact",
+      "refs": [
+        "netstandard",
+        "VRCSDKBase",
+        "UnityEngine.CoreModule",
+        "VRC.Dynamics"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRC.SDK3.Dynamics.PhysBone.dll",
+      "name": "VRC.SDK3.Dynamics.PhysBone",
+      "refs": [
+        "netstandard",
+        "VRCSDKBase",
+        "UnityEngine.CoreModule",
+        "UnityEngine.AnimationModule",
+        "VRC.Dynamics"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRC.Utility.dll",
+      "name": "VRC.Utility",
+      "refs": [
+        "netstandard",
+        "UnityEngine.CoreModule",
+        "UnityEngine.PhysicsModule"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRCCore-Editor.dll",
+      "name": "VRCCore-Editor",
+      "refs": [
+        "netstandard",
+        "UnityEngine.CoreModule",
+        "UnityEditor.CoreModule",
+        "UnityEngine.UnityWebRequestModule",
+        "Collections.Pooled",
+        "Microsoft.Win32.Registry",
+        "UnityEngine.IMGUIModule",
+        "UnityEngine.ImageConversionModule",
+        "UnityEngine.PhysicsModule"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRCCore-Standalone.dll",
+      "name": "VRCCore-Standalone",
+      "refs": [
+        "netstandard",
+        "UnityEngine.CoreModule",
+        "UnityEngine.UnityWebRequestModule",
+        "Collections.Pooled",
+        "UnityEngine.ImageConversionModule"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRCSDKBase-Editor.dll",
+      "name": "VRCSDKBase-Editor",
+      "refs": [
+        "netstandard",
+        "UnityEngine.CoreModule",
+        "UnityEditor.CoreModule",
+        "VRCSDKBase",
+        "UnityEngine.IMGUIModule",
+        "UnityEngine.TerrainModule",
+        "VRCCore-Editor",
+        "UnityEngine.UIElementsModule",
+        "UnityEngine.UnityWebRequestModule"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRCSDKBase.dll",
+      "name": "VRCSDKBase",
+      "refs": [
+        "netstandard",
+        "UnityEngine.CoreModule",
+        "UnityEngine.UnityWebRequestModule",
+        "UnityEngine.AudioModule",
+        "UnityEngine.AnimationModule",
+        "UnityEngine.PhysicsModule",
+        "UnityEngine.XRModule",
+        "UnityEngine.UIModule",
+        "UnityEngine.UI",
+        "System.Collections.Immutable",
+        "UnityEngine.ClothModule",
+        "UnityEngine.ParticleSystemModule",
+        "UnityEngine.UnityWebRequestTextureModule",
+        "UnityEngine.InputLegacyModule",
+        "UnityEngine.VideoModule"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRCSDK3A-Editor.dll",
+      "name": "VRCSDK3A-Editor",
+      "refs": [
+        "netstandard",
+        "VRCSDKBase-Editor",
+        "UnityEngine.CoreModule",
+        "VRCSDK3A",
+        "VRCCore-Editor",
+        "UnityEditor.CoreModule",
+        "VRCSDKBase",
+        "UnityEngine.AssetBundleModule"
+      ]
+    },
+    {
+      "path": "Runtime/VRCSDK/Plugins/VRCSDK3A.dll",
+      "name": "VRCSDK3A",
+      "refs": [
+        "netstandard",
+        "UnityEngine.CoreModule",
+        "UnityEngine.AudioModule",
+        "VRCSDKBase",
+        "UnityEngine.AnimationModule"
+      ]
+    }
+  ],
+  "editor_dependency_closure": [
+    "SDKBase-Legacy",
+    "VRC.SDK3.Dynamics.Contact.Editor",
+    "VRC.SDK3.Dynamics.PhysBone.Editor",
+    "VRCCore-Editor",
+    "VRCSDK3A-Editor",
+    "VRCSDKBase-Editor"
+  ],
+  "verified": "All four runtime-folder editor-dependent plugin metadata files repaired; DLL SHA256 unchanged. Not a Unity build."
+}

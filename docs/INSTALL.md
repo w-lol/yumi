@@ -3,6 +3,24 @@
 This is a functional development build. Windows hardware acceptance is still required;
 read `VERIFICATION.md` before treating it as a finished production release.
 
+For original-avatar update + local test/build setup, see [AVATAR_SETUP.md](AVATAR_SETUP.md).
+
+## Apply a downloaded update
+
+Download **Yumi-Windows-installer** from a successful Actions run and extract the
+artifact once. Keep `Update-Yumi.ps1`, `Yumi.zip` and `Yumi.zip.sha256` together.
+Close Yumi, open PowerShell in that folder, and run:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Update-Yumi.ps1
+```
+
+For a different installation folder, add `-Root 'D:\Yumi'`. The updater verifies the
+adjacent checksum, stages the bundle and runs the existing setup against your root.
+Memory, settings and original avatar assets are retained. The Unity add-on source
+requires a local build; see [Unity instructions](UNITY_INTEGRATION.md). This update
+contains no verified Unity player.
+
 ## One PowerShell setup invocation
 
 Download `Yumi.zip` into your Windows Downloads folder. Paste this **one invocation**
@@ -15,19 +33,19 @@ into Windows PowerShell 5.1:
 To obtain the ZIP through GitHub, open **Actions → Windows installer**, select a
 successful run, and download **Yumi-Windows-installer** under **Artifacts** (GitHub
 sign-in is required for Actions artifacts). Extract that downloaded artifact ZIP once;
-it contains `Yumi.zip` and `Yumi.zip.sha256`. Put the inner `Yumi.zip` in Downloads.
+it contains `Yumi.zip`, `Yumi.zip.sha256` and `Update-Yumi.ps1`. Put the inner `Yumi.zip` in Downloads.
 The artifact expires after 30 days; rerun the workflow to create another copy.
 
 The workflow runs for pull requests and pushes to `main`, and can be started manually
 with **Run workflow** after it is merged into `main`. Optional release publication is
 manual: run it on `main`, select `publish_release`, and supply a new tag such as
-`yumi-v0.1.0-dev.1`. This publishes a GitHub prerelease with both files attached.
+`yumi-v0.1.0-dev.1`. This publishes a GitHub prerelease with the bundle, checksum and updater attached.
 Existing tags/releases are not overwritten. A failed publication still leaves the
 successful build's Actions artifact available.
 
 The build packages the existing bootstrap installer, not an MSI or signed executable.
 It runs Windows dependency/native-import checks, unit tests and PowerShell 5.1 parsing;
-it does not download models or exercise GPU inference or the full setup in CI.
+it validates real Kokoro synthesis in RAM but does not exercise GPU inference, physical devices or the full setup in CI.
 For a local equivalent packaging command, run
 `python scripts/package_installer.py --output dist` from the checkout.
 

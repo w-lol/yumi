@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: 立ち 01(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: 内股
+    icon: {fileID: 2800000, guid: 29c087feb87fefd40a896ad9dd848801, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.105
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 内気
+    icon: {fileID: 2800000, guid: 9cf6fca1e794a144d92fe322c136a9ae, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.102
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 逆S字
+    icon: {fileID: 2800000, guid: 40194cda2e4054945b321f4368600353, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.108
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: えっへん
+    icon: {fileID: 2800000, guid: 18d8c0e966e446a45b772acd71e40271, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.101
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 堂々
+    icon: {fileID: 2800000, guid: 0d12b512af0896c468e899045a6d9590, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.106
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 八の字
+    icon: {fileID: 2800000, guid: adcba21ba0911d745adfe47281b3808f, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.107
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 斜め
+    icon: {fileID: 2800000, guid: 60e8fafafd91f954496d05f51a380e6b, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.103
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 脚交差
+    icon: {fileID: 2800000, guid: 807adf41221eda74cb5e14919f4be4b5, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.104
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

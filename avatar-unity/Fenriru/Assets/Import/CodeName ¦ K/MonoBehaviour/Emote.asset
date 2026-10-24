@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Emote
+  m_EditorClassIdentifier:
+  controls:
+  - name: Wave
+    icon: {fileID: 2800000, guid: 523a8686dedcf4943bdf56e80d17b705, type: 3}
+    type: 102
+    parameter:
+      name: VRCEmote
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Clap
+    icon: {fileID: 2800000, guid: 166dff974fa7eac45bda656fea7349fc, type: 3}
+    type: 203
+    parameter:
+      name: VRCEmote
+    value: 2
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters:
+    - name: Go/Float
+    labels: []
+  - name: Point
+    icon: {fileID: 2800000, guid: cb6b4c28a5452064993e064a174fc924, type: 3}
+    type: 102
+    parameter:
+      name: VRCEmote
+    value: 3
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Cheer
+    icon: {fileID: 2800000, guid: fc1e0f217eedb104bb9dc91c8ca272b3, type: 3}
+    type: 203
+    parameter:
+      name: VRCEmote
+    value: 4
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters:
+    - name: Go/Float
+    labels: []
+  - name: Dance
+    icon: {fileID: 2800000, guid: 5f8c8cfc8500df641a351ebc91e2c980, type: 3}
+    type: 203
+    parameter:
+      name: VRCEmote
+    value: 5
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters:
+    - name: Go/Float
+    labels: []
+  - name: Blackflip
+    icon: {fileID: 2800000, guid: 70bc4e1dcc833a04b8be9a99dac75526, type: 3}
+    type: 102
+    parameter:
+      name: VRCEmote
+    value: 6
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Sad
+    icon: {fileID: 2800000, guid: eef0072ee775ead459814ca3676eac7d, type: 3}
+    type: 102
+    parameter:
+      name: VRCEmote
+    value: 7
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: Die
+    icon: {fileID: 2800000, guid: cc2ce196c90d89e4bac04e13104cac51, type: 3}
+    type: 102
+    parameter:
+      name: VRCEmote
+    value: 8
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

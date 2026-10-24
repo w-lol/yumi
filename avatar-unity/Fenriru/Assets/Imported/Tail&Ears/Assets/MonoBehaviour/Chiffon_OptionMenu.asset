@@ -1,0 +1,75 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: Chiffon_OptionMenu(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: heart
+    icon: {fileID: 2800000, guid: bf3ac0260ee16654990e15fe1e70014c, type: 3}
+    type: 102
+    parameter:
+      name: Option_heart
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: shiitake
+    icon: {fileID: 2800000, guid: 52d0ec0284a565e4685ae0410e572cac, type: 3}
+    type: 102
+    parameter:
+      name: Option_shiitake
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: guruguru
+    icon: {fileID: 2800000, guid: 38aa950772c945f429dec34cf7461e42, type: 3}
+    type: 102
+    parameter:
+      name: Option_guruguru
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: shy
+    icon: {fileID: 2800000, guid: 537483414c07f5744aaa7e85a3f136f6, type: 3}
+    type: 102
+    parameter:
+      name: Option_shy
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: hoppe
+    icon: {fileID: 2800000, guid: 61c4b1b608af0334bb7df5a372b591bb, type: 3}
+    type: 102
+    parameter:
+      name: Option_hoppe
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: pale_blue
+    icon: {fileID: 2800000, guid: cf72eb7d5bdc23948b56c7d257441fb9, type: 3}
+    type: 102
+    parameter:
+      name: Option_pale_blue
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

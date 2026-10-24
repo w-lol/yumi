@@ -1,0 +1,280 @@
+fileFormatVersion: 2
+guid: 39dbdbcf2d331bf4b87123b7d4c6aa67
+ModelImporter:
+  serializedVersion: 22
+  fileIDToRecycleName:
+    100000: Armature
+    100002: BackHair
+    100004: BackHair_end
+    100006: BackHair_L
+    100008: BackHair_L_end
+    100010: BackHair_R
+    100012: BackHair_R_end
+    100014: Body
+    100016: Chest
+    100018: Eye_L
+    100020: Eye_L_end
+    100022: Eye_R
+    100024: Eye_R_end
+    100026: Head
+    100028: Hips
+    100030: IndexFinger1_L
+    100032: IndexFinger1_R
+    100034: IndexFinger2_L
+    100036: IndexFinger2_R
+    100038: IndexFinger3_L
+    100040: IndexFinger3_L_end
+    100042: IndexFinger3_R
+    100044: IndexFinger3_R_end
+    100046: Left ankle
+    100048: Left arm
+    100050: Left elbow
+    100052: Left knee
+    100054: Left leg
+    100056: Left shoulder
+    100058: Left toe
+    100060: Left toe_end
+    100062: Left wrist
+    100064: LittleFinger1_L
+    100066: LittleFinger1_R
+    100068: LittleFinger2_L
+    100070: LittleFinger2_R
+    100072: LittleFinger3_L
+    100074: LittleFinger3_L_end
+    100076: LittleFinger3_R
+    100078: LittleFinger3_R_end
+    100080: MiddleFinger1_L
+    100082: MiddleFinger1_R
+    100084: MiddleFinger2_L
+    100086: MiddleFinger2_R
+    100088: MiddleFinger3_L
+    100090: MiddleFinger3_L_end
+    100092: MiddleFinger3_R
+    100094: MiddleFinger3_R_end
+    100096: MiddleHair_L
+    100098: MiddleHair_L_end
+    100100: MiddleHair_R
+    100102: MiddleHair_R_end
+    100104: Neck
+    100106: Right ankle
+    100108: Right arm
+    100110: Right elbow
+    100112: Right knee
+    100114: Right leg
+    100116: Right shoulder
+    100118: Right toe
+    100120: Right toe_end
+    100122: Right wrist
+    100124: RingFinger1_L
+    100126: RingFinger1_R
+    100128: RingFinger2_L
+    100130: RingFinger2_R
+    100132: RingFinger3_L
+    100134: RingFinger3_L_end
+    100136: RingFinger3_R
+    100138: RingFinger3_R_end
+    100140: Sideburn1_R
+    100142: Sideburn1_R_end
+    100144: Sideburn2_L
+    100146: Spine
+    100148: Thumb0_L
+    100150: Thumb0_R
+    100152: Thumb1_L
+    100154: Thumb1_R
+    100156: Thumb2_L
+    100158: Thumb2_L_end
+    100160: Thumb2_R
+    100162: Thumb2_R_end
+    100164: Tongue1
+    100166: Tongue2
+    100168: Tongue3
+    100170: Tongue3_end
+    100172: //RootNode
+    400000: Armature
+    400002: BackHair
+    400004: BackHair_end
+    400006: BackHair_L
+    400008: BackHair_L_end
+    400010: BackHair_R
+    400012: BackHair_R_end
+    400014: Body
+    400016: Chest
+    400018: Eye_L
+    400020: Eye_L_end
+    400022: Eye_R
+    400024: Eye_R_end
+    400026: Head
+    400028: Hips
+    400030: IndexFinger1_L
+    400032: IndexFinger1_R
+    400034: IndexFinger2_L
+    400036: IndexFinger2_R
+    400038: IndexFinger3_L
+    400040: IndexFinger3_L_end
+    400042: IndexFinger3_R
+    400044: IndexFinger3_R_end
+    400046: Left ankle
+    400048: Left arm
+    400050: Left elbow
+    400052: Left knee
+    400054: Left leg
+    400056: Left shoulder
+    400058: Left toe
+    400060: Left toe_end
+    400062: Left wrist
+    400064: LittleFinger1_L
+    400066: LittleFinger1_R
+    400068: LittleFinger2_L
+    400070: LittleFinger2_R
+    400072: LittleFinger3_L
+    400074: LittleFinger3_L_end
+    400076: LittleFinger3_R
+    400078: LittleFinger3_R_end
+    400080: MiddleFinger1_L
+    400082: MiddleFinger1_R
+    400084: MiddleFinger2_L
+    400086: MiddleFinger2_R
+    400088: MiddleFinger3_L
+    400090: MiddleFinger3_L_end
+    400092: MiddleFinger3_R
+    400094: MiddleFinger3_R_end
+    400096: MiddleHair_L
+    400098: MiddleHair_L_end
+    400100: MiddleHair_R
+    400102: MiddleHair_R_end
+    400104: Neck
+    400106: Right ankle
+    400108: Right arm
+    400110: Right elbow
+    400112: Right knee
+    400114: Right leg
+    400116: Right shoulder
+    400118: Right toe
+    400120: Right toe_end
+    400122: Right wrist
+    400124: RingFinger1_L
+    400126: RingFinger1_R
+    400128: RingFinger2_L
+    400130: RingFinger2_R
+    400132: RingFinger3_L
+    400134: RingFinger3_L_end
+    400136: RingFinger3_R
+    400138: RingFinger3_R_end
+    400140: Sideburn1_R
+    400142: Sideburn1_R_end
+    400144: Sideburn2_L
+    400146: Spine
+    400148: Thumb0_L
+    400150: Thumb0_R
+    400152: Thumb1_L
+    400154: Thumb1_R
+    400156: Thumb2_L
+    400158: Thumb2_L_end
+    400160: Thumb2_R
+    400162: Thumb2_R_end
+    400164: Tongue1
+    400166: Tongue2
+    400168: Tongue3
+    400170: Tongue3_end
+    400172: //RootNode
+    2100000: EyeBase
+    2100002: Blush
+    2100004: Belts
+    4300000: Body
+    9500000: //RootNode
+    13700000: Body
+  externalObjects:
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Belts
+    second: {fileID: 2100000, guid: 6e00653ed907e0645ad6f0cc4b9e3b37, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: Blush
+    second: {fileID: 2100000, guid: 78e3d2919e51b1c4e97b5756cd4b7514, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: EyeBase
+    second: {fileID: 2100000, guid: 0a5c506b82de8a74a949ffb75ab5448f, type: 2}
+  materials:
+    importMaterials: 1
+    materialName: 0
+    materialSearch: 1
+    materialLocation: 1
+  animations:
+    legacyGenerateAnimations: 4
+    bakeSimulation: 0
+    resampleCurves: 1
+    optimizeGameObjects: 0
+    motionNodeName: 
+    rigImportErrors: 
+    rigImportWarnings: 
+    animationImportErrors: 
+    animationImportWarnings: 
+    animationRetargetingWarnings: 
+    animationDoRetargetingWarnings: 0
+    importAnimatedCustomProperties: 0
+    animationCompression: 1
+    animationRotationError: 0.5
+    animationPositionError: 0.5
+    animationScaleError: 0.5
+    animationWrapMode: 0
+    extraExposedTransformPaths: []
+    extraUserProperties: []
+    clipAnimations: []
+    isReadable: 1
+  meshes:
+    lODScreenPercentages: []
+    globalScale: 1
+    meshCompression: 0
+    addColliders: 0
+    importVisibility: 1
+    importBlendShapes: 1
+    importCameras: 1
+    importLights: 1
+    swapUVChannels: 0
+    generateSecondaryUV: 0
+    useFileUnits: 1
+    optimizeMeshForGPU: 1
+    keepQuads: 0
+    weldVertices: 1
+    preserveHierarchy: 0
+    indexFormat: 0
+    secondaryUVAngleDistortion: 8
+    secondaryUVAreaDistortion: 15.000001
+    secondaryUVHardAngle: 88
+    secondaryUVPackMargin: 4
+    useFileScale: 1
+  tangentSpace:
+    normalSmoothAngle: 60
+    normalImportMode: 0
+    tangentImportMode: 3
+    normalCalculationMode: 4
+  importAnimation: 1
+  copyAvatar: 0
+  humanDescription:
+    serializedVersion: 2
+    human: []
+    skeleton: []
+    armTwist: 0.5
+    foreArmTwist: 0.5
+    upperLegTwist: 0.5
+    legTwist: 0.5
+    armStretch: 0.05
+    legStretch: 0.05
+    feetSpacing: 0
+    rootMotionBoneName: 
+    rootMotionBoneRotation: {x: 0, y: 0, z: 0, w: 1}
+    hasTranslationDoF: 0
+    hasExtraRoot: 0
+    skeletonHasParents: 1
+  lastHumanDescriptionAvatarSource: {instanceID: 0}
+  animationType: 2
+  humanoidOversampling: 1
+  additionalBone: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

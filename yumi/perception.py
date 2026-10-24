@@ -2,6 +2,13 @@ from __future__ import annotations
 import base64
 import threading
 import time
+import re
+
+
+def screen_request(text):
+    if re.fullmatch(r'\s*(?:yumi[, ]+)?(?:what (?:can|do) you see|what are you looking at|look at this)[.!? ]*',text,re.I):return True
+    return bool(re.search(r'\b(screen|monitor|desktop|display)\b',text,re.I) and
+                re.search(r'\b(see|look|show|read|describe|what|explain|help|understand|visible)\b',text,re.I))
 
 
 class Perception:
@@ -21,6 +28,22 @@ class Perception:
         self.active.clear()
         self.preview = None
         self.latest.clear()
+
+    def screen_snapshot(self):
+        """One fresh, in-memory frame for an explicit screen question."""
+        if not self.active.is_set() or not self.screen_allowed():
+            return None
+        import cv2
+        import mss
+        import numpy as np
+        with mss.mss() as grabber:
+            index=min(max(0,self.settings['monitor_index']),len(grabber.monitors)-1)
+            frame=np.asarray(grabber.grab(grabber.monitors[index]))[:,:,:3]
+        scale=min(1,1280/max(frame.shape[:2]))
+        if scale<1:frame=cv2.resize(frame,None,fx=scale,fy=scale)
+        ok,encoded=cv2.imencode('.jpg',frame,[cv2.IMWRITE_JPEG_QUALITY,85])
+        if not ok or not self.active.is_set() or not self.screen_allowed():return None
+        return {'image':base64.b64encode(encoded).decode('ascii'),'timestamp':time.time(),'monitor':index}
 
     def _run(self):
         import cv2
@@ -77,7 +100,7 @@ class Perception:
                 elif self.settings['screen_enabled'] and self.screen_allowed():
                     with mss.mss() as grabber:
                         import numpy as np
-                        index = min(max(1, self.settings['monitor_index']), len(grabber.monitors)-1)
+                        index = min(max(0, self.settings['monitor_index']), len(grabber.monitors)-1)
                         screen = np.asarray(grabber.grab(grabber.monitors[index]))[:, :, :3]
                         self._submit(screen, 'screen')
                     self.last_sample_source = 'screen'

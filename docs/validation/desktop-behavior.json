@@ -1,0 +1,31 @@
+{
+  "python_unit_tests": {
+    "passed": 42,
+    "includes": [
+      "screen request detection",
+      "disabled/excluded capture",
+      "fresh in-memory frame encoding",
+      "authenticated avatar actions"
+    ]
+  },
+  "pure_csharp": "Passed: two-bone arm lengths; unequal monitor floors; adaptive jumps; window-under-pointer selection; central window-to-window routes; empty-desktop autonomy; drag/release settling; existing navigation/occlusion/cancellation tests.",
+  "qt_real_model": {
+    "two_visible_windows": "passed",
+    "text_survives_voice_failure": "passed",
+    "typed_chat_and_memory_in_ui": "passed",
+    "fresh_synthetic_screen_frame_in_real_model_conversation": "passed",
+    "worker_crash_recovery": "passed",
+    "emergency_stop_during_generation": "passed",
+    "stop_dispatch_ms": 2.434209003695287,
+    "shutdown_without_model_or_conversation_worker": "passed"
+  },
+  "original_clips": "Existing file paths/curves inventoried in original-motion-selection.json. No source animation was edited.",
+  "unverified": [
+    "Unity Editor API compilation for this change",
+    "Humanoid retargeting/looping and final animation quality",
+    "Actual elbow/head pose and hip-to-window seat contact",
+    "Actual Windows mouse dragging and focus behavior",
+    "Actual native DWM enumeration with the new class filters",
+    "Actual live Windows screenshot capture and multi-monitor OCR quality"
+  ]
+}

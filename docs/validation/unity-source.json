@@ -1,0 +1,649 @@
+{
+  "inspection": "static file/GUID inventory and actual LFS SHA256 verification; no Unity import or render",
+  "source_commit": "222ae1f6b3afea1ea987dba825aa0a925dfb4335",
+  "project": "avatar-unity/Fenriru",
+  "unity_version": "2022.3.22f1",
+  "scenes_with_descriptors": [
+    {
+      "scene": "Assets/lordhavemercy.unity",
+      "descriptor_references": {
+        "2f78e3cbc09e415438191ca5b55d516f": "Assets/Proppa/Menu/Fenriru Parameters.asset",
+        "3d28e4156c59dbf4f93ba09e13bd6b94": "Assets/Proppa/Animations/Controller/Fenriru FX.controller",
+        "67cc4cb7839cd3741b63733d5adf0442": "unresolved package/generated GUID",
+        "7b4de8102540b9e41be1df846a25cd88": "Assets/Proppa/Menu/RiruExpressionsMenu.asset",
+        "b2b8bad9583e56a46a3e21795e96ad92": "unresolved package/generated GUID"
+      },
+      "visemes": [
+        "VRC.v_sil",
+        "VRC.v_PP",
+        "VRC.v_FF",
+        "VRC.v_TH",
+        "VRC.v_DD",
+        "VRC.v_kk",
+        "VRC.v_CH",
+        "VRC.v_SS",
+        "VRC.v_nn",
+        "VRC.v_RR",
+        "VRC.v_aa",
+        "VRC.v_E",
+        "VRC.v_ih",
+        "VRC.v_oh",
+        "VRC.v_ou"
+      ]
+    },
+    {
+      "scene": "Assets/questy.unity",
+      "descriptor_references": {
+        "2f78e3cbc09e415438191ca5b55d516f": "Assets/Proppa/Menu/Fenriru Parameters.asset",
+        "3d28e4156c59dbf4f93ba09e13bd6b94": "Assets/Proppa/Animations/Controller/Fenriru FX.controller",
+        "67cc4cb7839cd3741b63733d5adf0442": "unresolved package/generated GUID",
+        "7b4de8102540b9e41be1df846a25cd88": "Assets/Proppa/Menu/RiruExpressionsMenu.asset",
+        "b2b8bad9583e56a46a3e21795e96ad92": "unresolved package/generated GUID"
+      },
+      "visemes": [
+        "VRC.v_sil",
+        "VRC.v_PP",
+        "VRC.v_FF",
+        "VRC.v_TH",
+        "VRC.v_DD",
+        "VRC.v_kk",
+        "VRC.v_CH",
+        "VRC.v_SS",
+        "VRC.v_nn",
+        "VRC.v_RR",
+        "VRC.v_aa",
+        "VRC.v_E",
+        "VRC.v_ih",
+        "VRC.v_oh",
+        "VRC.v_ou"
+      ]
+    },
+    {
+      "scene": "Assets/questy_withhoodie 2 .unity",
+      "descriptor_references": {
+        "2f78e3cbc09e415438191ca5b55d516f": "Assets/Proppa/Menu/Fenriru Parameters.asset",
+        "3d28e4156c59dbf4f93ba09e13bd6b94": "Assets/Proppa/Animations/Controller/Fenriru FX.controller",
+        "67cc4cb7839cd3741b63733d5adf0442": "unresolved package/generated GUID",
+        "7b4de8102540b9e41be1df846a25cd88": "Assets/Proppa/Menu/RiruExpressionsMenu.asset",
+        "b2b8bad9583e56a46a3e21795e96ad92": "unresolved package/generated GUID"
+      },
+      "visemes": [
+        "VRC.v_sil",
+        "VRC.v_PP",
+        "VRC.v_FF",
+        "VRC.v_TH",
+        "VRC.v_DD",
+        "VRC.v_kk",
+        "VRC.v_CH",
+        "VRC.v_SS",
+        "VRC.v_nn",
+        "VRC.v_RR",
+        "VRC.v_aa",
+        "VRC.v_E",
+        "VRC.v_ih",
+        "VRC.v_oh",
+        "VRC.v_ou"
+      ]
+    },
+    {
+      "scene": "Assets/questy_withhoodie.unity",
+      "descriptor_references": {
+        "2f78e3cbc09e415438191ca5b55d516f": "Assets/Proppa/Menu/Fenriru Parameters.asset",
+        "3d28e4156c59dbf4f93ba09e13bd6b94": "Assets/Proppa/Animations/Controller/Fenriru FX.controller",
+        "67cc4cb7839cd3741b63733d5adf0442": "unresolved package/generated GUID",
+        "7b4de8102540b9e41be1df846a25cd88": "Assets/Proppa/Menu/RiruExpressionsMenu.asset",
+        "b2b8bad9583e56a46a3e21795e96ad92": "unresolved package/generated GUID"
+      },
+      "visemes": [
+        "VRC.v_sil",
+        "VRC.v_PP",
+        "VRC.v_FF",
+        "VRC.v_TH",
+        "VRC.v_DD",
+        "VRC.v_kk",
+        "VRC.v_CH",
+        "VRC.v_SS",
+        "VRC.v_nn",
+        "VRC.v_RR",
+        "VRC.v_aa",
+        "VRC.v_E",
+        "VRC.v_ih",
+        "VRC.v_oh",
+        "VRC.v_ou"
+      ]
+    }
+  ],
+  "counts": {
+    ".prefab": 129,
+    ".controller": 40,
+    ".mat": 288,
+    ".anim": 1374,
+    ".shader": 155,
+    ".fbx": 47
+  },
+  "missing_vpm_packages": {
+    "com.vrchat.avatars": "3.6.1",
+    "com.vrchat.base": "3.6.1",
+    "io.github.rurre.pumkinsavatartools": "1.4.4",
+    "dev.hai-vr.animator-as-code.v1.vrchat": "1.0.9940",
+    "dev.hai-vr.animator-as-code.v1": "1.0.9940",
+    "dev.hai-vr.blendshape-viewer": "2.1.1",
+    "dev.hai-vr.resilience.toolkit": "1.0.1",
+    "dev.hai-vr.blendtree-viewer": "1.0.7",
+    "dev.hai-vr.visual-expressions-editor": "2.0.3",
+    "dev.hai-vr.animation-viewer": "2.0.4",
+    "dev.hai-vr.cge": "3.2.0",
+    "dev.hai-vr.animator-as-code.v1.vrchat-destructive-workflow": "1.0.9940",
+    "nadena.dev.modular-avatar": "1.9.13",
+    "nadena.dev.ndmf": "1.4.1",
+    "nadena.dev.misc-vrc-tools": "0.0.8",
+    "com.vrcfury.vrcfury": "1.994.0",
+    "dev.vrlabs.av3manager": "2.0.32",
+    "vrchat.blackstartx.gesture-manager": "3.9.4",
+    "lyuma.av3emulator": "3.4.8",
+    "vrchat.jordo.easyquestswitch": "1.4.0",
+    "jp.lilxyzw.avatar-utils": "2.0.0",
+    "jp.lilxyzw.editortoolbox": "1.5.1",
+    "jp.lilxyzw.liltoon": "2.3.2"
+  },
+  "lfs_verified": [
+    {
+      "path": "avatar-unity/Fenriru/Assets/GoGo/GoLoco/Animations/Clips/Actions/go_electric_feel_dance.anim",
+      "bytes": 44539838,
+      "sha256": "2085197b7e43db04a2e7aa96a2e8f420f14fc04eebf8c87a12596a2eee5f79ff"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/10964 Draco.unitypackage",
+      "bytes": 47665034,
+      "sha256": "9065ce60aa0e07347e11c84e730a63d49ac14e81a789f0c3bd4e735a9a141d37"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/BGCGCPOD set by vdk/texture/shirt/normal.png",
+      "bytes": 24998907,
+      "sha256": "d2860d39f4c3af2e4bcaace77e6512323d4e8a5de4315fe308ce3279231025bf"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/BGCGCPOD set by vdk/texture/skirt & warmer/normal.png",
+      "bytes": 37901656,
+      "sha256": "7c236babf6be1053903b83466bc9f9f5b76dfee6c9cc3e0b485446f0854d720c"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Basic Colors/Black.png",
+      "bytes": 24395595,
+      "sha256": "b0677fa897c2d19b8589e4a242e7bb12f510ffec914cdc9acac15eeb4543b8bf"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Basic Colors/Blue.png",
+      "bytes": 59002413,
+      "sha256": "e5db7100ad0457ea3f71482837ae4441a2b1c648db0fcb38cdf2110a375a0b30"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Basic Colors/Green.png",
+      "bytes": 58668433,
+      "sha256": "1948da48e24b87e3d34c7234b970a6d997712facdbbb1cae8d7096415ddb6f2c"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Basic Colors/Red.png",
+      "bytes": 58970311,
+      "sha256": "2eeb530c7bd39ea18f4e1ac4811e8cefaa9ae8a2adf24c678db8a59af70078ea"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Basic Colors/White.png",
+      "bytes": 49425758,
+      "sha256": "ca114c367d06fa318ffe7f0e8159298d471e24eebb5ea1f1747352dd0e809758"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Data_Maps/NormalGL.png",
+      "bytes": 33605810,
+      "sha256": "2a1616a102af4e51527eb9d4965afc77d394a1563ffbab6ab945b120ba36e31e"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Acid Washed Camo.png",
+      "bytes": 63163682,
+      "sha256": "02b4557f796af4c23ac6a7a21b2a97a656d30719045236f1a48aa38eb20f7b1a"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Angel.png",
+      "bytes": 31729571,
+      "sha256": "cad26710ea623907c0e79a42fc1e357e86f4af5e98bafc8202d4d54fb65e8e1d"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Archangel.png",
+      "bytes": 25739383,
+      "sha256": "8610b0a90568a10d720e6a8bc99636c21f1ee9f6990403c072784e796f81d062"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Art.png",
+      "bytes": 52069820,
+      "sha256": "fcd88849241ed768ce3a7b0149b87af8770c7fa24396f9eec4dd611137745eca"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Circle.png",
+      "bytes": 57119662,
+      "sha256": "e11a6024bc88279039aa291b3c47a48c90e4eb5e038a00a909cf5226a9efcca5"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Creek.png",
+      "bytes": 26682139,
+      "sha256": "72c472b78f9599c8aff63f3b0f738f860a51dcfbce3178f95820f37af58f60eb"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Demon.png",
+      "bytes": 52918527,
+      "sha256": "330e1a8b9961d6ca4b6caa4c596f8e28d23f416972ed5d6b1ee2b7b36bc1f324"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Dogs.png",
+      "bytes": 41058209,
+      "sha256": "c47753b56060be30706ef2a40421bdcf453e6f91f4658ee20290ed755602276e"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Dracula Flow.png",
+      "bytes": 27761290,
+      "sha256": "88577bcd98e23da2c90b9badda86ed79c006bb69cb34892c570c76f59b209559"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Flames.png",
+      "bytes": 36514224,
+      "sha256": "8cc9b0fc4d2aa59fa193f69f942fe48cfb529e599e5dbd43bccf5185a4b94bbe"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Glint.png",
+      "bytes": 66746999,
+      "sha256": "045b1d347abab042b3415a99267a1ff2428b72e733a150b7a7de5ea38412cde9"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Graff.png",
+      "bytes": 20830461,
+      "sha256": "a436c71eb356c2d9ebaa02562e3872782435e90b6ec07dd13f2f75589c7057c7"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Hall.png",
+      "bytes": 55277812,
+      "sha256": "e23745347771342c5dcc29691b02486f913cf8bc910ab025df08985382a51be8"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Machine.png",
+      "bytes": 56846699,
+      "sha256": "f5c5bedd53aae9ea368e42be003a4fffa88ba8d153a0ea3168178310e3080fef"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Portrait Acid Washed.png",
+      "bytes": 29048811,
+      "sha256": "264f8e2da07e419b1c27b1d9251a47fc433ce1bec4123dd7296d31719f3722dd"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Pronto.png",
+      "bytes": 30164217,
+      "sha256": "b8c08f1e75838aeb080e62b607fcef91b5124fb096ee7f22959a766adf4f68b4"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Pure Acid Wash.png",
+      "bytes": 52385608,
+      "sha256": "f183e793cf2340cd513f0e17e560218f97b7e4f823b5d148dbf69244403d27ee"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Renown Acid Washed.png",
+      "bytes": 62695259,
+      "sha256": "e18f98b5f08baf8d772b76fb520a87cae0a7a7ddfbc0423b2f05965324cf1ab9"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/ITEMS/Cozy Hoodie EAE/Textures/Submit.png",
+      "bytes": 50759730,
+      "sha256": "88a02fe04a3883595691d14698ce7b50cf95aaa5bbc4355e8b1ac6eb2f88c1bc"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/BaileGETDOWN.anim",
+      "bytes": 48851611,
+      "sha256": "a09da1561854528df50a9df5b2363b99c25ae94b1cc1500d51a925d5598fa5ca"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/Feelings (Motion)_vmd.anim",
+      "bytes": 25326560,
+      "sha256": "e1cab89c39b083ad03d4451d0537303034a48aeaed858da70ac9b53a4ccf8ce5"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/FighteR_vmd.anim",
+      "bytes": 42427514,
+      "sha256": "7b5a8d043bb4343b536fca2ba7fb938e966e172d1e3c28dc1689153922377cab"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/Geddan.anim",
+      "bytes": 56606728,
+      "sha256": "80b4f2ae3784d923bd0c8e17f53b46310bd971d295c8d0d9c9134ee18cede6a4"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/PEAKABOO.anim",
+      "bytes": 36356213,
+      "sha256": "c16e4cc2c40a9af9579d2d04e02d8c94a0965dd8cc56aee82b81dea78647cd57"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/The_Other_Side1.1_vmd.anim",
+      "bytes": 24911611,
+      "sha256": "cb5c98ee7221b1b1358cdf2cdded132a33ae2640102621925f7f2b86864ece7c"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/galaxias!_vmd.anim",
+      "bytes": 30336488,
+      "sha256": "353667a612083d7214816cd453e7b3e414e081633bf9362943ee5b33b633d20a"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/sweet dreams_vmd.anim",
+      "bytes": 30410068,
+      "sha256": "582b6b17485b19350413d765038a77b00a255ace2fb924bb0c6a373def2a43eb"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/DancesEmotes/Dances/work bitch_vmd.anim",
+      "bytes": 36244124,
+      "sha256": "5f0013166a469f1bd94f70f9531754cf50a1977e42b9efe35b0bc444f8a10d76"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/BaileGETDOWN.anim",
+      "bytes": 48851611,
+      "sha256": "a09da1561854528df50a9df5b2363b99c25ae94b1cc1500d51a925d5598fa5ca"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/Feelings (Motion)_vmd.anim",
+      "bytes": 25326560,
+      "sha256": "e1cab89c39b083ad03d4451d0537303034a48aeaed858da70ac9b53a4ccf8ce5"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/FighteR_vmd.anim",
+      "bytes": 42427514,
+      "sha256": "7b5a8d043bb4343b536fca2ba7fb938e966e172d1e3c28dc1689153922377cab"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/Geddan.anim",
+      "bytes": 56606728,
+      "sha256": "80b4f2ae3784d923bd0c8e17f53b46310bd971d295c8d0d9c9134ee18cede6a4"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/Motion/motion1_vmd.anim",
+      "bytes": 31643143,
+      "sha256": "ff38acdfa8ab3ed3ad77fc412e4bc943f25e1a829813a9cd255108b4cb7786e1"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/Motion/motion2_vmd.anim",
+      "bytes": 31890347,
+      "sha256": "7b61704ca34ee01befa8bd856cc40c9dbb1e82932935e257ae46338a3ff4ca58"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/Motion/motion3_vmd.anim",
+      "bytes": 31898049,
+      "sha256": "214e86b5b51732d3555516ecadf65ee8c02bfa057b81e78d1f0248b8394a7953"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/Motion/motion4_vmd.anim",
+      "bytes": 31954246,
+      "sha256": "1359759fa5321ebcabe2b5d3bb2928107f7419029486e07dc68dfc68a6ee9edc"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/Motion/motion5_vmd.anim",
+      "bytes": 31829856,
+      "sha256": "49b73be5bb75d1d5650c39aada780bd8ca05cf91254221693d2452f817aa6727"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/Motion/motion6_vmd.anim",
+      "bytes": 32278754,
+      "sha256": "e729015e1354a0ae8350fd188c27ad5de4276d4ed297a35ff8315e2866bacbf7"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/PEAKABOO.anim",
+      "bytes": 36356213,
+      "sha256": "c16e4cc2c40a9af9579d2d04e02d8c94a0965dd8cc56aee82b81dea78647cd57"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/The_Other_Side1.1_vmd.anim",
+      "bytes": 24911611,
+      "sha256": "cb5c98ee7221b1b1358cdf2cdded132a33ae2640102621925f7f2b86864ece7c"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/galaxias!_vmd.anim",
+      "bytes": 30336488,
+      "sha256": "353667a612083d7214816cd453e7b3e414e081633bf9362943ee5b33b633d20a"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/sweet dreams_vmd.anim",
+      "bytes": 30410068,
+      "sha256": "582b6b17485b19350413d765038a77b00a255ace2fb924bb0c6a373def2a43eb"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/EMOTE/Level 1/Dances/work bitch_vmd.anim",
+      "bytes": 36244124,
+      "sha256": "5f0013166a469f1bd94f70f9531754cf50a1977e42b9efe35b0bc444f8a10d76"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/BaileGETDOWN.anim",
+      "bytes": 48851611,
+      "sha256": "a09da1561854528df50a9df5b2363b99c25ae94b1cc1500d51a925d5598fa5ca"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/Feelings (Motion)_vmd.anim",
+      "bytes": 25326560,
+      "sha256": "e1cab89c39b083ad03d4451d0537303034a48aeaed858da70ac9b53a4ccf8ce5"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/FighteR_vmd.anim",
+      "bytes": 42427514,
+      "sha256": "7b5a8d043bb4343b536fca2ba7fb938e966e172d1e3c28dc1689153922377cab"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/Geddan.anim",
+      "bytes": 56606728,
+      "sha256": "80b4f2ae3784d923bd0c8e17f53b46310bd971d295c8d0d9c9134ee18cede6a4"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/Motion/motion1_vmd.anim",
+      "bytes": 31643143,
+      "sha256": "ff38acdfa8ab3ed3ad77fc412e4bc943f25e1a829813a9cd255108b4cb7786e1"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/Motion/motion2_vmd.anim",
+      "bytes": 31890347,
+      "sha256": "7b61704ca34ee01befa8bd856cc40c9dbb1e82932935e257ae46338a3ff4ca58"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/Motion/motion3_vmd.anim",
+      "bytes": 31898049,
+      "sha256": "214e86b5b51732d3555516ecadf65ee8c02bfa057b81e78d1f0248b8394a7953"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/Motion/motion4_vmd.anim",
+      "bytes": 31954246,
+      "sha256": "1359759fa5321ebcabe2b5d3bb2928107f7419029486e07dc68dfc68a6ee9edc"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/Motion/motion5_vmd.anim",
+      "bytes": 31829856,
+      "sha256": "49b73be5bb75d1d5650c39aada780bd8ca05cf91254221693d2452f817aa6727"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/Motion/motion6_vmd.anim",
+      "bytes": 32278754,
+      "sha256": "e729015e1354a0ae8350fd188c27ad5de4276d4ed297a35ff8315e2866bacbf7"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/PEAKABOO.anim",
+      "bytes": 36356213,
+      "sha256": "c16e4cc2c40a9af9579d2d04e02d8c94a0965dd8cc56aee82b81dea78647cd57"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/The_Other_Side1.1_vmd.anim",
+      "bytes": 24911611,
+      "sha256": "cb5c98ee7221b1b1358cdf2cdded132a33ae2640102621925f7f2b86864ece7c"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/galaxias!_vmd.anim",
+      "bytes": 30336488,
+      "sha256": "353667a612083d7214816cd453e7b3e414e081633bf9362943ee5b33b633d20a"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/sweet dreams_vmd.anim",
+      "bytes": 30410068,
+      "sha256": "582b6b17485b19350413d765038a77b00a255ace2fb924bb0c6a373def2a43eb"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/IDLE/Level 2/Dance/work bitch_vmd.anim",
+      "bytes": 36244124,
+      "sha256": "5f0013166a469f1bd94f70f9531754cf50a1977e42b9efe35b0bc444f8a10d76"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/RUN/Level 3/BaileGETDOWN.anim",
+      "bytes": 48851611,
+      "sha256": "a09da1561854528df50a9df5b2363b99c25ae94b1cc1500d51a925d5598fa5ca"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Import/v3/v3/RUN/Level 3/Geddan.anim",
+      "bytes": 56606728,
+      "sha256": "80b4f2ae3784d923bd0c8e17f53b46310bd971d295c8d0d9c9134ee18cede6a4"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Imported/PJ's/\u304a\u6563\u6b69\u30d1\u30b8\u30e3\u30de\u30bb\u30c3\u30c8/TEX/Normal GL.png",
+      "bytes": 34799874,
+      "sha256": "07f7df5633f43c579d629319fcb6a27fa87e06a54528b12944f630f477e9c69b"
+    },
+    {
+      "path": "avatar-unity/Fenriru/Assets/Imported/Tail&Ears/Assets/Mesh/Body.asset",
+      "bytes": 81101836,
+      "sha256": "b618af8ceed20df9da022f5d96c4e855d6a957a608d2bc6d2c5c7225e6978e5c"
+    }
+  ],
+  "face_animation_bindings": [
+    "==",
+    "><",
+    "LookDown",
+    "LookLeft",
+    "LookRight",
+    "LookUp",
+    "LowerEyelid_down",
+    "LowerEyelid_down_L",
+    "LowerEyelid_down_R",
+    "LowerEyelid_up",
+    "LowerEyelid_up_L",
+    "LowerEyelid_up_R",
+    "V",
+    "ase_L",
+    "ase_R",
+    "bero_A",
+    "bero_I",
+    "bero_O",
+    "bero_U",
+    "bero_be-",
+    "bero_down",
+    "bero_down_2",
+    "bero_long",
+    "bero_narrow",
+    "bero_tehe_1",
+    "bero_tehe_2",
+    "bero_up",
+    "bero_wide",
+    "blink",
+    "blink_L",
+    "blink_R",
+    "cheek",
+    "close",
+    "doukou_big",
+    "doukou_cat",
+    "doukou_small",
+    "eyelids_forward",
+    "grinning",
+    "grinning_L",
+    "grinning_R",
+    "guruguru_1",
+    "guruguru_2",
+    "hawa",
+    "heart",
+    "heart_small",
+    "highlight_big_1",
+    "highlight_big_2",
+    "highlight_big_all",
+    "highlight_down_1",
+    "highlight_down_2",
+    "highlight_narrow",
+    "highlight_small_1",
+    "highlight_small_2",
+    "highlight_small_all",
+    "hitomi_back",
+    "hitomi_big",
+    "hitomi_big_all",
+    "hitomi_narrow",
+    "hitomi_small",
+    "hitomi_small_all",
+    "hitomi_wide",
+    "hoppe",
+    "jitome",
+    "jitome_L",
+    "jitome_R",
+    "kuchi_A",
+    "kuchi_E",
+    "kuchi_I",
+    "kuchi_O",
+    "kuchi_U",
+    "kuchi_angry_1",
+    "kuchi_angry_1_L",
+    "kuchi_angry_1_R",
+    "kuchi_angry_2",
+    "kuchi_angry_2_L",
+    "kuchi_angry_2_R",
+    "kuchi_down",
+    "kuchi_narrow",
+    "kuchi_smile_1",
+    "kuchi_smile_1_L",
+    "kuchi_smile_1_R",
+    "kuchi_smile_2",
+    "kuchi_smile_2_L",
+    "kuchi_smile_2_R",
+    "kuchi_up",
+    "kuchi_wide",
+    "mayu_angry_1",
+    "mayu_angry_1_L",
+    "mayu_angry_1_R",
+    "mayu_angry_2",
+    "mayu_angry_2_L",
+    "mayu_angry_2_R",
+    "mayu_down",
+    "mayu_down_L",
+    "mayu_down_R",
+    "mayu_long",
+    "mayu_sad_1",
+    "mayu_sad_1_L",
+    "mayu_sad_1_R",
+    "mayu_sad_2",
+    "mayu_sad_2_L",
+    "mayu_sad_2_R",
+    "mayu_serious",
+    "mayu_serious_L",
+    "mayu_serious_R",
+    "mayu_short",
+    "mayu_smile",
+    "mayu_smile_L",
+    "mayu_smile_R",
+    "mayu_up",
+    "mayu_up_L",
+    "mayu_up_R",
+    "open",
+    "open_squeeze",
+    "pokan",
+    "shiitake",
+    "shy",
+    "smile",
+    "surprise",
+    "surprise_L",
+    "surprise_R",
+    "tareme",
+    "tear",
+    "tear_up",
+    "tsurime",
+    "wa",
+    "wink_L",
+    "wink_R",
+    "yaeba_L",
+    "yaeba_R",
+    "yorime"
+  ],
+  "limitations": [
+    "Actual FBX blendshape names/rig/material rendering require Unity 2022.3.22f1 import.",
+    "VRC PhysBones/contacts/state drivers require standalone replacements.",
+    "No original scene, material, mesh or controller was modified by this audit."
+  ]
+}

@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: サブメニュー(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: すべてリセット
+    icon: {fileID: 2800000, guid: 723ac4f75847c2e4287c697be47a82e8, type: 3}
+    type: 101
+    parameter:
+      name: CrouchReplace_Reset
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 立ち置換
+    icon: {fileID: 2800000, guid: d6f03f13ee8922644baa411fada34928, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 110abb22b9ca72742944afedd5b0b6a9, type: 2}
+    subParameters: []
+    labels: []
+  - name: しゃがみ置換
+    icon: {fileID: 2800000, guid: ad8bf68da98951f48a622ceb5daa659c, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 7910d937494b55f43ad147689d7c4869, type: 2}
+    subParameters: []
+    labels: []
+  - name: 伏せ置換
+    icon: {fileID: 2800000, guid: 3ad896fa8d268bb4db6b149ca205254d, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 32a8be2941ee5734c970ace6b8362cf4, type: 2}
+    subParameters: []
+    labels: []
+  - name: 上書き
+    icon: {fileID: 2800000, guid: edc784401662b8d43bc345056828e6ee, type: 3}
+    type: 103
+    parameter:
+      name:
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 2a9b25c3d28a9b543b05f92cee4b2932, type: 2}
+    subParameters: []
+    labels: []
+  - name: アニメ優先モード
+    icon: {fileID: 2800000, guid: 5a5e360607494d144b77bd24ca7ab490, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_AnimPriorityMode
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 移動禁止モード
+    icon: {fileID: 2800000, guid: 0ce7542665d8b1446b6d9650604f19d7, type: 3}
+    type: 102
+    parameter:
+      name: CrouchReplace_MoveLockMode
+    value: 1
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

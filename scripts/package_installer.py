@@ -5,11 +5,12 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import shutil
 import zipfile
 
-DIRECTORIES = ('yumi', 'scripts', 'assets', 'docs', 'tests')
-FILES = ('README.md', 'LICENSE', 'requirements.in', 'requirements-windows.lock')
-EXCLUDED = {'__pycache__', 'PRODUCT_BRIEF.md'}
+DIRECTORIES = ('yumi', 'scripts', 'assets', 'docs', 'tests', 'integrations')
+FILES = ('README.md', 'LICENSE', 'requirements.in', 'requirements-windows.lock', 'global.json')
+EXCLUDED = {'__pycache__', 'PRODUCT_BRIEF.md', 'bin', 'obj'}
 
 
 def build(root: Path, output: Path, revision: str = '') -> Path:
@@ -45,6 +46,9 @@ def build(root: Path, output: Path, revision: str = '') -> Path:
                 raise ValueError(f'Missing installer component: {required}')
     checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
     (output / 'Yumi.zip.sha256').write_text(f'{checksum}  Yumi.zip\n', encoding='ascii')
+    for name in ('Update-Yumi.ps1','Setup-Avatar.ps1'):
+        helper=root/'scripts'/name
+        if helper.is_file(): shutil.copyfile(helper,output/name)
     print(f'Built {archive} ({archive.stat().st_size} bytes); SHA256 {checksum}')
     return archive
 

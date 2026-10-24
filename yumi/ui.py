@@ -16,6 +16,7 @@ from .controller import Controller
 from .avatar import Avatar
 from .settings import PERSONA
 from .paths import atomic_json
+from .delivery import STYLES
 
 STYLE = '''
 QWidget { background: #0e1420; color: #dce5f3; font-family: 'Segoe UI'; font-size: 13px; }
@@ -90,6 +91,7 @@ class Board(QMainWindow):
         self.conversation_tab()
         self.personality_tab()
         self.avatar_tab()
+        self.unity_tab()
         self.voice_tab()
         self.awareness_tab()
         self.memory_tab()
@@ -196,6 +198,10 @@ class Board(QMainWindow):
         layout.addLayout(row)
         form = QFormLayout()
         self.number(form, 'Talkativeness', 'talkativeness', 0.0, 1.0, 0.1)
+        self.check(form, 'Allow conversational settings and preferences', 'conversational_controls')
+        self.check(form, 'Allow public Internet lookups for questions', 'web_enabled')
+        self.check(form, 'Let Yumi decide when public lookup is useful', 'web_auto')
+        self.number(form, 'Pause before replying (seconds)', 'speech_pause', .35, 1.2, .05)
         layout.addLayout(form)
         self.directive = QLineEdit()
         self.directive.setPlaceholderText('Direct steering instruction')
@@ -236,10 +242,99 @@ class Board(QMainWindow):
         layout.addWidget(QLabel('Original animated procedural placeholder. Mouth motion follows actual playback amplitude.'))
         layout.addStretch()
 
+    def unity_tab(self):
+        layout=self.page('Unity avatar')
+        layout.addWidget(QLabel('Primary avatar target: the original avatar-unity project.\nBuild / repair runs the original project tests and builds locally with Unity 2022.3.22f1.\nThe existing 2D avatar remains available until the Unity player is verified.'))
+        form=QFormLayout()
+        self.unity_bridge_switch=self.check(form,'Enable authenticated localhost bridge','unity_bridge_enabled',self.toggle_unity_bridge)
+        self.check(form,'Show Unity avatar','unity_visible')
+        self.check(form,'Unity overlay always on top','unity_topmost')
+        self.check(form,'Unity overlay click-through','unity_clickthrough')
+        self.check(form,'Keep Unity character stationary','unity_stationary')
+        self.check(form,'Allow autonomous activity','unity_autonomous')
+        self.check(form,'Notice typing caret geometry (no keystrokes)','unity_typing_attention')
+        self.check(form,'Experimental hair simulation (off recommended)','unity_hair_physics')
+        self.check(form,'Occasional arm sway','unity_idle_gestures')
+        self.check(form,'Automatically reach for pointer','unity_cursor_reach')
+        self.number(form,'Hair damping','unity_hair_damping',.01,.3,.01)
+        self.number(form,'Hair spring','unity_hair_spring',5,200,5)
+        self.check(form,'Adaptive jumps to window tops','unity_adaptive_jumps')
+        self.check(form,'Allow dragging (Alt + left mouse)','unity_drag_enabled')
+        self.number(form,'Frame rate','unity_frame_rate',15,60,5)
+        self.number(form,'Animation speed','unity_animation_speed',.3,2,.1)
+        self.number(form,'Character scale','unity_scale',.2,3,.1)
+        self.number(form,'Activity frequency','unity_frequency',0,1,.1)
+        self.number(form,'Movement speed','unity_movement_speed',30,600,10)
+        self.number(form,'Jump height','unity_jump_height',30,500,10)
+        self.number(form,'Maximum adaptive jump height','unity_jump_limit',200,1200,20)
+        self.number(form,'Head turn range (degrees)','unity_head_yaw',20,85,5)
+        self.number(form,'Head pitch range (degrees)','unity_head_pitch',10,45,5)
+        self.number(form,'Lip-sync amplitude gain','unity_lip_gain',.1,3,.1)
+        self.number(form,'Lip-sync timing offset (ms)','unity_lip_offset_ms',-250,250,10)
+        layout.addLayout(form)
+        self.unity_status=QLabel();self.unity_status.setTextFormat(Qt.PlainText);self.unity_status.setWordWrap(True);layout.addWidget(self.unity_status)
+        row=QHBoxLayout()
+        button('Build / repair original avatar',self.build_unity,row)
+        button('Launch locally built avatar',self.launch_unity,row)
+        button('Close avatar player',lambda:self.guard(self.core.unity_player.close),row)
+        button('Inspect duplicated Unity project',self.inspect_unity,row)
+        button('Wave (connected Unity only)',lambda:self.send_unity_action({'type':'wave'}),row)
+        button('Reset to safe desktop position',lambda:self.send_unity_action({'type':'reset_avatar'}),row)
+        button('Stop avatar movement',lambda:self.send_unity_action({'type':'stop_movement'}),row)
+        layout.addLayout(row)
+        expression_row=QHBoxLayout()
+        expression=QComboBox()
+        expression.addItems(['neutral','happy','curious','mock-annoyed'])
+        expression_row.addWidget(expression)
+        button('Preview expression (5 seconds)',lambda:self.send_unity_action({'type':'set_expression','expression':expression.currentText()}),expression_row)
+        layout.addLayout(expression_row)
+        layout.addWidget(QLabel('These controls send state/actions only. Unity must implement and acknowledge them.\nNo movement is reported as completed merely because it was requested.\nMouth signals follow real playback but are spectral estimates, not verified phoneme timing.'))
+        layout.addStretch()
+
+    def build_unity(self):
+        if os.name!='nt':
+            self.notice('Avatar building requires Windows and the original Unity 2022.3.22f1 Editor.')
+            return
+        def launch():
+            script=self.paths.root/'scripts/Build-UnityAvatar.ps1'
+            subprocess.Popen(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-NoExit',
+                '-File',str(script),'-Root',str(self.paths.root)],cwd=str(self.paths.root),
+                creationflags=subprocess.CREATE_NEW_CONSOLE)
+            self.notice('Avatar test/build console opened. Close the Unity Editor first; follow its result, then use Launch locally built avatar.')
+        self.guard(launch)
+
+    def launch_unity(self):
+        def launch():
+            self.unity_bridge_switch.setChecked(True)
+            self.core.unity.start()
+            self.core.unity_player.start()
+            self.notice('Launched local avatar player; waiting for rig readiness. See logs/unity-player.log for diagnostics.')
+        self.guard(launch)
+
+    def toggle_unity_bridge(self):
+        if self.settings['unity_bridge_enabled']:self.core.unity.start()
+        else:self.core.unity.close()
+
+    def send_unity_action(self,action):
+        self.guard(lambda:self.notice('Requested avatar action '+self.core.unity.action(action)+'; awaiting Unity confirmation.'))
+
+    def inspect_unity(self):
+        if os.name!='nt':self.notice('Unity inspection runs on the Windows computer containing avatar-unity.');return
+        script=self.paths.root/'scripts/Inspect-AvatarUnity.ps1'
+        project=self.paths.inside(self.settings['unity_project'])
+        subprocess.Popen(['powershell.exe','-NoProfile','-ExecutionPolicy','Bypass','-File',str(script),'-ProjectRoot',str(project)],cwd=str(self.paths.root))
+        self.notice('Read-only Unity inventory launched; report goes to logs/avatar-unity/project-audit.json.')
+
     def voice_tab(self):
+        from .delivery import STYLES
         from .voice import KOKORO_VOICES
         layout = self.page('Voice & listening')
         form = QFormLayout()
+        delivery = QComboBox()
+        delivery.addItems(['auto', *STYLES])
+        delivery.setCurrentText(self.settings['speech_style'])
+        delivery.currentTextChanged.connect(lambda value: self.settings.set('speech_style', value))
+        form.addRow('Speech delivery (native speed; no pitch API)', delivery)
         voice = QComboBox()
         for name in KOKORO_VOICES:
             gender = 'female' if name.startswith('af_') else 'male'
@@ -288,6 +383,33 @@ class Board(QMainWindow):
         button('You can talk now', lambda: self.core.control('talk'), row)
         button('Pronunciation dictionary', lambda: self.edit_json_setting('pronunciation'), row)
         layout.addLayout(row)
+        audition = QGroupBox('Compare delivery')
+        af = QFormLayout(audition)
+        self.audition_text = QTextEdit(self.settings['voice_audition_text'])
+        self.audition_text.setMaximumHeight(95)
+        af.addRow('Same dialogue for every test', self.audition_text)
+        self.audition_voice = QComboBox()
+        for name in KOKORO_VOICES: self.audition_voice.addItem(name[3:].title(), name)
+        self.audition_voice.setCurrentIndex(max(0, self.audition_voice.findData(self.settings['kokoro_voice'])))
+        af.addRow('Test voice', self.audition_voice)
+        self.audition_style = QComboBox()
+        self.audition_style.addItems(list(STYLES))
+        af.addRow('Delivery preset', self.audition_style)
+        self.audition_speed = QDoubleSpinBox()
+        self.audition_speed.setRange(.8, 1.2)
+        self.audition_speed.setSingleStep(.01)
+        self.audition_speed.setDecimals(2)
+        def load_preset(style):
+            self.audition_speed.setValue(self.settings['delivery_presets'].get(style, STYLES[style]))
+        self.audition_style.currentTextChanged.connect(load_preset)
+        load_preset(self.audition_style.currentText())
+        af.addRow('Rate multiplier (Kokoro native control)', self.audition_speed)
+        actions = QHBoxLayout()
+        button('Audition selected', self.audition_selected, actions)
+        button('Audition neutral baseline', lambda: self.audition_selected(True), actions)
+        button('Save delivery preset', self.save_delivery_preset, actions)
+        af.addRow(actions)
+        layout.addWidget(audition)
         layout.addWidget(QLabel('Default: local Kokoro v1.0, Heart voice, 24 kHz.\nKokoro selection applies to Kokoro assets; custom Piper folders keep their own voice.\nNo pitch control or verified speaker echo cancellation. Use headphones for voice interruption.'))
         layout.addStretch()
 
@@ -298,7 +420,7 @@ class Board(QMainWindow):
         self.check(form, 'Screen sampling', 'screen_enabled', self.clear_observations)
         self.check(form, 'Camera preview', 'camera_preview')
         self.number(form, 'Camera index', 'camera_index', 0, 10)
-        self.number(form, 'Monitor index (primary = 1)', 'monitor_index', 1, 12)
+        self.number(form, 'Monitor index (all = 0, primary = 1)', 'monitor_index', 0, 12)
         self.number(form, 'Inference sampling interval (seconds)', 'vision_interval', 10, 300)
         self.check(form, 'Grounded spontaneous remarks', 'proactive')
         self.number(form, 'Spontaneous remark cooldown (seconds)', 'proactive_cooldown', 60, 1800)
@@ -350,6 +472,12 @@ class Board(QMainWindow):
         self.performance = QTextBrowser()
         layout.addWidget(self.performance)
         form = QFormLayout()
+        profile=QComboBox()
+        profile.addItem('Existing local model','current')
+        profile.addItem('Qwen3 VL 8B (install optional profile first)','qwen3-vl-8b')
+        profile.setCurrentIndex(max(0,profile.findData(self.settings['chat_profile'])))
+        profile.currentIndexChanged.connect(lambda _: self.settings.set('chat_profile',profile.currentData()))
+        form.addRow('Conversation model (restart required)',profile)
         self.number(form, 'GPU layers (0 = CPU; restart required)', 'gpu_layers', 0, 99)
         self.number(form, 'Context tokens (restart required)', 'context', 2048, 8192, 1024)
         self.number(form, 'CPU threads (restart required)', 'threads', 1, 16)
@@ -430,6 +558,7 @@ class Board(QMainWindow):
             self.errors = (self.errors + [message])[-20:]
             self.notice(message)
         elif kind == 'notice': self.notice(payload.get('message', ''))
+        elif kind == 'unity_action_result': self.notice(('Avatar action completed: ' if payload.get('success') is True else 'Avatar action failed: ')+str(payload.get('message','')))
         elif kind == 'attention':
             self.attention_view.setText(f"Addressability: {payload['confidence']:.0%} · {'accepted' if payload['accepted'] else 'ignored'}\n{json.dumps(payload['signals'])}")
         elif kind == 'retrieval': self.memory_used.setText('Memory references: ' + (', '.join(payload['memory_ids']) or 'none'))
@@ -460,6 +589,27 @@ class Board(QMainWindow):
         self.core.audio.new_turn()
         self.core.audio.say("Hey Jason. I'm Yumi. Let's make this thing actually useful.")
 
+    def save_delivery_preset(self):
+        presets = dict(self.settings['delivery_presets'])
+        presets[self.audition_style.currentText()] = self.audition_speed.value()
+        self.settings.set('delivery_presets', presets)
+        self.notice('Saved native speaking-rate preset. Kokoro has no emotion or pitch parameter.')
+
+    def audition_selected(self, baseline=False):
+        if not self.core.audio.active.is_set():
+            self.notice('Start Yumi and select a working output device first.')
+            return
+        text = self.audition_text.toPlainText().strip()[:3000]
+        if not text: return
+        self.settings.set('voice_audition_text', text)
+        style = 'neutral' if baseline else self.audition_style.currentText()
+        # Use an explicit rate to compare settings without changing normal voice selection.
+        factor = self.settings['delivery_presets'].get(style, STYLES[style])
+        rate = self.settings['voice_rate'] if baseline else self.settings['voice_rate'] * self.audition_speed.value() / factor
+        self.core.cancel(silence_only=True)
+        self.core.audio.new_turn()
+        self.core.audio.say(text, audition={'voice': self.audition_voice.currentData(), 'style': style, 'rate': rate})
+
     def correct_transcript(self):
         text, ok = QInputDialog.getText(self, 'Correct transcript', 'Corrected text:', text=self.core.last_input[0])
         if ok and text: self.core.submit(text)
@@ -467,6 +617,7 @@ class Board(QMainWindow):
     def clear_context(self):
         self.core.cancel()
         self.core.history.clear()
+        self.core.memory.clear_working_context()
         self.core.inspector = None
         self.notice('Working context cleared; durable memories are unchanged.')
 
@@ -686,6 +837,9 @@ class Board(QMainWindow):
                        context_tokens=self.settings['context'], gpu_layers=self.settings['gpu_layers'],
                        queued_turns=core.queue.qsize(), queued_speech=core.audio.speech.qsize())
         self.performance.setPlainText(json.dumps(metrics, indent=2))
+        unity=core.unity
+        self.unity_status.setText('Bridge: '+('connected' if unity.connected else 'listening' if unity.ready.is_set() else 'disabled')+
+                                 '\n'+(unity.error or str(unity.status) or 'No Unity renderer is connected.'))
         query = self.log_filter.text()
         if query != '__inspector__':
             self.logs.setPlainText('\n'.join(json.dumps(row) for row in list(core.journal.recent)[-100:] if query.lower() in json.dumps(row).lower()))

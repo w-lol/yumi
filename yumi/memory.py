@@ -49,7 +49,7 @@ class Memory:
         if contains_secret(content):raise ValueError('Do not store credentials as conversational memory')
         if not content.strip() or len(content) > 16000:
             raise ValueError('Memory must contain 1–16000 characters')
-        if kind not in ('fact', 'preference', 'episode', 'inference', 'task', 'observation'):
+        if kind not in ('fact', 'preference', 'episode', 'inference', 'task', 'observation','reference'):
             raise ValueError('Invalid memory type')
         identifier = identifier or uuid.uuid4().hex
         timestamp = time.time()
@@ -148,6 +148,32 @@ class Memory:
             rows = self.db.execute('SELECT * FROM messages WHERE content LIKE ? ORDER BY created DESC LIMIT ?',
                                    ('%' + query + '%', min(limit, 500))).fetchall()
             return [dict(r) for r in rows]
+
+    def recent_dialogue(self, limit=24, chars=10000, days=90):
+        """Restore a bounded conversation, conservatively respecting forget/clear."""
+        with self.lock:
+            forgotten=self.db.execute('SELECT MAX(deleted) FROM tombstones').fetchone()[0] or 0
+            cleared=self.db.execute("SELECT value FROM meta WHERE key='context_clear_after'").fetchone()
+            cutoff=max(forgotten,float(cleared[0]) if cleared else 0,time.time()-days*86400)
+            rows=self.db.execute("SELECT role,content FROM messages WHERE role IN ('user','assistant') AND created>? ORDER BY created DESC,rowid DESC LIMIT ?",(cutoff,min(48,limit))).fetchall()
+            result=[]
+            for row in rows:
+                text=redact(row['content'])
+                if len(text)>chars:break
+                result.append({'role':row['role'],'content':text});chars-=len(text)
+            return list(reversed(result))
+
+    def clear_working_context(self):
+        with self.lock,self.db:
+            self.db.execute("INSERT OR REPLACE INTO meta VALUES('context_clear_after',?)",(str(time.time()),))
+
+    def core_context(self, chars=2300):
+        with self.lock:
+            rows=self.db.execute("SELECT * FROM memories WHERE pinned=1 AND kind!='reference' AND (expires IS NULL OR expires>?) ORDER BY CASE kind WHEN 'episode' THEN 0 ELSE 1 END,updated DESC LIMIT 12",(time.time(),)).fetchall()
+            result=[]
+            for row in rows:
+                if len(row['content'])<=chars:result.append(dict(row));chars-=len(row['content'])
+            return result
 
     def clear_history(self):
         with self.lock, self.db:

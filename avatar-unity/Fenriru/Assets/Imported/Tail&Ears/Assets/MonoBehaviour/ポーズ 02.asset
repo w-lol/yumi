@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3ab6c03d9a8dda3fead460250622100, type: 3}
+  m_Name: ポーズ 02(Clone)
+  m_EditorClassIdentifier:
+  controls:
+  - name: 着地
+    icon: {fileID: 2800000, guid: dbe318a808e81c744af2f129790df3a9, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.503
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ドヤ
+    icon: {fileID: 2800000, guid: 73448c9762c25fd428baba6c3483fdc7, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.505
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 駆ける
+    icon: {fileID: 2800000, guid: 5232965c2ca2fe844aa6c57e46ed10fe, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.508
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: 踏み込み
+    icon: {fileID: 2800000, guid: 1fe9b136ff414c448b89fd382ae0bec3, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.502
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ハイキック
+    icon: {fileID: 2800000, guid: f5bd22cec6f7ca4478ccb38b6a18f4d5, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.504
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: エアロバイク
+    icon: {fileID: 2800000, guid: ae05f4cc21821ac43b156fea5a1ea4a7, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.501
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ハイタッチ(右)
+    icon: {fileID: 2800000, guid: b4298600a06f8c142ab16bd4e672b7ca, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.506
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []
+  - name: ハイタッチ(左)
+    icon: {fileID: 2800000, guid: 8340a810646d75647a7a91745cebdf31, type: 3}
+    type: 102
+    parameter:
+      name: StandReplace
+    value: 0.507
+    style: 0
+    subMenu: {fileID: 0}
+    subParameters: []
+    labels: []

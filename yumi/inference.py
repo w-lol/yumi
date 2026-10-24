@@ -9,6 +9,7 @@ import time
 import uuid
 from collections import deque
 import httpx
+from .model_profiles import model_paths
 
 
 class FinalTextFilter:
@@ -86,9 +87,7 @@ class LocalModel:
         self.stop()
         executable = 'llama-server.exe' if os.name == 'nt' else 'llama-server'
         candidates = list((self.paths.root / 'runtime' / 'llama').rglob(executable))
-        model_files = list((self.paths.models / 'chat').glob('*.gguf'))
-        model = next((p for p in model_files if 'mmproj' not in p.name), None)
-        projector = next((p for p in model_files if 'mmproj' in p.name), None)
+        model,projector=model_paths(self.paths.root,self.settings['chat_profile'])
         if not candidates or not model:
             raise RuntimeError('Local model/runtime missing. Run setup or Repair. Text controls and memory remain available.')
         with socket.socket() as sock:
@@ -102,7 +101,7 @@ class LocalModel:
                    '--port', str(self.port), '--api-key-file', str(key_file),
                    '-c', str(self.settings['context']), '-ngl', str(self.settings['gpu_layers']),
                    '-t', str(self.settings['threads']), '--parallel', '1', '--log-disable',
-                   '--reasoning', 'off', '--chat-template-kwargs', '{"enable_thinking":false}']
+                   '--reasoning', 'off','--jinja', '--chat-template-kwargs', '{"enable_thinking":false}']
         if projector:
             command.extend(['--mmproj', str(projector)])
         flags = subprocess.CREATE_NO_WINDOW if os.name == 'nt' else 0
@@ -135,18 +134,20 @@ class LocalModel:
         self.stop()
         raise TimeoutError('Model startup exceeded 180 seconds')
 
-    def stream(self, messages, cancel, max_tokens=None):
+    def stream(self, messages, cancel, max_tokens=None, tools=None, on_tool=None):
         if not self.ready or not self.process or self.process.poll() is not None:
             self.ready = False
             raise RuntimeError('Local model is unavailable; use Restart')
         with self.lock:
             with httpx.Client(trust_env=False, timeout=httpx.Timeout(90, connect=3)) as client:
+                payload={'messages': messages, 'stream': True,'temperature': self.settings['temperature'],
+                         'top_p':.9,'repeat_penalty':1.05,'chat_template_kwargs': {'enable_thinking': False},
+                         'max_tokens': max_tokens or self.settings['max_tokens']}
+                if tools:payload.update(tools=tools,tool_choice='auto')
+                calls={}
                 with client.stream('POST', self.url + '/v1/chat/completions',
                                    headers={'Authorization': 'Bearer ' + self.key},
-                                   json={'messages': messages, 'stream': True,
-                                         'temperature': self.settings['temperature'],
-                                         'chat_template_kwargs': {'enable_thinking': False},
-                                         'max_tokens': max_tokens or self.settings['max_tokens']}) as response:
+                                   json=payload) as response:
                     self.response = response
                     response.raise_for_status()
                     clean = FinalTextFilter()
@@ -163,10 +164,22 @@ class LocalModel:
                             if not choices:
                                 continue
                             delta = choices[0].get('delta', {})
+                            if tools:
+                                for part in delta.get('tool_calls') or []:
+                                    index=part.get('index',0)
+                                    if not isinstance(index,int) or not 0<=index<4:raise ValueError('Too many tool calls')
+                                    call=calls.setdefault(index,{'id':'','type':'function','function':{'name':'','arguments':''}})
+                                    if part.get('id'):call['id']=str(part['id'])[:120]
+                                    function=part.get('function') or {}
+                                    for key in ('name','arguments'):
+                                        call['function'][key]+=function.get(key) or ''
+                                        if len(call['function'][key])>4096:raise ValueError('Tool call exceeds limit')
                             # reasoning_content and tool_calls are never delivered.
                             text = clean.feed(delta.get('content') or '')
                             if text:
                                 yield text
+                        if on_tool and not cancel.is_set():
+                            for call in calls.values():on_tool(call)
                     finally:
                         self.response = None
 
